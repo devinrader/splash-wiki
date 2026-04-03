@@ -45,10 +45,6 @@ flowchart TB
   serial <--> rs485
 ```
 
-![Architecture topology](./images/architecture-topology.png)
-
-Caption: High-level host and service topology. The source document places this diagram alongside the service-architecture section.
-
 TODO: The original document says the living architecture diagram also exists in the repository or a design tool, but no separate source artifact was embedded in `splash.docx`.
 
 ## Service boundaries

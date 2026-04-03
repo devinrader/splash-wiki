@@ -6,4 +6,3 @@
 - [Protocols](Protocols)
 - [Workflows](Workflows)
 - [Research](Research)
-- [Migration Status](Migration-Status)

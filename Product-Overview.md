@@ -76,10 +76,6 @@ Longer-term platform direction:
 - Minimal friction for common actions like logging chemistry or approving automation
 - Status communicated consistently with green, amber, and red indicators
 
-![UI navigation map](./images/ui-navigation-map.png)
-
-Caption: UI navigation map extracted from the source document. It represents the primary and secondary screen structure described for the web app.
-
 ## Primary screens
 
 - Dashboard

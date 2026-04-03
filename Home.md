@@ -1,8 +1,6 @@
 # Splash Wiki
 
-This wiki is the primary design authority for Splash.
-
-The canonical design corpus is being migrated here from the repository-local `/docs` directory.
+This wiki is the primary design authority and canonical design corpus for Splash.
 
 ## Navigation
 
@@ -13,9 +11,8 @@ The canonical design corpus is being migrated here from the repository-local `/d
 - [Protocols](Protocols)
 - [Workflows](Workflows)
 - [Research](Research)
-- [Migration Status](Migration-Status)
 
 ## Authority Model
 
 - This wiki is the primary source of truth for product, architecture, interface, workflow, and protocol design.
-- Repository-local `/docs` remains only for Codex and agent contract material plus temporary migration guidance.
+- Repository-local `/docs` remains only for minimal Codex and agent contract material.
