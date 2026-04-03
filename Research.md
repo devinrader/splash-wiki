@@ -4,4 +4,4 @@ This section holds experiment-driven notes that are not yet stable enough for th
 
 ## Pages
 
-- [Pentair EasyTouch Reverse Engineering](Research/Pentair-EasyTouch-Reverse-Engineering)
+- [Pentair EasyTouch Reverse Engineering](Research-Pentair-EasyTouch-Reverse-Engineering)
