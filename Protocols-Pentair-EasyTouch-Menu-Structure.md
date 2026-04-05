@@ -1,0 +1,170 @@
+# Pentair EasyTouch 8 Menu Structure
+
+## Top-Level Menu
+
+- [ ] `Feature Circuits` (Feature names display assigned circuit name)
+  - [ ] `FEATURE 1`
+    - `[OFF|ON]`
+  - [ ] `FEATURE 2`
+    - `[OFF|ON]`
+  - [ ] `FEATURE 3`
+      - `[OFF|ON]`
+  - [ ] `FEATURE 4`
+      - `[OFF|ON]`
+  - [ ] `FEATURE 5`
+      - `[OFF|ON]`
+  - [ ] `FEATURE 6`
+      - `[OFF|ON]`
+  - [ ] `FEATURE 7`
+      - `[OFF|ON]`
+  - [ ] `FEATURE 8`
+      - `[OFF|ON]`
+- [ ] `Lights`
+  - [ ] `Modes`
+    - [ ] `Party Mode`
+    - [ ] `Romance Mode`
+    - [ ] `Caribbean Mode`
+    - [ ] `American Mode`
+    - [ ] `California Sunset Mode`
+    - [ ] `Royal Mode`
+    - [ ] `Hold`
+    - [ ] `Recall`
+    - [ ] `Color Swim`
+    - [ ] `Color Set`
+  - [ ] `Colors`
+    - [ ] `Blue`
+    - [ ] `Green`
+    - [ ] `Red`
+    - [ ] `White`
+    - [ ] `Magenta`
+    - [ ] `Hold`
+    - [ ] `Recall`
+    - [ ] `Color Swim`
+    - [ ] `Color Set`
+  - [ ] `All On`
+  - [ ] `All Off`
+  - [ ] `MagicStream`
+    - [ ] `Toggle Thumper`
+    - [ ] `Hold`
+    - [ ] `Reset`
+    - [ ] `Change Mode`
+  - [ ] `Sync`
+  - [ ] `Config`
+    - [ ] `1 (None|Lights)`
+        - [ ] Color List
+        - [ ] Position (1-12)
+        - [ ] `Delay (0-60 secs)`
+    - [ ] 2
+    - [ ] 3
+    - [ ] 4
+    - [ ] 5
+    - [ ] 6
+    - [ ] 7
+    - [ ] 8
+- [ ] `Heat`
+  - [ ] `Pool Temp/Src`
+    - [ ] `Max temp (F)` (int)
+    - [ ] `Set temp (F)` (int)
+    - [ ] `Heat (Heater|Off)`
+  - [ ] `Spa Temp/Src`
+    - [ ] `Set Temp` (int)
+    - [ ] `Heat (Heater|Off)`
+- [ ] `Delay Cancel`
+- [ ] `Schedules`
+  - `Circuits 1-18 (schedule count)`
+    - `[ ] Mode (New|None|Schedule|EggTimer|Time|OnlyOnce|Delete)`
+      - Schedule Mode
+        - [ ] `Start (time)`
+        - [ ] `Stop (time)`
+        - [ ] `Days (SMTWTFS)`
+- [ ] `Settings`
+  - [ ] `Clock`
+    - [ ] `Page 1`
+      - Set current datetime (M/D/Y/day/H/M/AMPM)
+    - [ ] `Page 2`
+      - [ ] `DST (Man|Auto)`
+      - [ ] `Clock Advance` (int)
+  - [ ] `Pentair Pump`
+    - [ ] `Pump #1`
+      - [ ] `Pump Type (VF|VS|VSF|None)`
+        - VS
+          - [ ] `Speeds (1-8)`
+            - [ ] 1
+              - [ ] `RPM` (int)
+              - [ ] `Circuit Name`
+            - [ ] 8
+          - [ ] `Priming`
+            - [ ] `Time` (int)
+            - [ ] `Speed` (int)
+          - [ ] `Status`
+            - [ ] `RPM`
+            - [ ] `Watts`
+            - [ ] `Status (Normal|Stopped)`
+        - VSF
+          - [ ] `Flow/Speed (1-8)`
+            - [ ] `GPM` (int)
+            - [ ] `Status (Normal|Stopped)`
+          - [ ] `Status`
+        - VF
+          - [ ] `Filter Circuit`
+            - [ ] `Flows`
+              - [ ] `GPM` (int)
+              - [ ] `Circuit`
+          - [ ] `Filtering`
+            - [ ] `Size` (int)
+            - [ ] `Turns` (int)
+            - [ ] `Man Filter` (int)
+          - [ ] `Priming`
+            - [ ] `Max flow` (int)
+            - [ ] `Max time` (int)
+            - [ ] `Sys time` (int)
+          - [ ] `Backwash`
+            - [ ] `Clean Filter` (int)
+            - [ ] `Flow GPM` (int)
+            - [ ] `Duration` (int)
+          - [ ] `Vacuum`
+            - [ ] `Flow` (int)
+            - [ ] `Time` (int)
+          - [ ] `Status`
+    - [ ] `Pump #2`
+      - Same as pump 1
+  - [ ] `IntelliChlor`
+    - [ ] `Page 1`
+      - [ ] `Enabled (yes|no)`
+      - [ ] `Pool Mode` (%)
+      - [ ] `Spa Mode` (%)
+    - [ ] `Page 2`
+      - [ ] `Super (on|off)`
+      - [ ] `Run Hours` (int)
+  - [ ] `IntelliChem`
+  - [ ] `Heat Pump COM`
+  - [ ] `Circuit Names`
+  - [ ] `Circuit Functions`
+  - [ ] `Custom Names`
+  - [ ] `Valves`
+  - [ ] `Ultratemp ETi`
+  - [ ] `2-Speed Pump`
+  - [ ] `Solar`
+  - [ ] `Delays`
+  - [ ] `English/Metric°`
+  - [ ] `iS4 Spa-Side Remote Controller`
+  - [ ] `10 Button Spa-Side Remote Controller`
+  - [ ] `10 Button Pump Cntrl`
+  - [ ] `QuickTouch (QT4) Wireless Remote`
+  - [ ] `Man Heat (on|off)`
+  - [ ] `Calibration`
+  - [ ] `Erase EEPROM`
+  - [ ] `Set Password`
+  - [ ] `Wireless Addr`
+- [ ] `Diagnostics`
+  - [ ] `Software Rev`
+  - [ ] `Bootloader Rev`
+  - [ ] `Self Test`
+  - [ ] `Chlorinator`
+  - [ ] `Water Temp`
+  - [ ] `Solar Temp`
+  - [ ] `Air Temp`
+  - [ ] `Cir Name [Off/On]`
+  - [ ] `Reset System`
+  - [ ] `Flash Update`
+- [ ] `Spa Side [Off/On]`

@@ -46,6 +46,18 @@ Longer-term platform direction:
 - the operator should not need to rely on EasyTouch scheduling for normal
   operation once Splash scheduling is implemented
 - pump-speed scheduling is the most important early scheduling replacement goal
+- Splash should also support an explicit scheduling mode choice so the operator
+  can choose either:
+  - controller-native scheduling, where Splash programs or cooperates with the
+    controller's built-in schedules
+  - Splash-native scheduling, where Splash becomes the scheduling authority and
+    the controller schedule can remain minimal or unused
+- Splash should define machine-readable equipment-parameter data so the product
+  can understand and explain model-specific limits such as circuit inventory,
+  valid assigned names, supported functions, and other hardware constraints
+- Splash should support syncing controller clocks such as the EasyTouch clock
+  from the Splash system clock so controller-native schedules and timestamps
+  stay aligned with the platform
 
 ### In scope
 
@@ -110,7 +122,7 @@ The application uses a persistent left sidebar on desktop and a collapsed or bot
 1. Initial implementation slice: Raspberry Pi hosts, RS-485 communication, protocol decode, minimal API and frontend, persistence or logging for live temperatures, salt, and pump RPM, plus browser pump-circuit RPM control
 2. Core platform expansion: chemistry screen, equipment screen, dashboard, notification delivery, and broader normalized equipment coverage
 3. Remaining v1 features: maintenance reminders, seasonal checklists, task list, predictive rules, cover tracking, SLAM workflow, Protocol Explorer, and rainfall tracking
-4. Future roadmap: dosing recommendations, usage-based maintenance, autonomous automation, predictive fault detection, energy optimization, dark mode, and virtual or mock pool simulation for hardware-free testing and demos
+4. Future roadmap: scheduling-mode selection between controller-native and Splash-native scheduling, machine-readable equipment-parameter definitions and UI surfacing of equipment limits, controller clock sync from Splash system time, dosing recommendations, usage-based maintenance, autonomous automation, predictive fault detection, energy optimization, dark mode, and virtual or mock pool simulation for hardware-free testing and demos
 
 Developer-note:
 

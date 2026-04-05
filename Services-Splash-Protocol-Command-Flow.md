@@ -77,14 +77,25 @@ Current EasyTouch read-before-write evidence:
   - payload byte `1` = pump type
   - the reply behaves like a full pump-slot configuration read
 
+Application-versus-protocol rule:
+
+- read-before-write in Splash is an application safety rule, not a general
+  Pentair protocol requirement
+- some Pentair write-capable actions can be sent directly on the wire without a
+  preceding read
+- Splash should still prefer a fresh live baseline before controller
+  configuration writes so the application does not overwrite unrelated state
+  from stale assumptions
+
 Rules:
 
 - the sequence should remain part of one normalized command lifecycle
 - the equipment is the primary source of configuration truth for config writes
 - Splash must not trust a cached or previously observed pump configuration when
   encoding a live controller config write
-- every live config write must begin from a fresh live read of the current
-  equipment/controller configuration, even if Splash maintains a local cache
+- every Splash-managed live config write must begin from a fresh live read of
+  the current equipment/controller configuration, even if Splash maintains a
+  local cache
 - controller-status circuit discovery is a prerequisite, not an optional hint,
   for the first controller-managed implementation
 - all writes in the sequence should carry the same `command_id`
@@ -212,6 +223,8 @@ Safety rule:
   future automated flows should prefer read-modify-write from a fresh live
   controller baseline rather than constructing a full config block from cached
   or inferred local state
+- this is a Splash application safety policy; it should not be mistaken for a
+  claim that the underlying Pentair protocol always requires a preceding read
 
 ## Result stages
 

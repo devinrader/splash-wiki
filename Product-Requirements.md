@@ -63,10 +63,26 @@ below. It is the first implementation target that validates:
 - Splash should ultimately own normal pool-equipment scheduling so the operator
   does not need to rely on EasyTouch scheduling for day-to-day pump-speed and
   related equipment schedule changes
+- Splash should support a user-selectable scheduling strategy so the operator
+  can choose either controller-native schedule management or Splash-native
+  schedule management depending on equipment capability and preference
+- when controller-native scheduling is selected, Splash should provide a way to
+  view, manage, or coordinate with controller schedules rather than assuming
+  Splash is always the only scheduling authority
 - Log maintenance history and surface upcoming service dates
 - Resolve each controllable equipment instance to zero or one capability profile in v1
 - Validate UI controls and normalized commands against effective per-equipment capabilities rather than equipment type alone
 - Ship an initial capability-profile catalog that includes generic fallbacks and Pentair-family v1 profiles for controller circuits, pumps, heaters, and chlorinators
+- Define a machine-readable equipment-parameter documentation format that can
+  describe model-specific limits, options, and inventories for supported pool
+  equipment
+- Use that equipment-parameter format to surface equipment limits in the Splash
+  UI so both Splash and the operator understand constraints such as available
+  EasyTouch 8 system circuits, valid assigned names, or supported function
+  choices
+- Support controller clock synchronization so Splash can set supported
+  controller clocks, such as the EasyTouch clock, to the Splash system time
+  when the operator chooses to keep controller-native schedules aligned
 
 ### Automation
 
@@ -111,6 +127,9 @@ below. It is the first implementation target that validates:
 - Ensure command lifecycle tracking distinguishes encode, transmit, and protocol-level completion states
 - Maintain authoritative reference documentation for all known pool-equipment communication protocols, including supported, partial, and planned integrations
 - Support profile-based capability mapping so protocol plugins can expose richer vendor-specific capabilities without collapsing to a lowest common denominator
+- Support machine-readable equipment-parameter definitions alongside protocol
+  reference docs so UI, validation, and operator guidance can share one
+  structured source of truth for equipment limits
 - Preserve native serial read boundaries in the raw transport contract rather than introducing frame-aware buffering in `splash-serial`
 - Define an explicit transport-facing outbound write contract from `splash-protocol` to `splash-serial`
 - Future platform work should support virtual or mock pool equipment so users

@@ -316,9 +316,12 @@ flowchart TD
   for read efficiency and operator context
 - cached protocol configuration must be treated as a secondary working copy, not
   as the primary source of truth for live equipment-configuration writes
-- before any protocol-level equipment configuration change is encoded,
+- before any Splash-managed equipment configuration change is encoded,
   `splash-protocol` must fetch a fresh live configuration read from the target
   equipment/controller and build the outgoing write from that fresh baseline
+- this is an application design rule for Splash safety and stale-state
+  avoidance, not a blanket statement that the underlying protocol forbids
+  direct write actions without a preceding read
 
 ### Plugin resolution rules
 

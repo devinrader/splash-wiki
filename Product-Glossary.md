@@ -64,12 +64,72 @@ The primary automation or equipment control unit that coordinates other pool equ
 
 A controller-managed logical output or function, such as pool, spa, aux, or light control, typically surfaced through `pool_circuits`.
 
-Circuit type and circuit name are not the same thing. The type describes the
-controller behavior, while the name is the user-visible label. On Pentair
-systems, virtual Feature circuits are often named for pump-speed purposes such
-as `POOL LOW` or `POOL HIGH` without becoming fixed `pool` circuits. AUX and
-Feature circuits may be renamed freely, but renaming `pool` or `spa` does not
-change their underlying controller behavior.
+Circuit type, circuit type name, circuit name, and circuit function are not the same thing.
+
+- circuit type:
+  the broad controller category, such as `fixed`, `relay`, or `feature`
+- circuit type name:
+  the standard built-in controller-facing name used for that circuit position,
+  such as fixed-circuit `POOL` or `SPA`, relay-circuit `AUX 1-7` and
+  `AUX EXTRA`, or feature-circuit `FEATURE 1-8`
+- circuit name:
+  the current user-visible or controller-visible label associated with a
+  circuit, which may remain at its built-in type name or may be renamed
+- circuit function:
+  the controller-defined behavioral role carried by configuration values such
+  as `functionId`
+
+On Pentair systems, virtual Feature circuits are often given circuit names for
+pump-speed purposes such as `POOL LOW` or `POOL HIGH` without becoming fixed
+circuits. AUX and Feature circuits may be renamed freely, but renaming `POOL`
+or `SPA` does not change their underlying controller behavior.
+
+Common Pentair EasyTouch circuit-type context:
+- fixed circuits: controller-defined circuits with stable built-in roles
+- relay circuits: controller-managed relay outputs, often surfaced as AUX circuits
+- feature circuits: virtual controller-managed circuits often used for logic,
+  pump-speed selection, or named features rather than direct relay switching
+
+On EasyTouch, the two fixed circuit types are `POOL` and `SPA`.
+
+On EasyTouch 8, Splash currently treats the controller circuit inventory as:
+
+| Circuit type | Count | Circuit indexes | Default labels / notes |
+| --- | --- | --- | --- |
+| fixed | `2` | `1-2` | `POOL`, `SPA` |
+| relay | `8` | `3-9`, `18` | `AUX 1-7`, `AUX EXTRA` |
+| feature | `8` | `10-17` | `FEATURE 1-8` |
+| total | `18` | `1-18` | Full EasyTouch 8 circuit inventory |
+
+### `circuit index`
+
+A protocol- or controller-specific positional identifier used to select or enumerate a circuit entry in a controller-owned list.
+
+A circuit index is not the same thing as a circuit name, circuit id, or circuit function. In Pentair controller-family request/reply flows, the circuit index is often a request-side selector such as the 1-based index used to fetch one circuit-configuration entry at a time.
+
+### `circuit id`
+
+A protocol- or controller-level identifier carried inside a circuit record to identify which circuit that record describes.
+
+A circuit id is not the same thing as a circuit index. The index identifies where an entry appears in a controller-owned list, while the circuit id identifies which circuit the returned entry represents.
+
+### `circuit name`
+
+The user-visible or controller-visible label associated with a circuit, such as `POOL`, `SPA`, `AUX 1`, or a custom name.
+
+A circuit name is not the same thing as a circuit type name or circuit function. The name is the label shown to users or returned through protocol name-reference mechanisms, while the circuit type name is the standard built-in controller name for that circuit position and the function determines how the controller treats the circuit behaviorally.
+
+### `circuit type name`
+
+The standard built-in controller-facing name normally associated with a circuit position, such as `POOL`, `SPA`, `AUX 1`, `FEATURE 6`, or `AUX EXTRA`.
+
+A circuit type name is not the same thing as a circuit function. It identifies the normal built-in naming for a circuit position or category, while the circuit function identifies controller behavior. A circuit type name may also differ from the current circuit name when the controller allows renaming.
+
+### `circuit function`
+
+The controller-defined behavioral role of a circuit, such as pool, spa, cleaner, light, feature, heater, spillway, or valve actuator.
+
+A circuit function is not the same thing as a circuit name. On Pentair systems, the function is carried by controller configuration values such as `functionId` and remains behavior-critical even if the visible circuit name is changed.
 
 ### `pump`
 
