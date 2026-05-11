@@ -26,9 +26,17 @@ This document captures testing, observability, and operational guidance that sup
 - `splash-serial` should expose Prometheus metrics for connection state, reconnect count, bytes read, bytes written, write failures, and current stream age
 - `splash-serial` should also expose RS-485 message counters so Prometheus can derive receive and transmit rates from monotonic counters
 - `splash-serial` should expose `GET /healthz` and `GET /metrics` over its local HTTP listener
+- `splash-serial` should also expose `GET /readyz` and `GET /health` for
+  semantic service aggregation
 - `splash-protocol` should expose `GET /healthz` and `GET /metrics` over its local HTTP listener
+- `splash-protocol` should also expose `GET /readyz` and `GET /health` for
+  semantic service aggregation
 - `splash-protocol` should expose metrics for frame decode success or failure, normalized event publication, command-result status, and command-correlation timeouts
 - `splash-api` should remain the browser-visible aggregation boundary for dashboard-facing health and connectivity summaries even when Grafana is present for operator diagnostics
+- `splash-api` should expose `GET /platform/status` as the authoritative
+  browser-facing semantic health source
+- Prometheus and Grafana should remain operator observability tools, not the
+  frontend's direct health authority
 
 ## Backup and recovery
 

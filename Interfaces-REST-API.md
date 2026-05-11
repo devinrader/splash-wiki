@@ -67,32 +67,59 @@
 | `/settings` | `GET`, `PUT` | User preferences |
 | `/events` | `GET` as SSE | Main frontend event stream |
 | `/health` | `GET` | Service and dependency health |
+| `/healthz` | `GET` | Process liveness |
+| `/readyz` | `GET` | Service readiness |
+| `/platform/status` | `GET` | Aggregated platform service health |
 | `/setup/status` | `GET` | Onboarding status |
 | `/setup/complete` | `POST` | Finalize onboarding |
 
 ## Health contract
 
-`GET /health` returns dependency-aware service state:
+Splash-owned services should expose:
+
+- `GET /healthz`
+- `GET /readyz`
+- `GET /health`
+- `GET /metrics`
+
+`GET /healthz` returns `200` when the process is alive.
+
+`GET /readyz` returns `200` only when the service can perform its primary role.
+
+`GET /health` returns dependency-aware rich service state:
 
 ```json
 {
-  "status": "ok",
-  "dependencies": {
-    "postgres": "ok",
-    "influxdb": "ok",
-    "nats": "ok"
+  "status": "healthy",
+  "message": "Service is ready",
+  "checks": {
+    "nats": {
+      "status": "healthy"
+    }
   },
-  "uptime_seconds": 3600
+  "last_checked": "2026-05-11T18:00:00.000Z"
 }
 ```
 
-`status` may be `ok`, `degraded`, or an HTTP `503` response if the service cannot operate.
+Canonical health values are:
+
+- `healthy`
+- `degraded`
+- `unhealthy`
+- `down`
+- `unknown`
+
+`GET /platform/status` returns the browser-facing aggregated platform health
+defined in [Service Health Architecture](Architecture-Service-Health).
 
 ## API design notes
 
 - The onboarding wizard is frontend-driven and only persists actual domain objects plus `POST /setup/complete`
 - Automation approval executes prebuilt normalized command intent rather than reconstructing protocol frames in the API
-- Error and degraded-state UX should derive from SSE connection state and API responses rather than dedicated polling endpoints
+- Error and degraded-state UX should derive from API responses and SSE
+  connection state together; `GET /platform/status` is the authoritative
+  browser-facing semantic health source while SSE remains the live event
+  transport
 - The initial implementation should expose enough latest-state and control
   surface to support a browser view of air temperature, water temperature, salt
   level, and pump RPM plus a controller-managed pump-circuit RPM control action

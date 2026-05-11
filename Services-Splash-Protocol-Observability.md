@@ -7,6 +7,8 @@
 `splash-protocol` should expose:
 
 - `GET /healthz`
+- `GET /readyz`
+- `GET /health`
 - `GET /metrics`
 
 This HTTP surface should remain available even if NATS or the configuration
@@ -52,6 +54,42 @@ Health expectations:
 - active plugin identity should be visible
 - decode and command readiness should be distinguishable
 - machine-readable error codes should explain the current degraded condition
+
+### `GET /readyz` contract
+
+`GET /readyz` should return:
+
+- `200` when the service can consume raw transport events, decode with the
+  active protocol selection, and publish required normalized outputs
+- `503` when the process is alive but cannot perform that primary role
+
+### `GET /health` contract
+
+`GET /health` should return rich semantic health JSON suitable for
+`splash-api` aggregation.
+
+It should include:
+
+- canonical status in `healthy/degraded/unhealthy/down/unknown`
+- a human-readable summary message
+- per-check details for:
+  - process
+  - NATS
+  - configuration provider
+  - decoder readiness
+  - command readiness
+  - stream freshness when relevant
+
+Semantic service guidance:
+
+- `healthy`: reachable, NATS connected, active decoders loaded, and decode plus
+  publish path functioning
+- `degraded`: reachable and still decoding core traffic, but stream freshness,
+  plugin coverage, or decode quality indicators are impaired
+- `unhealthy`: reachable but unable to connect to NATS, load required decoder
+  state, or publish normalized events
+- `down`: unreachable
+- `unknown`: not yet evaluated or data stale
 
 ## Metrics expectations
 

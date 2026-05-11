@@ -7,6 +7,8 @@
 `splash-serial` should expose:
 
 - `GET /healthz`
+- `GET /readyz`
+- `GET /health`
 - `GET /metrics`
 
 This HTTP surface should remain available even if NATS is unavailable.
@@ -50,6 +52,31 @@ Additional health-field expectations:
 - `shutdown_reason`: the most recent explicit shutdown reason, or `null` while running
 - `last_transition_at`: timestamp of the most recent state transition
 
+### `GET /readyz` contract
+
+`GET /readyz` should return:
+
+- `200` when the service can perform its primary role of reading or writing the
+  configured RS-485 port and publishing required events
+- `503` when the service is alive but cannot perform that role
+
+### `GET /health` contract
+
+`GET /health` should return rich semantic health JSON suitable for
+`splash-api` aggregation.
+
+It should include:
+
+- canonical status in `healthy/degraded/unhealthy/down/unknown`
+- a human-readable summary message
+- per-check details for:
+  - process
+  - serial port
+  - NATS
+  - configuration
+  - traffic freshness when available
+- freshness timestamps and optional machine-readable error codes
+
 ## Health expectations
 
 Local health should reflect:
@@ -62,6 +89,17 @@ Local health should reflect:
 - whether the NATS dependency is currently connected
 - the current startup/runtime phase
 - the most recent machine-readable dependency error code when degraded
+
+Semantic service guidance:
+
+- `healthy`: serial port open, required configuration valid, NATS connected,
+  and transport pipeline functioning
+- `degraded`: serial port connected but NATS unavailable, or traffic stale
+  beyond a warning threshold while the process still runs
+- `unhealthy`: serial port cannot open, NATS is required but unavailable for
+  publication, or the read or write path cannot perform its primary role
+- `down`: service unreachable
+- `unknown`: service not yet evaluated or health data stale
 
 ## Metrics expectations
 

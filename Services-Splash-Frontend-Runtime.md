@@ -282,6 +282,9 @@ Cross-origin local development rule:
   - `NATS`
   - `splash-protocol`
   - `splash-frontend`
+  - `splash-api`
+  - `prometheus`
+  - `grafana`
 - each service row or card may show:
   - service name
   - current status
@@ -289,6 +292,27 @@ Cross-origin local development rule:
   - optional last-updated or detail text
 - when a service status is unavailable, the dashboard should show
   `Unavailable` rather than preserving stale placeholder text
+- the Platform view should use `GET /platform/status` rather than probing
+  platform services directly from the browser
+- the Platform view should show:
+  - overall platform status
+  - per-service status cards or rows
+  - last-checked time
+  - primary message or reason
+  - expandable per-check details
+  - stale-data warning when cached data is being shown
+- the frontend should cache the most recent successful
+  `GET /platform/status` response in browser storage
+- if `splash-api` is healthy, the dashboard should show live platform status
+- if `splash-api` is degraded, the dashboard should show a degraded banner and
+  render the current service details
+- if `splash-api` is unhealthy, the dashboard should warn that live platform
+  status may be incomplete and render last-known cached status when available
+- if `splash-api` is down, the dashboard should show `Splash API unavailable`,
+  retry automatically, and render last-known cached status with an explicit
+  stale timestamp when available
+- the frontend should not poll Grafana, Prometheus, NATS, `splash-serial`, or
+  `splash-protocol` directly for browser-visible health
 
 ## Command UX rules
 

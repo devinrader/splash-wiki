@@ -13,6 +13,8 @@ It should:
 - maintain an in-memory latest-state projection for the initial equipment slice
 - publish normalized `protocol.command.intent`
 - expose local dependency-aware health
+- aggregate platform-wide semantic health for Splash-owned and selected
+  third-party services
 - expose a lightweight runtime diagnostics slice for live operator-visible rate
   summaries
 
@@ -132,6 +134,55 @@ For the first browser milestone, `splash-api` should:
       record so frontend views can show cached firmware and bootloader values
     - keeping unresolved payload bytes visible as diagnostic data rather than
       projecting guessed meanings into equipment state
+20. expose authoritative platform service health by:
+    - maintaining a central health registry for Splash and third-party services
+    - probing or polling the registered service health adapters on a short
+      interval
+    - normalizing those results to the canonical
+      `healthy/degraded/unhealthy/down/unknown` model
+    - exposing `GET /platform/status` as the browser-facing aggregated health
+      source
+    - exposing local `/healthz`, `/readyz`, `/health`, and `/metrics`
+    - emitting Prometheus metrics for health-check state, duration, failures,
+      and freshness
+
+## Platform health aggregation
+
+`splash-api` is the authoritative browser-facing health aggregator.
+
+Responsibilities:
+
+- store a service registry that includes service name, type, criticality, and
+  health adapter configuration
+- check Splash-owned health endpoints rather than scraping frontend semantics
+  from Prometheus or Grafana
+- probe selected third-party targets such as NATS, Prometheus, and Grafana
+- retain recent health snapshots for stale-data fallback
+- compute overall platform rollup using service criticality
+- provide the result through `GET /platform/status`
+
+The initial registry should cover:
+
+- `grafana`
+- `prometheus`
+- `nats`
+- `splash-api`
+- `splash-serial`
+- `splash-frontend`
+- `splash-protocol`
+
+The API should support adapter-specific checkers for:
+
+- Splash-native `/health`
+- simple HTTP health probes
+- TCP probes
+- NATS probes
+- Prometheus probes
+- Grafana probes
+
+`GET /platform/status` should be safe to return partial results when some
+non-critical probes fail, as long as the response clearly marks those services
+`unknown`, `down`, `degraded`, or `unhealthy` as appropriate.
 
 ## Initial equipment catalog bridge
 
@@ -393,7 +444,10 @@ The first slice should at least support:
 - `GET /equipment`
 - `POST /equipment/:id/control`
 - `GET /events`
+- `GET /healthz`
+- `GET /readyz`
 - `GET /health`
+- `GET /platform/status`
 - `GET /protocol/frames`
 - `GET /protocol/bundles`
 - `POST /protocol/bundles`
