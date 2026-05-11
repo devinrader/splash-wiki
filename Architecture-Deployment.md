@@ -67,6 +67,9 @@ Rules:
 - local developer NATS must be reachable by the host-side `splash-serial`
 - local developer runs are valid for milestone-1 browser, API, and protocol
   validation
+- local helper bring-up may start `splash-frontend`, `splash-api`,
+  `splash-protocol`, and NATS together on the developer machine for one-command
+  dashboard validation
 - `splash-serial` remains host-deployed because the local development machine is
   not assumed to have the required FTDI or RS-485 TTY hardware
 - this topology is a development workflow, not the long-term production runtime
@@ -89,6 +92,7 @@ Rules:
 - API binds to `0.0.0.0:8080`
 - Frontend binds to `0.0.0.0:3000`
 - PostgreSQL, InfluxDB, and Prometheus remain internal-only
+- Prometheus scrape configuration should target `splash-protocol` on `splash-core` and `splash-serial` on its local health and metrics listener, with optional later targets for `splash-api` and NATS monitoring when those surfaces are formalized
 
 ### Pi Zero runtime
 

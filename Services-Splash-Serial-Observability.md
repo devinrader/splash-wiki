@@ -69,6 +69,8 @@ Prometheus metrics should include at least:
 
 - current connection state
 - reconnect count
+- RS-485 receive message count
+- RS-485 transmit message count
 - bytes read
 - bytes written
 - write failures
@@ -80,6 +82,8 @@ Initial metric names should be:
 
 - `splash_serial_connection_state`
 - `splash_serial_reconnect_total`
+- `splash_serial_rx_messages_total`
+- `splash_serial_tx_messages_total`
 - `splash_serial_bytes_read_total`
 - `splash_serial_bytes_written_total`
 - `splash_serial_write_failures_total`
@@ -92,12 +96,14 @@ Initial metric names should be:
 Metric guidance:
 
 - use gauges for current state and stream age
-- use counters for reconnects, bytes, and failures
+- use counters for reconnects, RS-485 messages, bytes, and failures
 - include labels only where they materially improve operability
 - ASSUMPTION: `write_result` is the primary label for `splash_serial_write_failures_total`
 - `error_code` should be the primary label for serial and NATS failure counters
 - `loop` should be the primary label for unexpected loop exits
 - `reason` should be the primary label for shutdown counters
+- Prometheus and Grafana should derive RS-485 receive and transmit rates from the monotonic message counters rather than from service-local gauges
+- local `GET /healthz` and `GET /metrics` should remain useful even when Prometheus or Grafana is absent
 
 ## Logging
 

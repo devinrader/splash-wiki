@@ -10,6 +10,9 @@ The initial `splash-api` slice should support:
 | --- | --- |
 | `API_POOL_ID` | Single-pool identifier used by the initial API slice |
 | `NATS_URL` | NATS connection target |
+| `API_NATS_MONITORING_URL` | Optional local NATS monitoring base URL, such as `http://127.0.0.1:8222`, used to derive broker-level NATS throughput from `/varz` |
+| `API_SERIAL_HEALTH_URL` | Optional `splash-serial` health endpoint, such as `http://10.0.40.54:9108/healthz`, used for platform service aggregation |
+| `API_PROTOCOL_HEALTH_URL` | Optional `splash-protocol` health endpoint, such as `http://127.0.0.1:9109/healthz`, used for platform service aggregation |
 | `API_HTTP_BIND` | Local HTTP bind address |
 | `LOG_LEVEL` | Structured log verbosity |
 | `TZ` | Service timezone |

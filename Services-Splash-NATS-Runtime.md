@@ -49,3 +49,19 @@ Primary clients:
 Operational consumer:
 
 - platform operators using logs, health, and metrics for troubleshooting
+
+## Monitoring role
+
+The existing NATS monitoring listener should remain the authoritative source
+for broker-wide NATS traffic statistics.
+
+Rules:
+
+- Splash services may consume NATS monitoring data such as `/varz` to derive
+  broker-level inbound and outbound message rates for operator-facing
+  diagnostics
+- broker-wide rates from NATS monitoring must remain distinct from
+  service-local publish and subscribe counters exposed by individual Splash
+  services
+- the NATS monitoring listener should remain locally scoped or otherwise access
+  controlled; it must not be treated as a public unauthenticated LAN API

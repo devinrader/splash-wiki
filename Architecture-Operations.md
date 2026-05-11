@@ -20,11 +20,15 @@ This document captures testing, observability, and operational guidance that sup
 - ASSUMPTION: TypeScript services will use a structured logger such as `pino`, while `splash-serial` will use `zerolog`
 - Docker log rotation is required to avoid unbounded growth on embedded storage
 - Prometheus scrapes service metrics
+- Grafana is the recommended operator-facing visualization layer for Prometheus metrics, but it should remain a visualization tool rather than a browser-facing application API dependency
 - the most valuable first alert is RS-485 frame rate dropping to zero
+- the first platform metrics slice should focus on RS-485 connectivity and message activity before adding broader broker or host dashboards
 - `splash-serial` should expose Prometheus metrics for connection state, reconnect count, bytes read, bytes written, write failures, and current stream age
+- `splash-serial` should also expose RS-485 message counters so Prometheus can derive receive and transmit rates from monotonic counters
 - `splash-serial` should expose `GET /healthz` and `GET /metrics` over its local HTTP listener
 - `splash-protocol` should expose `GET /healthz` and `GET /metrics` over its local HTTP listener
 - `splash-protocol` should expose metrics for frame decode success or failure, normalized event publication, command-result status, and command-correlation timeouts
+- `splash-api` should remain the browser-visible aggregation boundary for dashboard-facing health and connectivity summaries even when Grafana is present for operator diagnostics
 
 ## Backup and recovery
 
@@ -37,4 +41,5 @@ This document captures testing, observability, and operational guidance that sup
 ## Operational notes
 
 - Prometheus metrics are included in the architecture, while Grafana is recommended but not part of the base v1 topology
+- when Grafana is present, it should read from Prometheus for operator dashboards rather than becoming the frontend's direct metrics backend
 - mDNS reliability should be validated on the target LAN, with reserved-IP fallback documented if needed

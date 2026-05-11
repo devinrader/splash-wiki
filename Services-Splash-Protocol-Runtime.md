@@ -15,6 +15,8 @@ It should:
 - maintain command-correlation state for active commands
 - discover a process-local registry of protocol plugins at startup from the
   local packaged plugin set or plugin directory
+- maintain service-local counters for observed transport, protocol, and NATS
+  activity so `/metrics` can report real values rather than placeholders
 
 ## Runtime state machine
 
@@ -250,3 +252,23 @@ Rules:
 - unexpected clean loop exits must be logged and surfaced through degraded health
 - loss of the HTTP surface is fatal
 - loss of NATS, config provider, or live stream state is degraded, not fatal
+
+## Metrics expectations
+
+`splash-protocol` should expose service-local counters through `GET /metrics`.
+
+Rules:
+
+- broker-wide NATS monitoring remains the responsibility of the NATS monitoring
+  endpoint, not `splash-protocol`
+- `splash-protocol` metrics should describe what this service observed or
+  published
+- at minimum, the first real metrics slice should count:
+  - observed `serial.rx.raw` messages
+  - observed `serial.tx.raw` messages
+  - published decoded frames
+  - published unidentified frames
+  - observed NATS messages received by the service
+  - published NATS messages sent by the service
+- Prometheus-style rates should be derived outside the service from those
+  counters rather than emitted as independent gauge rates
