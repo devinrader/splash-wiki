@@ -150,6 +150,32 @@ Interpretation note:
 | `17` | `feature` | `Feature 8` | `Generic` |
 | `18` | `solar` | `Aux Extra` | `Generic` |
 
+## Confirmed Action `0x86` Feature Control Selectors
+
+Live controller writes for action `0x86` have confirmed that the feature-circuit
+control selector ids used for on/off writes are shifted relative to the older
+provisional inventory assumptions above.
+
+Confirmed so far:
+
+- `Feature 1` -> selector id `11`
+- `Feature 2` -> selector id `12`
+- `Feature 3` -> selector id `13`
+
+Current working write-selector mapping for action `0x86`:
+
+- `Feature 1` -> `11`
+- `Feature 2` -> `12`
+- `Feature 3` -> `13`
+- `Feature 4` -> `14`
+- `Feature 5` -> `15`
+- `Feature 6` -> `16`
+- `Feature 7` -> `17`
+- `Feature 8` -> `18`
+
+`Aux Extra` remains unresolved for direct write-selector purposes and should not
+be treated as confirmed writable until live validation exists.
+
 ## Current Installation Implications
 
 For milestone-1 controller-managed pump-speed work on this installation:

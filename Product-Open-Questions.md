@@ -5,9 +5,10 @@
 ## Protocol and hardware
 
 - QUESTION: What are the unresolved byte mappings in the Pentair `0x02` controller status message, especially heater-setpoint-related bytes called out by the source?
-- QUESTION: Does Pentair `0x02` use a three-byte circuit-status layout where payload bytes `2`, `3`, and `4` represent circuits `1-8`, `9-16`, and `17+` respectively, and if so what are the exact bit-to-circuit assignments on the target EasyTouch controller?
+- QUESTION: Beyond the now-confirmed EasyTouch 8 circuit bitmasks in payload bytes `2`, `3`, and `4`, do any controller variants use payload bytes `5-8` for additional live circuit-state bits, and if so what are the exact assignments?
 - QUESTION: On EasyTouch specifically, does live circuit state stop at payload byte `3`, with payload bytes `4+` usually unused for live circuit status, and what controlled controller experiments are needed to verify byte `3` assignments?
 - QUESTION: Is zero-based payload byte `9` in Pentair `0x02` the controller mode field on EasyTouch, and what are the exact observed values for idle, pool, spa, and active feature-circuit states?
+- QUESTION: Are the milestone dashboard/API diagnostic labels derived from EasyTouch `0x02` payload byte `9` sufficient, or do additional controller captures justify a more specific validated mode taxonomy?
 - QUESTION: For the EasyTouch `0x02` mode byte at zero-based payload index `9`, are the current working flags complete: `0x01` run mode, `0x04` temp unit, `0x08` freeze protection, and `0x10` timeout?
 - QUESTION: For the EasyTouch `0x02` mode byte at zero-based payload index `9`, are the updated working flags correct: `0x01` service mode, `0x04` Celsius mode, `0x08` freeze protection active, and `0x80` timeout mode?
 - QUESTION: Is zero-based payload byte `10` in Pentair `0x02` the heater on or off status field on EasyTouch, and beyond the current working values `0x03` off and `0x0f` on, are there any additional heater-state values for heating, cooldown, or fault conditions?

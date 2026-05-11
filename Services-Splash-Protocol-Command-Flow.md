@@ -32,6 +32,9 @@ The first Explorer-only diagnostic command should be:
 - Pentair manual raw frame send
 - Pentair manual pump-info request
 - Pentair manual pump-config write
+- Pentair controller circuit-configuration discovery request
+- Pentair controller date/time request
+- Pentair controller date/time sync
 
 Initial scope rules:
 
@@ -104,6 +107,79 @@ Rules:
 - the plugin should attach `bus_requirements.requires_idle_ms = 50`
 - unsupported Pentair direct-pump and non-controller write families remain out
   of scope for this first slice
+
+## Controller Circuit Configuration Discovery
+
+Protocol Explorer may trigger `request_circuit_config` to ask the EasyTouch
+controller for circuit-configuration records.
+
+Rules:
+
+- encode Pentair `0xcb` get-circuit requests for the requested 1-based circuit
+  index range
+- publish the full encoded plan for observability
+- transmit only one `0xcb` request at a time
+- after the transport acknowledges a request write, wait for a decoded `0x0b`
+  `circuit_configuration` reply before transmitting the next request
+- if no reply is observed before the command timeout, time out the normalized
+  command instead of continuing to send the remaining requests
+- treat the decoded reply as diagnostic configuration data, not as proof of
+  physical relay installation
+- keep the same `command_id` across the whole range so API and dashboard clients
+  can associate the sequence with one operator action
+
+ASSUMPTION: until circuit index versus returned circuit id is fully validated,
+the coordinator treats the next observed `circuit_configuration` reply during an
+active discovery sequence as the response for the in-flight request.
+
+## Controller Circuit State Actions
+
+Dashboard or other API clients may trigger `set_circuit_state` for a known
+writable EasyTouch controller circuit.
+
+Rules:
+
+- encode the write in the controller-family frame format with protocol byte
+  `0x34`
+- encode Pentair action `0x86`
+- payload `[circuit_id, enabled]`
+- after the transport acknowledges the write, do not complete the normalized
+  command immediately
+- wait for a decoded controller `0x01` ACK frame before completing the command
+- a controller `0x01` ACK means the controller accepted the request at the
+  protocol layer, not that the circuit state has already changed in the next
+  status broadcast
+- command lifecycle should therefore distinguish:
+  - transport write observed
+  - controller ACK observed
+  - later controller status confirmation in `0x02`
+
+ASSUMPTION: until a more specific ACK-correlation key is proven, the
+coordinator treats the next observed controller `0x01` ACK during an active
+single-write `set_circuit_state` command as the protocol-level acceptance
+signal for that command.
+
+## Controller Date / Time Actions
+
+Dashboard or Protocol Explorer may trigger controller date/time actions.
+
+Initial rules:
+
+- `request_controller_datetime`
+  - encode provisional Pentair action `0xc5`
+  - payload `[0x00]`
+  - initial completion rule: complete after transport acknowledgement
+  - continue to surface any later controller-originated `0x05` reply in the
+    frame stream for validation
+- `sync_controller_datetime`
+  - encode provisional Pentair action `0x85`
+  - payload is derived from Splash system time in the API layer at request time
+  - initial completion rule: complete after transport acknowledgement
+  - dashboard should treat the command as a best-effort sync request until live
+    reply confirmation is validated
+
+ASSUMPTION: the exact `0xc5 -> 0x05` and `0x85` payload layouts remain
+provisional and may need revision once live captures exist.
 
 ASSUMPTION: the initial live implementation depends on captured EasyTouch
 circuit-speed command and confirmation frames rather than the earlier direct

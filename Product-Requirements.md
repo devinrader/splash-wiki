@@ -101,6 +101,13 @@ below. It is the first implementation target that validates:
 
 ### Diagnostics and advanced tooling
 
+- Provide a Diagnostics page that can host multiple advanced-tooling tabs
+- The initial Diagnostics tabs should be:
+  - `Protocol Explorer`
+  - `Live Data Monitor`
+  - `Device Inspector`
+  - `Logs & History`
+  - `Network`
 - Stream raw RS-485 frames
 - Decode known frames and annotate unknown fields
 - Support collaborative protocol discovery by clearly separating decoded fields
@@ -135,6 +142,12 @@ below. It is the first implementation target that validates:
 - Future platform work should support virtual or mock pool equipment so users
   can create a simulated pool for testing, demos, and protocol experimentation
   without real hardware
+- The initial `Network` diagnostics tab may use placeholder-only cards for:
+  - topology overview
+  - network statistics
+  - RS485 bus status
+  - event bus status
+  - network interfaces
 
 ## Non-functional requirements
 

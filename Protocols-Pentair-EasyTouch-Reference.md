@@ -102,9 +102,10 @@ Observed multi-family nuance:
 | `0x23` | `35` | controller broadcast / reply | delays information reply | inferred | Reply to `0xe3` |
 | `0x27` | `39` | controller broadcast / reply | IntelliBrite information reply | inferred | Reply to `0xe7` |
 | `0x28` | `40` | controller broadcast / reply | settings information reply | inferred | Reply to `0xe8` |
-| `0x86` | `134` | remote `->` controller | set circuit state | inferred | Payload appears to be `[circuitNumber, state]` |
+| `0x86` | `134` | remote `->` controller, header `0x34` | set circuit state | inferred | Payload appears to be `[circuitNumber, state]`. Current working assumption is controller-family header/protocol byte `0x34`. State projection must update only the targeted circuit bit within the relevant `0x02` status byte, not replace the whole byte with the single-circuit mask. |
 | `0x9b` | `155` | remote `->` controller | set pump configuration | inferred | Pump-config write family |
 | `0xc8` | `200` | remote `->` controller | heat / temperature information request | inferred | Reply family `0x08` |
+| `0xc5` | `197` | remote `->` controller | provisional controller date/time information request | assumed | Expected reply family `0x05` |
 | `0xca` | `202` | remote `->` controller | custom-name request | inferred from live request/reply | 0-based custom-name index |
 | `0xcb` | `203` | remote `->` controller | circuit-configuration request | inferred from live request/reply | 1-based circuit index |
 | `0xd1` | `209` | remote `->` controller | schedule-information request | inferred | Reply family `0x11` |
@@ -182,14 +183,24 @@ Current mapping rule:
 | `24` | `1` | Observed as zero in current captures. | inferred |
 | `25` | `1` | Appears related to heater setpoint or derived heat-setting state, possibly in combination with byte `26`. Current interpretation is unresolved. | guess |
 | `26` | `1` | Appears related to heater setpoint. Current interpretation is more stable than byte `25`, but the exact rule remains unresolved. | guess |
-| `27` | `1` | Observed values include `0x19` and `0x38`. Purpose unresolved. | guess |
-| `28` | `1` | Observed values include `0x0a` and `0x0b` on firmware `2.070`. Purpose unresolved. | guess |
+| `27` | `1` | Controller sub-model identifier byte. This appears to matter only when byte `28` identifies an IntelliTouch-family controller model because IntelliCenter reuses values that collide with IntelliTouch identifiers. If byte `28` is `0-5`, then treat byte `27 == 23` or byte `27 >= 40` as IntelliCenter; otherwise assume IntelliTouch. | inferred |
+| `28` | `1` | Controller model identifier byte. Current working mapping: `13/14 => EasyTouch`, `11 => SunTouch`, `0..5 => IntelliTouch-family`. When `0..5`, combine with byte `27` to distinguish IntelliTouch from IntelliCenter. | inferred |
 
 Remaining status-field hypotheses such as controller mode bits, heater-state bytes, delay bytes, and mixed temperature fields should be treated as diagnostic until further validation.
 
 Derived-value rule:
 - when a field's interpretation depends on another field, keep the raw byte value as the protocol truth and derive normalized values from the controlling field
 - for temperature bytes, byte `9` bit `0x04` determines whether the raw values should be interpreted as Fahrenheit or Celsius
+
+Bitmask combination rule:
+- within each circuit-status payload byte, the controller reports the enabled circuit set as a bitwise OR of the active mask values for that byte
+- when multiple circuits covered by the same payload byte are on at the same time, add their mask values in hexadecimal or OR them together to predict the combined byte value
+- when a command or API action changes one circuit, update the existing byte value by setting or clearing that circuit's bit while preserving any other bits already present in the same byte
+- example: on the observed EasyTouch 8 installation, `POOL LOW` uses byte `3` mask `0x04` and `CLEANER` uses byte `3` mask `0x10`, so both on together should produce payload byte `3 = 0x14`
+- example: if payload byte `3` is currently `0x10` because `CLEANER` is on, enabling `POOL LOW` should change byte `3` to `0x14`, not replace it with `0x04`
+- example: if payload byte `3` is currently `0x14`, disabling `POOL LOW` should change byte `3` to `0x10`
+- example: `FEATURE 7` uses byte `4` mask `0x01` and `FEATURE 8` uses byte `4` mask `0x02`, so both on together should produce payload byte `4 = 0x03`
+- this rule applies independently per payload byte; circuits that live in different payload bytes do not change each other's byte values
 
 ## Get/Set Actions
 
@@ -227,6 +238,12 @@ Reply notes:
 Request notes:
 - request payload contains the 1-based circuit index
 - observed EasyTouch controller exposes 20 circuits through this family
+- diagnostic discovery should request indexes `1-20` and treat missing or
+  malformed replies as evidence to capture rather than as a hard failure
+- discovery should be paced as a request/reply sequence: send one `0xcb`
+  request, wait for the corresponding `0x0b` circuit-configuration reply or a
+  timeout, then send the next request. The controller should not be flooded
+  with the whole index range as a burst.
 
 ##### Frame Payload
 
@@ -238,6 +255,9 @@ Request notes:
 
 Reply notes:
 - reply payload is 5 bytes wide
+- decoded replies should be projected into the API controller latest-state
+  diagnostic configuration map so the dashboard can display the returned
+  function and name token values for each circuit
 
 ##### Frame Payload
 
@@ -249,6 +269,83 @@ Reply notes:
 | `3` | `1` | Reserved / unknown. Observed as `0` on the current installation. | inferred |
 | `4` | `1` | Reserved / unknown. Observed as `0` on the current installation. | inferred |
 
+### Custom Name Bank
+
+#### Get Custom Name (`0xca` / `202`)
+
+Request notes:
+- request payload byte `0` is the custom-name-bank index
+- observed valid index range is `0-9`
+- this family should be treated as direct custom-name-bank discovery, separate
+  from `0xcb -> 0x0b` circuit-configuration discovery
+
+##### Frame Payload
+
+| Field byte(s) | Length | Description | Confidence |
+| --- | --- | --- | --- |
+| `0` | `1` | Custom-name-bank index `0-9` | strong |
+
+#### Set Custom Name (`0x0a` / `10`)
+
+Request notes:
+- request payload byte `0` is the custom-name-bank index to update
+- request payload bytes `1..payload_length-1` are the custom-name text bytes
+- this write family updates the custom-name-bank entry itself, not a circuit
+  assignment
+- mapping a circuit `nameId` from `0xcb -> 0x0b` to a custom-name-bank slot is
+  still unresolved
+
+##### Request Payload
+
+| Field byte(s) | Length | Description | Confidence |
+| --- | --- | --- | --- |
+| `0` | `1` | Custom-name-bank index `0-9` | strong |
+| `1..payload_length-1` | variable | Custom-name text bytes | strong |
+
+### Software Version
+
+#### Get Software Version (`0xfd` / `253`)
+
+Request notes:
+- request family is validated by the checksum example and live request/reply
+  captures
+- Splash should treat this as a direct diagnostic request for current
+  controller software-version information
+
+##### Frame Payload
+
+| Field byte(s) | Length | Description | Confidence |
+| --- | --- | --- | --- |
+| none | `0` | No payload bytes are currently required | inferred from live request/reply |
+
+#### Software Version Reply (`0xfc` / `252`)
+
+Reply notes:
+- payload bytes `1`, `2`, `5`, and `6` have current working meanings
+- all remaining payload bytes should remain visible as unknown diagnostic data
+
+##### Reply Payload
+
+| Field byte(s) | Length | Description | Confidence |
+| --- | --- | --- | --- |
+| `1` | `1` | Controller firmware major | inferred |
+| `2` | `1` | Controller firmware minor | inferred |
+| `5` | `1` | Bootloader major | inferred |
+| `6` | `1` | Bootloader minor | inferred |
+
+Reply notes:
+- the current implementation slice depends on the decoded `0x0a` payload shape
+  for diagnostic observation
+- whether every `0xca` read is answered by a matching `0x0a` controller frame
+  is still being live-validated, but this is the current strong working model
+
+##### Reply Payload
+
+| Field byte(s) | Length | Description | Confidence |
+| --- | --- | --- | --- |
+| `0` | `1` | Custom-name-bank index `0-9` | strong |
+| `1..payload_length-1` | variable | Custom-name text bytes | strong |
+
 #### Circuit-Configuration Function Bit Meanings
 
 Current working `functionId` bit layout:
@@ -259,28 +356,131 @@ Current working `functionId` bit layout:
 #### Circuit-Configuration Base Function Values
 
 Current working base-function mapping:
-- `0`: Generic / Feature circuit
-- `1`: Pool
-- `2`: Spa
-- `3`: Cleaner
-- `4`: Pool Light
-- `5`: Spa Light
-- `6`: Aux (generic relay)
-- `7`: Feature (generic)
-- `8`: Heater
-- `9`: Light group
-- `10`: Light group (alternate)
-- `11`: Valve actuator
-- `12`: Spillway
-- `13`: Floor cleaner
-- `14`: Solar
-- `15`: Heat boost
-- `16`: Pump (feature-related)
-- `17`: Pump (alternate / advanced)
+- `0`: Generic
+- `1`: Spa
+- `2`: Pool
+- `3`: Spillway
+- `4`: Master Cleaner
+- `5`: Cleaner
+- `6`: Solar
+- `7`: Heat Boost
+- `8`: Heat Enable
+- `9`: Jets
+- `10`: Aux (standard relay)
+- `11`: Feature
+- `12`: Light
+- `13`: IntelliBrite
+- `14`: MagicStream
+- `15`: Laminar
+- `16`: Waterfall
+- `17`: Fountain
+- `18`: Blower
+- `19`: Pool Light
+- `20`: Spa Light
+- `21`: Landscape Light
+- `22`: Floor Cleaner
+- `23`: Booster Pump
+- `24`: Valve
+- `25`: Heater
+- `26`: Heat Pump
+- `27`: Color Wheel
+- `28`: Dimmer
+- `29`: Unknown / Reserved
+- `30`: Egg Timer Only
+
+#### Preset Circuit Function Behavior Notes
+
+Operator-facing behavior notes from Pentair documentation:
+
+- `Generic`
+  - No special logic
+  - Simple on/off control of a circuit with the normal programmable capabilities
+
+- `Master Spa`
+  - Works with automatic pool cleaner pumps or a cleaner valve actuator
+  - Forces the filter pump on 5 minutes before the cleaner pump switches on
+  - Switches the cleaner off when the spa is on
+  - Switches the cleaner off for 5 minutes when solar heating begins
+
+- `Master Pool`
+  - Works with automatic pool cleaner pumps or a cleaner valve actuator
+  - Forces the filter pump on 5 minutes before the cleaner pump switches on
+  - Switches the cleaner off when the spa is on
+  - Switches the cleaner off for 5 minutes when solar heating begins
+
+- `Master Cleaner`
+  - Works with automatic pool cleaner pumps or a cleaner valve actuator
+  - Forces the filter pump on 5 minutes before the cleaner pump switches on
+  - Switches the cleaner off when the spa is on
+  - Switches the cleaner off for 5 minutes when solar heating begins
+
+- `Light`
+  - Allows special lighting features such as `ALL lights on` and `ALL lights off`
+
+- `SAM Light`
+  - Activates special color-lighting programs on other Indoor Control Panel screens when used with SAM pool lights
+  - Supports global lighting actions such as `ALL lights on` and `ALL lights off`
+
+- `SAL Light`
+  - Activates special color-lighting programs on other Indoor Control Panel screens when used with SAL spa lights
+  - Supports global lighting actions such as `ALL lights on` and `ALL lights off`
+
+- `Photon Generator`
+  - Allows a Pentair Fiberworks fiber-optic bulb driven by a Photon Generator light source to participate in Lights-menu actions
+  - Documented supported actions include `Sync`, `Rotate`, `ALL ON`, and `ALL OFF` when used with SAM and SAL lighting
+
+#### Circuit Assigned Name Values
+
+Current working `nameId` mapping:
+- `0`: NOT USED
+- `1`: SPA
+- `2`: POOL
+- `3`: SPA LIGHT
+- `4`: POOL LIGHT
+- `5`: AUX 1
+- `6`: AUX 2
+- `7`: AUX 3
+- `8`: AUX 4
+- `9`: AUX 5
+- `10`: AUX 6
+- `11`: AUX 7
+- `12`: FEATURE 1
+- `13`: FEATURE 2
+- `14`: FEATURE 3
+- `15`: FEATURE 4
+- `16`: FEATURE 5
+- `17`: FEATURE 6
+- `18`: FEATURE 7
+- `19`: VALVE 1
+- `20`: VALVE 2
+- `21`: VALVE 3
+- `22`: VALVE 4
+- `23`: SOLAR
+- `24`: HEATER
+- `25`: HEAT PUMP
+- `26`: CLEANER
+- `27`: BOOSTER
+- `28`: WATERFALL
+- `29`: FOUNTAIN
+- `30`: BLOWER
+- `31`: LIGHTS
+- `32`: LANDSCAPE LIGHT
+- `33`: INTELLIBRITE
+- `34`: MAGICSTREAM
+- `35`: LAMINAR
+- `36`: COLOR WHEEL
+- `37`: DIMMER
+- `38`: GENERIC
 
 Function meaning rule:
 - `functionId` is behavior-critical controller configuration, not merely a display label
 - write paths must preserve the existing `functionId` unless the explicit goal is to change controller behavior
+
+Open question:
+- `0xcb -> 0x0b` `nameId` values are not yet mapped to custom-name-bank slot
+  indexes `0-9`
+- until that mapping is validated, Splash should treat circuit assigned-name
+  discovery and direct custom-name-bank reads as separate protocol workflows
 
 ### Heat / Temperature
 
@@ -679,6 +879,11 @@ Current working pump-type values for `0x9b` byte `1` and related `0x18` reply in
 | `9` | `0x08` | Freeze-protection indicator (`on` / `off`). | inferred |
 | `9` | `0x80` | Timeout-mode indicator. | inferred |
 
+Diagnostic display rule:
+- milestone dashboard and API surfaces may expose payload byte `9` as `controller_mode_byte` together with an inferred human-readable `controller_mode_label`
+- `controller_mode_label` is diagnostic and derived from the currently documented bit meanings above; it must not be presented as a fully validated EasyTouch mode taxonomy
+- the raw byte value remains the protocol truth and should always be available alongside the decoded label
+
 ## Circuit-State Bitmask Values
 
 | Field byte | Mask value | Circuit name | Circuit id | Confidence |
@@ -697,6 +902,12 @@ Current working pump-type values for `0x9b` byte `1` and related `0x18` reply in
 | `4` | `0x01` | `FEATURE 7` | `16` | strong |
 | `4` | `0x02` | `FEATURE 8` | `17` | strong |
 | `4` | `0x08` | `AUX EXTRA` | `18` | strong |
+
+Observed feature-circuit sweep note:
+- the controlled sweep captured in `feature-circuit-sweep-2026-04-22T21-05-07.685Z.json` confirmed the feature-circuit masks on the observed EasyTouch 8 installation
+- `POOL LOW`, `POOL HIGH`, `CLEANER`, `FEATURE 4`, `FEATURE 5`, and `FEATURE 6` changed only payload byte `3`
+- `FEATURE 7` and `FEATURE 8` changed only payload byte `4`
+- payload bytes `5-8` remained `0x00` throughout that sweep, so the sweep did not produce evidence that those bytes participate in feature-circuit state on this controller
 
 ## Heat-Mode Bit Meanings
 
@@ -746,3 +957,51 @@ Where known from live validation, the assigned-name integer representation is sh
 
 Source note:
 - official Pentair EasyTouch Control System User's Guide, "EasyTouch Circuit Names" list
+### Date / Time
+
+#### Get Date / Time (`0xc5` / `197`)
+
+Request notes:
+- this family is not yet live-validated
+- current working assumption is that controller-originated `0x05` frames are the
+  date/time information family
+- first API and dashboard support should treat this path as diagnostic and
+  provisional until captures confirm the exact request and reply layout
+
+ASSUMPTION:
+- request action `0xc5`
+- payload `[0x00]`
+- expected reply family `0x05`
+
+Current working provisional reply layout:
+- payload byte `0`: hour in 24-hour form
+- payload byte `1`: minute
+- payload byte `2`: day of week
+- payload byte `3`: day of month
+- payload byte `4`: month
+- payload byte `5`: year offset / two-digit year
+- payload byte `6`: unknown
+- payload byte `7`: Daylight Savings Time mode, `1 = auto`, `0 = manual`
+
+ASSUMPTION:
+- this 8-byte layout is inferred from live observed reply payload
+  `18,52,16,23,4,26,0,0`, where bytes `0`, `1`, `3`, `4`, and `5` align with
+  the observed controller clock and date, byte `2` is treated as day of week
+  by hypothesis, and byte `7` is treated as DST mode by hypothesis
+
+#### Set Date / Time (`0x85` / `133`)
+
+Request notes:
+- this family is not yet live-validated
+- first implementation should be treated as provisional controller clock sync
+  from Splash system time
+- dashboard UX should clearly label this path as a controller clock sync action,
+  not as a fully validated protocol control
+
+ASSUMPTION:
+- request action `0x85`
+- payload carries month/day/year/day-of-week/hour/minute plus AM/PM or 24-hour
+  mode control bytes in a controller-specific compact layout
+- follow-up confirmation should come from subsequent controller status and/or
+  `0x05` date/time reply traffic rather than assuming the transport write alone
+  proves controller clock update success

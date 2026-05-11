@@ -11,6 +11,8 @@ This wiki is the primary design authority and canonical design corpus for Splash
 - [Protocols](Protocols)
 - [Workflows](Workflows)
 - [Research](Research)
+- [UI Mockups](UI-Mockups)
+- [Splash UI Design Language](splash_design_Language)
 
 ## Authority Model
 

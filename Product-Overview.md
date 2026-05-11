@@ -103,7 +103,32 @@ Longer-term platform direction:
 
 ## Navigation model
 
-The application uses a persistent left sidebar on desktop and a collapsed or bottom-tab navigation model on smaller screens. Cover, SLAM, and Protocol Explorer are secondary destinations to keep the primary navigation focused on day-to-day pool management.
+The application uses a persistent left sidebar on desktop and a collapsed or
+bottom-tab navigation model on smaller screens.
+
+For the current frontend milestone shell, the implemented sidebar destinations
+are:
+
+- Home
+- System
+- Routines
+- History
+- Automation
+- Alerts
+- Diagnostics
+- Water Test Log
+- Settings
+
+Within that milestone shell:
+
+- `System` is the default operational dashboard view
+- `Diagnostics` hosts the initial advanced tooling surface, including
+  Protocol Explorer and related placeholder tabs
+- some destinations may remain placeholders while their underlying workflows
+  are still pending
+- the current desktop and tablet shell should keep a fixed left navigation rail
+  inside a centered, width-constrained application frame that matches the
+  proportions shown in the existing UI mockup images
 
 ## Delivery roadmap
 

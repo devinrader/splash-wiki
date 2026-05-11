@@ -15,7 +15,16 @@ The initial milestone runtime is intentionally narrow:
 3. open SSE for live updates
 4. submit pump-speed control requests through the REST API
 5. reflect command lifecycle state in the browser
-6. expose a narrow Protocol Explorer panel that:
+6. render a left-sidebar operational shell whose active item controls the main
+   content surface
+7. treat `System` as the default view for the current milestone
+8. expose a Diagnostics page with controlled tabs for:
+   - `Protocol Explorer`
+   - `Live Data Monitor`
+   - `Device Inspector`
+   - `Logs & History`
+   - `Network`
+9. expose the first Diagnostics `Protocol Explorer` tab that:
    - streams `GET /protocol/frames`
    - creates saved bundles
    - compares saved bundles
@@ -24,6 +33,9 @@ The initial milestone runtime is intentionally narrow:
    - submits manual raw frame sends
    - shows outbound diagnostic request events such as `protocol.command.encoded`
      and `serial.tx.raw` when present
+10. allow the remaining milestone Diagnostics tabs and the non-System sidebar
+    destinations to remain placeholder surfaces until their deeper product
+    workflows are implemented
 
 ## Data flow
 
@@ -37,7 +49,7 @@ The initial milestone runtime is intentionally narrow:
 7. frontend sends `POST /equipment/:id/control`
 8. frontend shows pending state until `command.result` resolves the action
 
-Protocol Explorer flow:
+Protocol Explorer flow inside Diagnostics:
 
 1. browser opens `GET /protocol/frames`
 2. frontend shows recent raw, decoded, and outbound diagnostic protocol events
@@ -65,12 +77,218 @@ Cross-origin local development rule:
 ## UI expectations
 
 - render a responsive milestone-1 dashboard for desktop and mobile
-- show the latest known air temperature, water temperature, salt level, and
-  pump RPM
+- use the uploaded Splash design-system tokens as the styling baseline for the
+  current milestone dashboard shell, including the documented light surfaces,
+  dark navigation shell, semantic status colors, tokenized spacing, and card
+  radii rather than ad hoc one-off values
+- use the uploaded Splash expanded icon library as the default icon source for
+  dashboard status, metric, equipment, navigation, and diagnostics affordances
+  when a matching icon exists
+- preserve the existing left sidebar layout and styling while allowing one
+  active destination at a time
+- use the active navigation destination to determine the page title and main
+  content without reloading the app
+- keep the left sidebar at a fixed `240px` width on the current desktop and
+  tablet-only milestone shell
+- place the entire application shell inside a centered desktop/tablet frame
+  rather than letting either the sidebar or content stretch edge to edge on
+  large screens
+- on desktop widths starting at `1280px`, constrain the full application shell
+  to a `max-width` of approximately `1280px`, inclusive of the fixed sidebar
+  and main content area
+- on larger desktop widths such as `1600px+`, keep that full application frame
+  centered and do not expand past the desktop width cap
+- on tablet widths from `1024px` through `1279px`, allow the application shell
+  to use the available width while keeping horizontal padding and avoiding
+  horizontal overflow
+- use approximately `32px` horizontal padding for desktop and `24px`
+  horizontal padding for tablet around the centered application shell
+- follow the proportions shown in the current frontend mockup images:
+  fixed-width dark sidebar, lighter content field, and a centered readable
+  application frame
+- on larger screens, keep the sensor and control surfaces in a narrower
+  left-side dashboard rail, show a middle dashboard column for the default
+  EasyTouch circuit inventory (`POOL`, `SPA`, `AUX 1-7`, `FEATURE 1-8`, and
+  `AUX EXTRA`), and allow Protocol Explorer and frame-decoding workflows to
+  occupy a broader section on the right
+- within the `System` page only, render a secondary tab bar directly below the
+  page header/title area for:
+  - `Overview`
+  - `Equipment`
+  - `Sensors`
+  - `Water Features`
+  - `Connectivity`
+- those `System` tabs should switch the main content area without changing the
+  application shell, left navigation, top header layout, or page route
+- the `System` tab content may remain placeholder-structured in this slice, but
+  each tab should present a distinct layout aligned with the current mockup
+  intent rather than duplicating the same content block across all tabs
+- internal page grids should remain flexible and reflow cleanly within the
+  constrained content container instead of relying on hard-coded fixed widths
+- on the EasyTouch hardware detail surface, the `Circuit Configuration` table
+  should render the columns:
+  - `ID`
+  - `Type`
+  - `Name`
+  - `Function`
+  - `Freeze`
+  - `State`
+  - `Action`
+- that table should be driven by a merge of:
+  - API-provided controller hardware inventory for the circuit id, category,
+    installation status, and writable capability
+  - live controller circuit-configuration metadata for the configured name,
+    function, and freeze state
+  - live controller status for the current enabled or disabled state
+- the `Name` column may render as a staged select box seeded from the known
+  Pentair assigned-name list, with the current discovered circuit name selected
+- the `Function` column may render as a staged select box seeded from the known
+  Pentair circuit-function list, with the current discovered circuit function
+  selected
+- the `Freeze` column may render as a staged toggle seeded from the current
+  discovered freeze flag
+- the `State` column may render as a staged toggle only for circuits that have
+  a known writable controller mapping and an authoritative boolean state;
+  unsupported or unavailable state rows must remain non-interactive
+- the `Action` column may render placeholder save and discard icon buttons in
+  this slice; those buttons do not need to persist row edits yet
+- the `Custom Circuit Names` table may also render an `Action` column with the
+  same placeholder save and discard icon buttons per row; those buttons do not
+  need to persist custom-name edits yet in this slice
+- when the API exposes both `configuration_circuit_index` and
+  `write_circuit_id`, the dashboard should treat:
+  - `configuration_circuit_index` as the diagnostic/config-discovery reference
+  - `write_circuit_id` as the control selector reference
+  - and should not assume those values are identical
+- when hardware-description data is available, render controller circuits from
+  the API-provided configured hardware inventory rather than a hard-coded
+  EasyTouch circuit list
+- use the configured controller hardware profile to reflect model limits, such
+  as EasyTouch 4 versus EasyTouch 8 circuit inventory
+- use the user-confirmed installed hardware configuration to distinguish
+  physically absent relays from installed circuits whose live state is currently
+  unavailable
+- when a circuit state is not currently mapped from controller status data, the
+  dashboard should show that state as unavailable rather than implying `Off`
+- when a configured relay or optional circuit is not installed, the dashboard
+  should show `Not installed` or hide it in normal operation rather than showing
+  `Off`
+- the circuit state pill may act as the dashboard toggle surface only for
+  controller circuits that project a known writable controller mapping
+- if a circuit does not have a known writable controller mapping, the pill must
+  remain non-interactive even when the dashboard can display its latest
+  observed state
+- pills for `Unavailable`, `Not installed`, or unsupported circuit states must
+  remain non-interactive
+- mapped controller-status circuit bitmasks are authoritative when present;
+  `POOL` and `SPA` should use the normalized controller `mode` only as a
+  fallback when raw bitmask-derived circuit state is unavailable
+- provide a diagnostic action to request controller-reported circuit
+  configuration using the API discovery path; this action should not directly
+  mutate dashboard circuit inventory until hardware-description persistence is
+  implemented
+- when the dashboard session starts, determine whether installed controller
+  circuits with known `configuration_circuit_index` values already have
+  controller-acquired function and name metadata in the API snapshot
+- if that metadata is missing, the dashboard may automatically trigger one
+  controller circuit-configuration discovery request for the configured index
+  range
+- once the API snapshot includes acquired controller function and name metadata,
+  the dashboard should reuse that persisted snapshot data on reload rather than
+  automatically triggering discovery again
+- a manual circuit-config sweep remains authoritative as the explicit refresh
+  mechanism and may replace previously acquired metadata
+- provide controller date/time actions in the dashboard:
+  - a diagnostic action to request controller date/time information
+  - a best-effort action to sync controller date/time from Splash system time
+- label both controller date/time actions as provisional until the EasyTouch
+  protocol family and payload layout are confirmed by live captures
+- when the dashboard session starts and no `0x05` controller date/time reply is
+  currently present in the API snapshot, the frontend may issue one automatic
+  diagnostic controller date/time request so the separate `0x05` metric card
+  has a chance to populate without a manual button press
+- show the latest known air temperature, water temperature, heater state,
+  salt level, controller system time, and pump RPM
+- metric cards and status indicators should pair their text labels with icons
+  from the Splash icon library when a suitable icon exists
+- status indicators should present icon, text, and semantic color together and
+  must not rely on color alone
+- format controller system time from the controller-status hour and minute
+  fields rather than from browser-local wall clock time
+- when a provisional EasyTouch `0x05` controller date/time reply has been
+  observed, show it as a separate diagnostic metric card rather than replacing
+  the primary controller-status system-time card
 - show when latest values are unavailable rather than inventing defaults
 - disable pump-speed submission while a prior control request is unresolved
 - show degraded API state when `/health` reports degraded or when SSE is not
   connected
+
+## System page tab rules
+
+- `Overview` should remain a high-level summary surface rather than a detailed
+  inventory table
+- `Equipment` should focus on equipment list/detail placeholders, search, and
+  filters
+- `Sensors` should focus on sensor readings and health placeholders
+- `Water Features` should focus on named feature inventory and state
+  placeholders
+- `Connectivity` should focus on network/controller/event-bus/RS485 summary
+  placeholders without duplicating the deeper Diagnostics page
+- `Platform` should act as the operator-facing health surface for Splash
+  software and infrastructure services rather than a generic placeholder-only
+  runtime card stack
+- the `Connectivity` tab may render live summary metric cards sourced from
+  `splash-api` health data when those values are available
+- the first live `Connectivity` metric card set should focus on RS485 metrics
+  sourced from `splash-api` health data
+- the first live `Connectivity` metric card set should include:
+  - `RS485 Messages In`
+  - `RS485 Messages Out`
+- the first live `Connectivity` metric card set may later include:
+  - `NATS Subscriptions`
+  - `NATS In Messages`
+  - `NATS Out Messages`
+- when the API exposes transport or broker rates as per-second values, the
+  dashboard may convert them into per-minute display values for the
+  Connectivity summary cards
+- when a requested Connectivity metric is unavailable, the dashboard should
+  show `Unavailable` rather than preserving stale placeholders
+- the `Connectivity` tab may also render a live line chart for transport
+  activity
+- the first Connectivity chart may use a React-native charting library such as
+  Nivo and should stay visually consistent with the existing content cards
+- the first Connectivity chart should plot two series:
+  - `RS485 In`
+  - `RS485 Out`
+- the first Connectivity chart may later add:
+  - `NATS In`
+  - `NATS Out`
+- the frontend may sample `splash-api` health data every `10s` during the
+  active browser session and retain a bounded in-memory history for the chart
+- for RS485 traffic specifically, the frontend should expect `splash-api`
+  health rates to already represent rolling `10s` average messages-per-second
+  values rather than instantaneous `1s` spikes
+- when the API exposes per-second rate values, the frontend may derive the
+  charted `10s` bucket counts by multiplying the latest per-second rate by `10`
+- when a series is unavailable, the chart should omit that point or show an
+  explicit unavailable state rather than inventing values
+- the frontend should not query Grafana directly for these cards or charts;
+  `splash-api` remains the browser-facing source for the first connectivity
+  slice
+- the `Platform` tab may render a first live service-health summary sourced
+  from `splash-api` health data
+- the first `Platform` service-health view may include:
+  - `splash-serial`
+  - `NATS`
+  - `splash-protocol`
+  - `splash-frontend`
+- each service row or card may show:
+  - service name
+  - current status
+  - a short summary
+  - optional last-updated or detail text
+- when a service status is unavailable, the dashboard should show
+  `Unavailable` rather than preserving stale placeholder text
 
 ## Command UX rules
 
@@ -81,11 +299,46 @@ Cross-origin local development rule:
 - `command.result` should clear pending state and show success or failure
 - if no matching completion arrives before the API reports timeout or failure,
   the UI should show the latest command state without guessing success
+- when an operator clicks a writable controller-circuit pill, the dashboard
+  should send a `set_circuit_state` request for the target circuit and desired
+  on/off state
+- the dashboard must not flip the pill optimistically after click; it should
+  continue showing the pre-click state until the next authoritative controller
+  status update confirms the change
+- while a circuit toggle is unresolved, the dashboard may disable the pill or
+  show pending state, but it must not imply success before controller state
+  confirms the new value
+
+## Diagnostics UX rules
+
+- the first frontend Diagnostics page may be secondary to the milestone
+  `System` dashboard rather than the primary default destination
+- the Diagnostics page should provide a horizontal tab bar under the page title
+  and switch tab content without full page reload
+- the first four milestone non-Protocol-Explorer destinations outside
+  `System` may render placeholders as long as the sidebar and active-state
+  behavior are implemented consistently
+- the Diagnostics `Network` tab should render exactly five reusable cards:
+  - `Network Overview`
+  - `Network Statistics`
+  - `RS485 Bus`
+  - `Event Bus`
+  - `Network Interfaces`
+- on desktop, the `Network` tab should use a responsive grid where:
+  - the top row contains `Network Overview` and `Network Statistics`
+  - those two top-row cards split the available row width evenly
+  - the bottom row contains `RS485 Bus`, `Event Bus`, and
+    `Network Interfaces`
+  - `RS485 Bus` and `Event Bus` together should occupy the same total width as
+    the top-row `Network Overview` card
+  - `Network Interfaces` should occupy the same width as the top-row
+    `Network Statistics` card
+- the `Network` tab may remain placeholder-oriented overall, but the System
+  `Connectivity` tab may render live metric cards and the first sampled
+  message-activity chart sourced from `splash-api` health data
 
 ## Explorer UX rules
 
-- the first frontend Protocol Explorer slice may be secondary to the milestone
-  dashboard rather than a top-level navigation destination
 - the Explorer should distinguish:
   - live protocol events
   - saved bundles
@@ -94,9 +347,28 @@ Cross-origin local development rule:
   - operator-needed prompts
 - the live frame list should stay inside a bounded scroll region so ongoing
   frame traffic does not continuously increase overall page height
+- the live frame panel may provide client-side action-code filters so the
+  operator can either:
+  - show only selected action codes
+  - hide selected action codes
+- action-code filters should use an explicit multi-select list style UI rather
+  than a free-text parser
+- each selectable action should show:
+  - a friendly protocol label when known
+  - the decimal action value
+  - the hex action code
+- action-code filtering should apply only to what is rendered in the live frame
+  list; it must not change the underlying `/protocol/frames` SSE subscription
+- when a decoded frame exposes `action_code`, the filter should match against
+  that field
+- events without an `action_code` may remain visible unless later event-type
+  filtering is added separately
 - manual Remote Layout and raw-frame send actions should remain clearly labeled
   as diagnostic-only
 - raw-frame send should preserve the operator-provided lowercase hex exactly and
   should not imply protocol-level success when the transport write succeeds
 - the first slice may stay intentionally developer-oriented and does not need
   the full long-term product navigation treatment yet
+- even within the developer-oriented milestone slice, diagnostics should remain
+  visually subordinate to the primary operational dashboard and should reuse
+  the same tokenized card and status language

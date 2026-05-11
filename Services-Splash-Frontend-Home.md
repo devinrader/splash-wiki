@@ -27,8 +27,22 @@ It should:
 - render the milestone-1 latest-state surface
 - submit pump-speed commands through `POST /equipment/:id/control`
 - surface command pending, completion, and failure state to the operator
-- expose a narrow developer-facing Protocol Explorer view that consumes the
-  shared `splash-api` protocol endpoints without bypassing the documented API
+- expose the milestone operational sidebar and view switching shell for:
+  - `Home`
+  - `System`
+  - `Routines`
+  - `History`
+  - `Automation`
+  - `Alerts`
+  - `Diagnostics`
+  - `Water Test Log`
+  - `Settings`
+- treat `System` as the default operational dashboard view in the current
+  milestone slice
+- expose `Diagnostics` as a dedicated page within that shell
+- allow the Diagnostics page to host multiple diagnostics-oriented tabs while
+  still consuming the shared `splash-api` protocol endpoints without bypassing
+  the documented API
 - allow developer-oriented diagnostic actions such as manual Remote Layout and
   raw frame sends through the documented Protocol Explorer API routes
 
@@ -41,14 +55,16 @@ It should not:
 
 ## Initial slice assumptions
 
-- the initial slice may be a single-page app rather than the full long-term
-  navigation tree
+- the initial slice may implement the milestone operational sidebar before the
+  final long-term product navigation tree is complete
 - the UI should still preserve the long-term visual direction described in the
   product docs: calm, clear, trustworthy, and responsive
 - the initial slice may rely on the milestone-1 `splash-api` equipment bridge
   rather than the future repository-backed equipment inventory
-- the first frontend Protocol Explorer slice may be a developer-oriented
-  secondary panel rather than the full long-term standalone screen
+- the first frontend diagnostics slice may keep most non-System destinations as
+  placeholders while `Diagnostics` hosts the initial Protocol Explorer work
+- the first frontend Protocol Explorer slice may live inside the Diagnostics
+  page rather than as a standalone route
 
 ## Primary references
 

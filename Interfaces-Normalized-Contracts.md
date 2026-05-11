@@ -130,6 +130,101 @@ Example:
 
 Profile resolution should prefer the most specific known profile in the catalog, then fall back to vendor-level profiles, then generic profiles.
 
+### Hardware description configuration
+
+Splash needs a user-editable hardware description layer in addition to runtime
+protocol decoding.
+
+Purpose:
+
+- describe which controller model or hardware family is installed
+- describe which optional hardware is physically present
+- describe model-level limits that cannot be discovered from controller status
+  broadcasts alone
+- allow the API and dashboard to distinguish `off`, `unavailable`,
+  `unsupported`, and `not installed`
+
+The hardware description is not the same as latest runtime state.
+
+- hardware description answers "what can exist here?"
+- installed hardware configuration answers "what is present at this pool?"
+- normalized state answers "what did the controller last report?"
+
+Example:
+
+```json
+{
+  "controller": {
+    "hardware_profile_id": "pentair.easytouch8",
+    "model": "EasyTouch 8",
+    "installed_options": {
+      "spa": false,
+      "aux_extra": true
+    },
+    "circuits": [
+      {
+        "circuit_key": "pool",
+        "display_name": "Pool",
+        "circuit_type": "fixed",
+        "installed": true,
+        "configuration_circuit_index": 2,
+        "write_circuit_id": 2,
+        "state_source": "controller_status_bitmask",
+        "status_mapping": {
+          "payload_byte": 2,
+          "mask": "0x20"
+        }
+      },
+      {
+        "circuit_key": "aux4",
+        "display_name": "Aux 4",
+        "circuit_type": "relay",
+        "installed": false,
+        "configuration_circuit_index": 6,
+        "write_circuit_id": 6,
+        "state_source": "not_installed"
+      }
+    ]
+  }
+}
+```
+
+Circuit mapping rules:
+
+- `configuration_circuit_index` is the index used when requesting or storing
+  controller circuit-configuration records, such as EasyTouch `0xcb -> 0x0b`
+  discovery
+- `write_circuit_id` is the selector id used by control actions such as
+  EasyTouch `0x86` circuit on/off writes
+- these fields must not be assumed identical unless that has been validated for
+  the specific protocol family and action
+- hardware description should carry both fields when the protocol requires
+  them, rather than forcing API or frontend code to hard-code the distinction
+
+Allowed `state_source` values:
+
+- `controller_status_bitmask`
+- `protocol_observation`
+- `manual_configuration`
+- `not_installed`
+- `unsupported`
+- `unknown`
+
+Rules:
+
+- API and dashboard projections must not infer physical relay installation from
+  a missing status-bit change alone
+- controller models define maximum supported inventory, such as EasyTouch 4
+  versus EasyTouch 8 circuit limits
+- installed hardware configuration narrows that inventory to what is physically
+  present at the pool
+- unmapped or unobservable installed hardware should render as `Unavailable`,
+  not `Off`
+- hardware configured as not installed should render as `Not installed` or be
+  hidden by default, depending on the UI context
+- protocol plugins may provide default hardware profiles, but user-confirmed
+  installation configuration is authoritative for physical availability
+
 ## Normalized event contracts
 
 ### `equipment.state.controller`
@@ -147,6 +242,10 @@ Profile resolution should prefer the most specific known profile in the catalog,
   "water_temp_f": 63,
   "air_temp_f": 73,
   "solar_temp_f": 32,
+  "controller_hour_24": 14,
+  "controller_minute": 5,
+  "controller_mode_byte": 9,
+  "controller_mode_label": "run + freeze protection",
   "heater": {
     "enabled": false,
     "mode": "off",
@@ -173,6 +272,12 @@ Profile resolution should prefer the most specific known profile in the catalog,
   }
 }
 ```
+
+Notes:
+- `controller_hour_24` and `controller_minute` are the raw EasyTouch controller clock values from `0x02` payload bytes `0` and `1`
+- dashboard or API formatting may present those fields as a human-readable system time, but the raw hour and minute remain authoritative
+- `controller_mode_byte` is the raw inferred EasyTouch `0x02` payload byte `9`
+- `controller_mode_label` is a diagnostic label derived from the currently documented byte-`9` bit meanings and must be treated as inferred rather than fully validated
 
 ### `equipment.state.pump`
 
@@ -248,6 +353,14 @@ Partial normalized event rule:
 | `pentair.easytouch_heater` | `set_heater_setpoint`, `set_heater_mode`, `set_run_state` | heater mode, enabled state, setpoint |
 | `pentair.intellichlor` | `set_chlorinator_output` | `report_salt_level`, output percent, chlorinator status |
 | `pentair.controller_circuit` | `set_circuit_state`, `set_speed` where the controller circuit owns a stored pump-speed slot | named circuit state |
+
+Validation rules for `set_circuit_state`:
+
+- control is allowed only when the target controller circuit has a known
+  writable controller mapping
+- clients must not assume circuit state changed when the command is accepted;
+  the next controller-status or equivalent authoritative controller update is
+  the source of truth for the resulting state
 
 ### Example `set_speed`
 

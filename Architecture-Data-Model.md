@@ -29,6 +29,7 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 | `protocol_annotations` | Saved protocol-discovery notes | `pool_id`, `bundle_id`, `frame_index`, `field_name`, `byte_start`, `byte_end`, `confidence`, `label`, `notes` |
 | `pool_settings` | Pool-scoped settings and integration configuration | `pool_id`, `chemistry_prompt_interval_days`, `maintenance_reminder_lead_days`, `notification_preferences`, `weather_provider`, `protocol_plugin`, `protocol_config`, `sensor_provider`, `sensor_config` |
 | `pool_circuits` | Circuit label and display-name mapping | `pool_id`, `circuit_key`, `display_name`, `circuit_type`, `bus_address`, `action_code`, `sort_order`, `enabled` |
+| `hardware_descriptions` | Pool-scoped configured hardware inventory and model limits | `pool_id`, `hardware_profile_id`, `equipment_id`, `configuration`, `source`, `confirmed_at` |
 
 ## Entity relationships
 
@@ -40,6 +41,9 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 - `protocol_annotations` may be attached to saved Protocol Explorer frame bundles so one controlled experiment can carry its own byte-level notes
 - `pool_settings` is one-to-one with `pools`
 - `pool_circuits` is one-to-many from `pools`
+- `hardware_descriptions` is pool-scoped and may reference one installed
+  `equipment` row when the description applies to a specific controller or
+  equipment instance
 
 ## Equipment capability model
 
@@ -128,7 +132,41 @@ Capability sources:
 - protocol plugin knowledge
 - observed decoded state where appropriate
 
-QUESTION: If capabilities need to become user-editable or installation-specific beyond equipment type and circuit config, add a dedicated persistence model in a future update.
+### Hardware description model
+
+Hardware descriptions persist the user-confirmed facts that the controller
+cannot reliably broadcast.
+
+Examples:
+
+- installed controller family or model, such as `pentair.easytouch4` or
+  `pentair.easytouch8`
+- whether a spa body is physically attached
+- which relay slots are physically installed
+- whether `AUX EXTRA` exists on the installation
+- model-level circuit limits and supported optional features
+
+Hardware descriptions are configuration data, not runtime telemetry. They
+should be merged with capability profiles and protocol observations to produce
+effective capabilities and dashboard state.
+
+Rules:
+
+- model profiles define maximum supported hardware
+- user-confirmed installed configuration defines actual physical availability
+- protocol observations define latest state only for values the protocol can
+  report
+- when these sources disagree, user-confirmed installed hardware configuration
+  wins for physical availability; protocol observations still win for mapped
+  live state values
+
+ASSUMPTION: The first implementation may store the description as JSON under a
+pool-scoped or equipment-scoped record before normalizing it into dedicated
+tables.
+
+QUESTION: Should hardware descriptions be stored as a new first-class table, as
+structured fields on `equipment`, or as a typed section of `pool_settings` for
+the first implementation?
 
 ## Audit and key conventions
 
@@ -202,6 +240,8 @@ CREATE TABLE pool_circuits (
   circuit_key TEXT NOT NULL,
   display_name TEXT NOT NULL,
   circuit_type TEXT NOT NULL DEFAULT 'generic',
+  configuration_circuit_index INTEGER,
+  write_circuit_id INTEGER,
   bus_address TEXT,
   action_code TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0,
@@ -218,6 +258,10 @@ Notes:
 - `display_name` is user-facing and editable
 - `circuit_type` describes the functional circuit class, not the user-visible
   label
+- `configuration_circuit_index` stores the controller-specific index used for
+  configuration discovery requests and replies when that protocol exposes one
+- `write_circuit_id` stores the controller-specific selector used for control
+  actions when that differs from the configuration index
 - on Pentair EasyTouch and IntelliTouch, this distinction matters:
   - fixed or special circuits such as `pool` and `spa` have controller-defined
     behavior and are not just user labels; renaming them does not change their
@@ -225,6 +269,9 @@ Notes:
   - `aux` circuits are relay-backed controller outputs that may be renamed
   - `feature` circuits are virtual controller functions often used for pump
     speeds, valve-only actions, or logic functions
+- the protocol-facing mapping fields must be optional because not every
+  controller family exposes both concepts, but when they do they should be
+  modeled explicitly rather than inferred in UI code
 - user-facing names such as `POOL LOW` or `POOL HIGH` should therefore be
   treated as `display_name` values on a stable circuit type such as `feature`,
   not as evidence that the underlying circuit type is `pool`
