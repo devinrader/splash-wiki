@@ -209,6 +209,16 @@ Cross-origin local development rule:
   has a chance to populate without a manual button press
 - show the latest known air temperature, water temperature, heater state,
   salt level, controller system time, and pump RPM
+- on the `Home` destination, show a basic EasyTouch temperature telemetry
+  widget when `splash-api` exposes persisted latest/history temperature data
+- the first Home telemetry widget should display latest `air`, `pool_water`,
+  `spa_water` when available, `solar` when available, and the last updated
+  timestamp
+- the first Home telemetry widget may include a small historical chart for
+  `air` and `pool_water` when history data is available through the API
+- when no EasyTouch temperature history has been captured yet, the widget
+  should show the explicit empty state: `No EasyTouch temperature history has
+  been captured yet.`
 - metric cards and status indicators should pair their text labels with icons
   from the Splash icon library when a suitable icon exists
 - status indicators should present icon, text, and semantic color together and

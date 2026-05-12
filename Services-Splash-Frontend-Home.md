@@ -15,6 +15,8 @@ browser slice required by [Product Overview](Product-Overview) and
 - display current salt level
 - display current pump RPM
 - allow the operator to change pump RPM
+- show a basic Home temperature-history widget sourced from `splash-api` when
+  EasyTouch telemetry is available
 
 ## Runtime role
 

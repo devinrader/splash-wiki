@@ -37,6 +37,8 @@
 | `/schedules` | `GET`, `POST` | Maintenance schedules |
 | `/schedules/:id` | `PUT`, `DELETE` | Schedule mutation |
 | `/controller/schedules` | `GET` | Read validated controller-native schedules when available |
+| `/telemetry/temperatures/latest` | `GET` | Latest EasyTouch temperature telemetry snapshot |
+| `/telemetry/temperatures/history` | `GET` | Historical EasyTouch temperature telemetry series |
 | `/seasonal` | `GET` | Active seasonal checklist |
 | `/seasonal/:id/start` | `POST` | Start checklist |
 | `/seasonal/:id/steps/:step_id/complete` | `POST` | Complete checklist step |
@@ -158,6 +160,41 @@ When validated records exist, each returned schedule record should include:
 - day mask or explicit days when validated
 - enabled or active state when validated
 - freshness metadata
+- raw payload or debug data only when exposed through an explicit diagnostic
+  field rather than mixed into operator-facing schedule values
+
+### `GET /telemetry/temperatures/latest`
+
+Purpose:
+- return the latest persisted EasyTouch temperature telemetry values for the
+  Home dashboard widget and future analytics surfaces
+
+Rules:
+- values come from InfluxDB-backed telemetry persistence when configured
+- return `air`, `pool_water`, `spa_water`, and `solar` only when samples exist
+- expose both original and normalized units
+- include the latest packet timestamp and controller timestamp when available
+- if no temperature telemetry has been captured yet, return an explicit empty
+  state rather than inventing zeros
+
+### `GET /telemetry/temperatures/history`
+
+Purpose:
+- return time-series temperature history for browser charts and later
+  maintenance-model inputs
+
+Query parameters:
+- `sensorType`: one of `air`, `pool_water`, `spa_water`, `solar`
+- `start`: ISO 8601 UTC inclusive range start
+- `end`: ISO 8601 UTC inclusive range end
+- `interval`: optional downsample window such as `10m`, `1h`, or `1d`
+
+Rules:
+- API should follow the existing JSON envelope pattern
+- history points should expose `timestamp`, `value`, `normalizedF`, and
+  `normalizedC`
+- the first slice may use simple bucketed reads aligned with the requested
+  interval rather than prediction-oriented analytics
 
 ## API design notes
 

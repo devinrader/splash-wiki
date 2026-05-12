@@ -148,6 +148,19 @@ Current trusted fields:
 - controller mode and freeze-protection clues
 - firmware major/minor bytes
 
+Temperature telemetry rule:
+- EasyTouch `0x02` controller-status broadcasts are the default Splash source for
+  EasyTouch temperature telemetry capture
+- Splash may reuse already-decoded `0x02` temperature fields when they are
+  available through normalized events rather than re-decoding the same payload
+  twice in downstream services
+- temperature persistence must retain the raw source bytes used for each stored
+  sample
+- Splash must not invent a `spa/body 2` temperature from `0x02` unless that
+  field is separately validated for the active controller family and firmware
+- when `spa/body 2` temperature is not validated or not present, telemetry
+  payloads should omit it rather than guessing
+
 Current mapping rule:
 - Splash should normalize only the trusted subset of `0x02` fields
 - unresolved bytes should remain available in decoded payload output rather than being guessed

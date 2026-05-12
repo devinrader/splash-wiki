@@ -279,6 +279,81 @@ Notes:
 - `controller_mode_byte` is the raw inferred EasyTouch `0x02` payload byte `9`
 - `controller_mode_label` is a diagnostic label derived from the currently documented byte-`9` bit meanings and must be treated as inferred rather than fully validated
 
+### `telemetry.temperature.easytouch`
+
+Purpose:
+- provide a persistence-oriented normalized EasyTouch temperature event derived
+  from controller-status broadcasts
+- let downstream services store time-series history without reparsing raw
+  protocol frames
+
+Source rules:
+- source action is EasyTouch controller broadcast `0x02`
+- `air`, `pool_water`, and `solar` should come from already-validated
+  controller-status temperature bytes
+- `spa_water` may be included only when a separately validated EasyTouch source
+  exists for the active controller and decoder slice; otherwise omit it
+- raw payload and raw source bytes for each reported sensor should remain
+  available for debugging and persistence
+
+Example:
+
+```json
+{
+  "pool_id": "uuid",
+  "event_id": "uuid",
+  "occurred_at": "2026-05-12T12:00:00.000Z",
+  "source": {
+    "service": "splash-protocol",
+    "protocol_name": "pentair_easytouch",
+    "frame_id": "uuid",
+    "action": 2,
+    "label": "easytouch.action2"
+  },
+  "controller": {
+    "controller_id": "default",
+    "controller_type": "easytouch",
+    "timestamp": {
+      "hour_24": 12,
+      "minute": 0
+    }
+  },
+  "temperatures": {
+    "air": {
+      "original_value": 78,
+      "original_unit": "F",
+      "normalized_f": 78,
+      "normalized_c": 25.6,
+      "raw_byte": 78
+    },
+    "pool_water": {
+      "original_value": 82,
+      "original_unit": "F",
+      "normalized_f": 82,
+      "normalized_c": 27.8,
+      "raw_byte": 82
+    },
+    "solar": {
+      "original_value": 90,
+      "original_unit": "F",
+      "normalized_f": 90,
+      "normalized_c": 32.2,
+      "raw_byte": 90
+    }
+  },
+  "raw_payload": [12, 0, 32, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 82, 0, 2, 7, 78, 90]
+}
+```
+
+Rules:
+- normalized temperature events should preserve both original reported unit and
+  normalized Fahrenheit/Celsius values
+- packet receive time is `occurred_at`
+- controller timestamp is diagnostic metadata, not a substitute for packet
+  receive time
+- this event is persistence-oriented and does not replace
+  `equipment.state.controller` as the main latest-state projection
+
 ### `equipment.state.pump`
 
 ```json

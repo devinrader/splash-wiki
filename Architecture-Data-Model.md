@@ -287,6 +287,7 @@ Notes:
 | `weather` | scheduler weather fetch | `temp_f`, `uv_index`, `humidity`, `condition`, `forecast_high_f`, `forecast_low_f`, `precip_chance_pct`, `actual_precip_in` |
 | `chemistry_sensor` | future automated chemistry hardware | `ph`, `free_chlorine`, `orp` |
 | `rainfall` | manual or provider-derived rainfall events | `inches` |
+| `easy_touch_temperature` | EasyTouch `0x02`-derived telemetry sampled at most once every 10 minutes per sensor type | `original_value`, `original_unit`, `normalized_f`, `normalized_c`, `raw_byte`, `raw_payload_json`, `packet_timestamp`, `controller_timestamp` |
 
 ## Retention policy
 
@@ -297,6 +298,7 @@ Notes:
 | `weather` | 1 year at 15-minute resolution |
 | `chemistry_sensor` | 2 years full resolution |
 | `rainfall` | 2 years full resolution |
+| `easy_touch_temperature` | default bucket retention / indefinite until explicit retention policy is designed |
 | PostgreSQL `chemistry_readings` | kept indefinitely as the permanent user log |
 
 ## Chemistry reference
@@ -338,7 +340,7 @@ Do-not-swim conditions called out in the source:
 1. `splash-serial` reads the RS-485 bus and publishes raw transport events to NATS.
 2. `splash-protocol` reconstructs and decodes frames, then publishes normalized equipment events.
 3. `splash-scheduler` fetches weather, evaluates rules against normalized state, and publishes tasks, suggestions, and notifications.
-4. `splash-api` persists relational updates to PostgreSQL, exposes REST and SSE, and emits normalized command intents when actions are approved.
+4. `splash-api` persists relational updates to PostgreSQL, exposes REST and SSE, emits normalized command intents when actions are approved, and writes sampled EasyTouch temperature telemetry to InfluxDB when that integration is configured.
 5. The frontend bootstraps from REST and stays current through SSE and normalized events.
 
 ## Protocol metadata persistence

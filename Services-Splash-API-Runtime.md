@@ -155,7 +155,22 @@ For the first browser milestone, `splash-api` should:
       are not yet sufficiently decoded
     - keeping controller-native schedule visibility separate from maintenance
       schedules and from future Splash-native scheduling ownership
-21. expose authoritative platform service health by:
+21. expose first EasyTouch temperature telemetry persistence by:
+    - subscribing to normalized EasyTouch temperature events derived from
+      controller-status broadcasts
+    - writing sampled temperature points to InfluxDB no more than once every 10
+      minutes per controller and sensor type by default
+    - storing both original reported unit/value and normalized Fahrenheit and
+      Celsius values
+    - exposing read-only latest and history routes for frontend widgets and
+      future analytics
+    - keeping the sampling interval as configuration-backed application logic so
+      it can later become a user-configurable platform setting
+    - reporting degraded local health when telemetry persistence is configured
+      but InfluxDB is unavailable
+    - treating InfluxDB as an optional platform dependency unless future pool
+      settings mark telemetry persistence as required
+22. expose authoritative platform service health by:
     - maintaining a central health registry for Splash and third-party services
     - probing or polling the registered service health adapters on a short
       interval
@@ -187,6 +202,7 @@ The initial registry should cover:
 - `grafana`
 - `prometheus`
 - `nats`
+- `influxdb` when telemetry persistence is configured
 - `splash-api`
 - `splash-serial`
 - `splash-frontend`
@@ -200,10 +216,67 @@ The API should support adapter-specific checkers for:
 - NATS probes
 - Prometheus probes
 - Grafana probes
+- InfluxDB health probes
 
 `GET /platform/status` should be safe to return partial results when some
 non-critical probes fail, as long as the response clearly marks those services
 `unknown`, `down`, `degraded`, or `unhealthy` as appropriate.
+
+## EasyTouch temperature telemetry persistence
+
+Preferred ownership:
+- the first telemetry writer should live inside `splash-api`
+- this keeps InfluxDB persistence behind the existing API boundary rather than
+  coupling time-series storage logic to the frontend or protocol decoder
+
+Configuration:
+- `INFLUX_URL`
+- `INFLUX_TOKEN`
+- `INFLUX_ORG`
+- `INFLUX_BUCKET`
+
+Sampling policy:
+- maintain a per-controller, per-sensor last-write timestamp in API runtime
+  memory
+- if a sensor has no previously written value in the current process, write the
+  first observed valid point immediately
+- otherwise write at most once every `10m` per sensor type by default
+- persist the latest observed value when the sampling interval boundary is
+  reached rather than storing every `0x02` broadcast
+- keep the interval logic isolated so it can later become a pool setting
+
+Stored sensor set:
+- `air`
+- `pool_water`
+- `spa_water` when a validated source exists
+- `solar`
+
+Measurement model:
+- measurement name: `easy_touch_temperature`
+- tags:
+  - `controller_id`
+  - `controller_type`
+  - `sensor_type`
+  - `body`
+  - `source`
+  - `service`
+- fields:
+  - `original_value`
+  - `original_unit`
+  - `normalized_f`
+  - `normalized_c`
+  - `raw_byte`
+  - `raw_payload_json`
+  - `packet_timestamp`
+  - `controller_timestamp`
+
+Read model rules:
+- `GET /telemetry/temperatures/latest` should return the newest persisted point
+  per sensor type
+- `GET /telemetry/temperatures/history` should return range-based series for
+  one or more requested sensor types
+- if no telemetry exists yet, routes should return explicit empty data rather
+  than a transport or parsing error
 
 ## Initial equipment catalog bridge
 
