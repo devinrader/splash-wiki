@@ -524,6 +524,11 @@ Reply notes:
 | --- | --- | --- | --- |
 | `0-6` | `7` | Reply payload observed and action-mapped, but per-byte field meanings remain only partially decoded. Keep the raw payload as protocol truth until byte-level mapping is validated. | guess |
 
+Implementation note:
+- frontend or API schedule tables must not project guessed start time, stop
+  time, day mask, or circuit semantics from this payload until the byte mapping
+  is validated through controlled captures
+
 ### Spa-Side
 
 #### Get Spa-Side (`0xd6` / `214`)

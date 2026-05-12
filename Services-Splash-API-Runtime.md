@@ -134,7 +134,16 @@ For the first browser milestone, `splash-api` should:
       record so frontend views can show cached firmware and bootloader values
     - keeping unresolved payload bytes visible as diagnostic data rather than
       projecting guessed meanings into equipment state
-20. expose authoritative platform service health by:
+20. expose first controller-native schedule visibility by:
+    - exposing a read-only `GET /controller/schedules` route for the Automation
+      `Schedules` tab
+    - projecting only validated EasyTouch controller schedule fields into that
+      route
+    - returning an explicit unavailable or stale status when schedule payloads
+      are not yet sufficiently decoded
+    - keeping controller-native schedule visibility separate from maintenance
+      schedules and from future Splash-native scheduling ownership
+21. expose authoritative platform service health by:
     - maintaining a central health registry for Splash and third-party services
     - probing or polling the registered service health adapters on a short
       interval

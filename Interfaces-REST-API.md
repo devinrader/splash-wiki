@@ -36,6 +36,7 @@
 | `/tasks/:id/snooze` | `POST` | Snooze task |
 | `/schedules` | `GET`, `POST` | Maintenance schedules |
 | `/schedules/:id` | `PUT`, `DELETE` | Schedule mutation |
+| `/controller/schedules` | `GET` | Read validated controller-native schedules when available |
 | `/seasonal` | `GET` | Active seasonal checklist |
 | `/seasonal/:id/start` | `POST` | Start checklist |
 | `/seasonal/:id/steps/:step_id/complete` | `POST` | Complete checklist step |
@@ -111,6 +112,48 @@ Canonical health values are:
 
 `GET /platform/status` returns the browser-facing aggregated platform health
 defined in [Service Health Architecture](Architecture-Service-Health).
+
+### `GET /controller/schedules`
+
+Purpose:
+- expose controller-native schedule visibility for the Automation `Schedules`
+  tab without pretending that Splash already owns all scheduling
+
+Rules:
+- this route is read-only in the first slice
+- it is specific to validated controller-native schedule visibility and must
+  not replace the separate maintenance `/schedules` resource
+- it should return only schedule fields whose meanings are protocol-validated
+- if controller schedule data is unavailable, stale, or not yet sufficiently
+  decoded, the route should return an explicit status and explanatory message
+  rather than inventing values
+
+Example response:
+
+```json
+{
+  "data": {
+    "source": "controller_native",
+    "controller_type": "easytouch",
+    "status": "unavailable",
+    "message": "EasyTouch schedule payload is not yet fully decoded",
+    "last_checked": "2026-05-11T18:00:00.000Z",
+    "schedules": []
+  },
+  "error": null
+}
+```
+
+When validated records exist, each returned schedule record should include:
+
+- stable schedule slot or controller identifier
+- target circuit or schedule owner when validated
+- mode when validated
+- start time when validated
+- stop time when validated
+- day mask or explicit days when validated
+- enabled or active state when validated
+- freshness metadata
 
 ## API design notes
 
