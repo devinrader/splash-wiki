@@ -26,6 +26,9 @@ coverage to validate the browser read and control slice without a live backend.
 - switch the main content area when a sidebar destination is selected
 - apply active styling to exactly one sidebar destination at a time
 - switch Diagnostics tab content without reloading the page
+- switch Automation tab content without reloading the page
+- render the Automation destination as a working tabbed page rather than a generic placeholder
+- render the mockup-derived schedule table and scheduling-mode side panel
 - render the placeholder `Network` diagnostics tab with five named cards
 - keep the sidebar fixed while the main content remains centered and width
   constrained on desktop screens

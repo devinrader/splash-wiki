@@ -45,6 +45,9 @@ It should:
   the documented API
 - allow developer-oriented diagnostic actions such as manual Remote Layout and
   raw frame sends through the documented Protocol Explorer API routes
+- expose a working Automation destination with in-page tabs for `Overview`,
+  `Schedules`, `Rules`, `Scenes`, `Triggers`, and `Logs` as defined in
+  [Splash Frontend Automation Surface](Services-Splash-Frontend-Automation)
 
 It should not:
 
@@ -65,6 +68,8 @@ It should not:
   placeholders while `Diagnostics` hosts the initial Protocol Explorer work
 - the first frontend Protocol Explorer slice may live inside the Diagnostics
   page rather than as a standalone route
+- the first Automation slice may use seeded frontend-local content to replace
+  placeholder views before live automation APIs exist
 
 ## Primary references
 

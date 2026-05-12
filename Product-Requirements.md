@@ -91,6 +91,9 @@ below. It is the first implementation target that validates:
 - Require approve or dismiss actions from the user
 - Prevent duplicate suggestions with minimum re-suggestion intervals
 - Include an explainable reason string with each suggestion
+- Expose an `Automation` frontend destination with tabbed `Overview`, `Schedules`, `Rules`, `Scenes`, `Triggers`, and `Logs` pages
+- Allow the first Automation frontend slice to use seeded UI data from the approved mockups while live automation APIs are still pending
+- Keep automation approval behavior aligned with tasks and normalized command workflows until richer automation-management contracts exist
 
 ### Seasonal and SLAM
 
