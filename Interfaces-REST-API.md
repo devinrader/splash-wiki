@@ -62,6 +62,7 @@
 | `/protocol/prompts` | `GET`, `POST` | Operator-assisted decoding prompts |
 | `/protocol/remote-layout/request` | `POST` | Manual Pentair Remote Layout page request |
 | `/protocol/pump-info/request` | `POST` | Manual Pentair EasyTouch pump-slot information request |
+| `/protocol/controller-schedule/request` | `POST` | Manual Pentair EasyTouch controller schedule request |
 | `/protocol/pump-config/write` | `POST` | Manual Pentair EasyTouch pump configuration write |
 | `/protocol/raw-frame/send` | `POST` | Manual raw protocol frame send for Explorer diagnostics |
 | `/protocol/simulate` | `POST` | Dry-run or live-send protocol command |
@@ -127,6 +128,9 @@ Rules:
 - if controller schedule data is unavailable, stale, or not yet sufficiently
   decoded, the route should return an explicit status and explanatory message
   rather than inventing values
+- for EasyTouch, validated controller-native schedule visibility currently comes
+  only from decoded schedule-detail frames with action `17` or `145`
+- `action 30` must not be treated as an EasyTouch schedule source in this route
 
 Example response:
 
@@ -149,8 +153,8 @@ When validated records exist, each returned schedule record should include:
 - stable schedule slot or controller identifier
 - target circuit or schedule owner when validated
 - mode when validated
-- start time when validated
-- stop time when validated
+- start time in minutes after midnight when validated
+- stop time in minutes after midnight when validated
 - day mask or explicit days when validated
 - enabled or active state when validated
 - freshness metadata

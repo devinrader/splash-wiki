@@ -132,6 +132,38 @@ ASSUMPTION: until circuit index versus returned circuit id is fully validated,
 the coordinator treats the next observed `circuit_configuration` reply during an
 active discovery sequence as the response for the in-flight request.
 
+## Controller Schedule Request
+
+Protocol Explorer may trigger `request_controller_schedule` to ask the
+EasyTouch controller for one schedule-detail record.
+
+Rules:
+
+- encode Pentair `0xd1` get-schedule requests using controller-family header byte `0x34` (`52`)
+- validated request payload is a single one-byte 1-based schedule selector
+- accept only selectors `1-12`
+- publish the full encoded plan for observability
+- keep the request diagnostic and non-mutating
+- treat transport acknowledgement as sufficient command completion for this
+  first request slice
+- expect decoded `0x11` or `0x91` EasyTouch schedule-detail replies to arrive
+  asynchronously and be captured separately by the decode path
+
+## Startup Schedule Warmup
+
+When `splash-api` first observes controller state and does not yet have cached
+EasyTouch schedule records, it should issue a one-time warmup request for
+schedule selectors `1-12`.
+
+Rules:
+
+- reuse `request_controller_schedule` for each slot
+- issue the requests once per API process startup rather than continuously
+- keep the warmup best-effort; failures should not block the rest of API
+  startup behavior
+- cache any decoded `0x11` or `0x91` replies that arrive so frontend schedule
+  views can render from warmed data
+
 ## Controller Circuit State Actions
 
 Dashboard or other API clients may trigger `set_circuit_state` for a known

@@ -68,20 +68,26 @@ For the first browser milestone, `splash-api` should:
     - publishing a diagnostic `protocol.command.intent`
     - keeping the flow explicitly Explorer-only rather than normal automation
       or dashboard control
-14. expose a first manual pump-config write slice by:
+14. expose a first manual controller-schedule request slice by:
+    - accepting an EasyTouch schedule selector from Protocol Explorer
+    - validating that the selector is within the currently trusted range `1-12`
+    - publishing a diagnostic `protocol.command.intent`
+    - keeping the flow explicitly Explorer-only rather than normal automation
+      or dashboard control
+15. expose a first manual pump-config write slice by:
     - accepting a structured EasyTouch `0x9b` pump configuration payload from
       Protocol Explorer
     - publishing a diagnostic `protocol.command.intent`
     - keeping the flow explicitly Explorer-only rather than normal automation
       or dashboard control
-15. expose a first watch-session slice by:
+16. expose a first watch-session slice by:
     - starting an explicit capture window
     - recording all live Explorer frame events into that watch session
     - allowing an optional per-session event filter so a watch can be limited
       to transport-only serial activity such as `serial.rx.raw` and
       `serial.tx.raw`
     - stopping and returning the captured frame set for later inspection
-16. expose a first controller-circuit configuration discovery request by:
+17. expose a first controller-circuit configuration discovery request by:
     - accepting a diagnostic API request from the dashboard or Protocol Explorer
     - publishing a `protocol.command.intent` that asks the active protocol
       plugin to request controller circuit-configuration records
@@ -137,8 +143,14 @@ For the first browser milestone, `splash-api` should:
 20. expose first controller-native schedule visibility by:
     - exposing a read-only `GET /controller/schedules` route for the Automation
       `Schedules` tab
-    - projecting only validated EasyTouch controller schedule fields into that
-      route
+    - projecting only validated EasyTouch controller schedule fields from
+      schedule-detail actions `17` and `145` into that route
+    - when controller state first appears and no cached schedule records exist,
+      issuing a one-time startup warmup request for EasyTouch schedule slots
+      `1-12`
+    - caching decoded schedule-detail replies in API latest-state so the
+      Automation page can render from warmed controller data without requiring a
+      manual request first
     - returning an explicit unavailable or stale status when schedule payloads
       are not yet sufficiently decoded
     - keeping controller-native schedule visibility separate from maintenance
@@ -471,6 +483,7 @@ The first slice should at least support:
 - `POST /protocol/prompts`
 - `POST /protocol/remote-layout/request`
 - `POST /protocol/pump-info/request`
+- `POST /protocol/controller-schedule/request`
 - `POST /protocol/pump-config/write`
 - `POST /protocol/circuit-config/request`
 - `POST /protocol/controller-datetime/request`

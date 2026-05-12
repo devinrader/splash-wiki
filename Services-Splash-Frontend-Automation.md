@@ -135,6 +135,11 @@ For controller-native schedule visibility specifically:
 - the next slice should use `GET /controller/schedules`
 - that route should return validated controller schedule records plus freshness
   and source metadata
+- for EasyTouch, the first validated live records come from decoded schedule
+  detail actions `17` and `145`
+- the platform should warm controller schedule cache on API startup so the
+  `Schedules` table normally renders from cached controller data rather than
+  waiting for a manual operator refresh
 - until the Pentair schedule payload is sufficiently decoded, the frontend must
   keep the existing seeded rows or show an explicit unavailable state rather
   than fabricating real schedules

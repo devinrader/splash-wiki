@@ -509,7 +509,12 @@ Reply notes:
 
 Request notes:
 - request action is observed and paired with `0x11`
-- request payload shape is not yet validated
+- validated EasyTouch request payload is one byte
+- `payload[0]` is a 1-based schedule selector
+- currently validated selector range is `1-12`
+- controller-family schedule requests should use Pentair header byte `0x34` (`52`) rather than `0x01`
+- request bytes outside `1-12` should be rejected by Splash's diagnostic
+  command surface rather than sent as if they were known-good
 
 #### Set Schedule  (`0x11` / `17`)
 
@@ -517,17 +522,65 @@ Reply notes:
 - payload length: `7`
 - sample payload: `019b0000000000`
 - status: schedule-information reply
+- Touch-family EasyTouch schedule-detail replies should classify as schedule
+  frames only when:
+  - controller family is `EasyTouch`
+  - action is `0x11` (`17`) or `0x91` (`145`)
+  - payload length is at least `7`
+- `action 30` is not an EasyTouch schedule classifier and must not be routed as
+  an EasyTouch schedule frame
+- EasyTouch schedule frame classification should remain separate from payload
+  decoding
+
+Validated EasyTouch schedule payload rules:
+- `payload[0]` = schedule id
+- `payload[1]` = circuit id byte
+- `payload[2]` = start hour or egg-timer marker
+- `payload[3]` = start minute
+- `payload[4]` = end hour, schedule type marker, or egg-timer runtime hours
+- `payload[5]` = end minute or egg-timer runtime minutes
+- `payload[6]` = schedule days bitmask
+
+Validated decode rules:
+- `scheduleId = payload[0]`
+- `circuitId = payload[1] & 0x7f`
+- `eggTimerRunTimeMinutes = payload[4] * 60 + payload[5]`
+- `eggTimerActive = payload[2] == 25 && circuitId > 0 && eggTimerRunTimeMinutes != 256`
+- `scheduleActive = !eggTimerActive && circuitId > 0`
+- when `eggTimerActive`, decode the frame as an EasyTouch egg-timer
+  configuration rather than as a repeating schedule
+- when `scheduleActive`, decode `startTimeMinutes = payload[2] * 60 + payload[3]`
+- when `payload[4] == 26`, treat the frame as schedule type `26` with label
+  `run_once_or_egg_timer_controlled`
+- ASSUMPTION: until Splash captures per-circuit EasyTouch egg-timer runtime
+  configuration separately, schedule type `26` uses a platform default runtime
+  of `720` minutes when deriving `endTimeMinutes`
+- otherwise treat it as schedule type `0` with label `repeat`
+- `scheduleDays = payload[6] & 0x7f`
+- represent decoded times as minutes after midnight
+- preserve raw payload bytes in the decoded output
+- if payload length is less than `7`, return an invalid parse result plus a
+  warning rather than throwing
+- unusual or unresolved values should become warnings rather than hard failures
 
 ##### Frame Payload
 
 | Field byte(s) | Length | Description | Confidence |
 | --- | --- | --- | --- |
-| `0-6` | `7` | Reply payload observed and action-mapped, but per-byte field meanings remain only partially decoded. Keep the raw payload as protocol truth until byte-level mapping is validated. | guess |
+| `0` | `1` | schedule id | inferred |
+| `1` | `1` | circuit id byte; apply `& 0x7f` for the effective circuit id | inferred |
+| `2` | `1` | start hour, or egg-timer marker `25` | inferred |
+| `3` | `1` | start minute | inferred |
+| `4` | `1` | end hour, schedule type marker `26`, or egg-timer runtime hours | inferred |
+| `5` | `1` | end minute or egg-timer runtime minutes | inferred |
+| `6` | `1` | schedule days bitmask; use low 7 bits only | inferred |
 
 Implementation note:
-- frontend or API schedule tables must not project guessed start time, stop
-  time, day mask, or circuit semantics from this payload until the byte mapping
-  is validated through controlled captures
+- EasyTouch `17`/`145` schedule payloads may now project the validated fields
+  above into decoded schedule records
+- frontend or API schedule tables must still avoid projecting any additional
+  guessed semantics beyond the validated schedule id, circuit id, schedule type,
+  times, egg-timer runtime, active flag, and day bitmask
 
 ### Spa-Side
 
