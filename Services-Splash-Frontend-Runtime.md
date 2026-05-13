@@ -211,6 +211,8 @@ Cross-origin local development rule:
   salt level, controller system time, and pump RPM
 - on the `Home` destination, show a basic EasyTouch temperature telemetry
   widget when `splash-api` exposes persisted latest/history temperature data
+- on the `Home` destination, show concise weather forecast data when
+  `splash-api` exposes a normalized site forecast
 - the first Home telemetry widget should display latest `air`, `pool_water`,
   `spa_water` when available, `solar` when available, and the last updated
   timestamp
@@ -219,6 +221,10 @@ Cross-origin local development rule:
 - when no EasyTouch temperature history has been captured yet, the widget
   should show the explicit empty state: `No EasyTouch temperature history has
   been captured yet.`
+- when no weather forecast has been fetched yet, the weather widget should show
+  an explicit empty state rather than inventing weather values
+- when the cached weather forecast is stale, the widget should continue showing
+  the last known valid forecast together with a stale label or timestamp
 - metric cards and status indicators should pair their text labels with icons
   from the Splash icon library when a suitable icon exists
 - status indicators should present icon, text, and semantic color together and
@@ -295,6 +301,8 @@ Cross-origin local development rule:
   - `splash-api`
   - `prometheus`
   - `grafana`
+  - `influxdb` when telemetry persistence is configured
+  - `weather-provider` when weather forecast integration is configured
 - each service row or card may show:
   - service name
   - current status
@@ -323,6 +331,35 @@ Cross-origin local development rule:
   stale timestamp when available
 - the frontend should not poll Grafana, Prometheus, NATS, `splash-serial`, or
   `splash-protocol` directly for browser-visible health
+
+
+## History page rules
+
+- the `History` destination may transition from placeholder content to a first
+  persistence-backed trend surface once `splash-api` exposes the documented
+  history routes
+- the first `History` slice should not duplicate the concise Home widget; it
+  should focus on longer-range trend visibility and operator review
+- the first temperature-history slice should render charted series for:
+  - `air`
+  - `pool_water`
+  - `spa_water`
+  - `solar`
+- the frontend may request those series through repeated
+  `GET /telemetry/temperatures/history` calls or one future expanded history
+  response, but it must stay within the documented API contract
+- the first weather-history slice should render charted normalized weather
+  series from `GET /weather/history`
+- the first weather-history chart set should support at least:
+  - air temperature
+  - cloud cover
+  - UV index
+  - precipitation probability
+  - precipitation amount
+- if a requested series is unavailable, the History page should render an
+  explicit unavailable or empty state rather than preserving placeholder text
+- the History page should label stale weather data when the API reports that
+  the most recent cached forecast snapshot is stale
 
 ## Command UX rules
 

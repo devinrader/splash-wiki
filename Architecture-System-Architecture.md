@@ -51,8 +51,8 @@ TODO: The original document says the living architecture diagram also exists in 
 
 | Service | Host | Responsibility |
 | --- | --- | --- |
-| `splash-api` | `splash-core` | REST API, SSE broker, envelope responses, repository access, notification worker. Preferred language: TypeScript/Node.js |
-| `splash-scheduler` | `splash-core` | weather fetches, cron jobs, automation rule evaluation, task generation. Preferred language: TypeScript/Node.js |
+| `splash-api` | `splash-core` | REST API, SSE broker, envelope responses, repository access, notification worker, first-slice weather forecast cache and telemetry read model. Preferred language: TypeScript/Node.js |
+| `splash-scheduler` | `splash-core` | long-term weather fetch ownership, cron jobs, automation rule evaluation, task generation. Preferred language: TypeScript/Node.js |
 | `splash-protocol` | `splash-core` | plugin-based protocol decode/encode, frame reconstruction, normalized event publication, Protocol Explorer protocol operations. Preferred language: TypeScript/Node.js |
 | `splash-serial` | `splash-zero` | RS-485 I/O, raw byte ingress and egress, bus timing enforcement, port monitoring. Preferred language: Go |
 | `splash-nats` | `splash-core` | event backbone and JetStream durability |
@@ -94,6 +94,9 @@ Rules:
 - Repository pattern for data access
 - SSE broker for browser push
 - Pluggable interfaces for protocols, weather providers, and sensor providers
+- The first weather-forecast implementation may temporarily run inside
+  `splash-api` until a dedicated `splash-scheduler` forecast-refresh slice is
+  implemented.
 - Base-plus-override Docker Compose configuration
 
 ## Event backbone

@@ -228,6 +228,8 @@ The initial registry should cover:
 - `grafana`
 - `prometheus`
 - `nats`
+- `influxdb` when telemetry persistence is configured
+- `weather-provider` when weather forecast integration is configured
 - `splash-api`
 - `splash-serial`
 - `splash-frontend`
@@ -356,6 +358,27 @@ Rules:
   - frontend responds but the app shell cannot initialize meaningfully
 - down:
   - frontend unreachable
+
+
+### Weather provider
+
+- primary responsibility: fetch site-level weather forecast data for Splash and
+  make the latest cached forecast available for dashboard and analytics use
+- criticality: `optional`
+- healthy:
+  - configured provider endpoint reachable
+  - latest refresh succeeds
+  - normalized forecast cache is current
+- degraded:
+  - provider is reachable but the latest cached forecast is stale
+  - manual refresh fails while a previously valid cached forecast still exists
+- unhealthy:
+  - provider configuration is invalid for the selected integration
+  - refresh path cannot produce a valid normalized forecast even though the
+    upstream endpoint is reachable
+- down:
+  - provider endpoint is unreachable or times out and no valid cached forecast
+    can be used safely
 
 ### Prometheus
 

@@ -15,7 +15,7 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 
 | Entity | Purpose | Key fields |
 | --- | --- | --- |
-| `pools` | Root pool profile | `name`, `pool_type`, `water_type`, `surface_type`, `volume_gallons`, `surface_area_sqft`, `zip_code`, `latitude`, `longitude`, `timezone`, `setup_complete` |
+| `pools` | Root pool profile | `name`, `pool_type`, `water_type`, `surface_type`, `volume_gallons`, `surface_area_sqft`, `street_address`, `city`, `state`, `postal_code`, `zip_code`, `latitude`, `longitude`, `timezone`, `setup_complete` |
 | `equipment` | Physical equipment inventory | `pool_id`, `equipment_type`, `brand`, `model`, `bus_address`, `capability_profile_id`, `capability_profile_source`, `install_date` |
 | `maintenance_schedules` | Reminder schedules | `equipment_id`, `interval_type`, `interval_value`, `last_performed_at`, `next_due_at` |
 | `checklist_definitions` | Seasonal checklist templates | `pool_id`, `season`, `title`, `sort_order` |
@@ -27,7 +27,7 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 | `tasks` | Actionable work items | `status`, `priority`, `source`, `automation_command`, `due_at`, `snooze_until` |
 | `notifications` | Notification inbox | `type`, `title`, `body`, `read`, `related_entity_type`, `related_entity_id` |
 | `protocol_annotations` | Saved protocol-discovery notes | `pool_id`, `bundle_id`, `frame_index`, `field_name`, `byte_start`, `byte_end`, `confidence`, `label`, `notes` |
-| `pool_settings` | Pool-scoped settings and integration configuration | `pool_id`, `chemistry_prompt_interval_days`, `maintenance_reminder_lead_days`, `notification_preferences`, `weather_provider`, `protocol_plugin`, `protocol_config`, `sensor_provider`, `sensor_config` |
+| `pool_settings` | Pool-scoped settings and integration configuration | `pool_id`, `chemistry_prompt_interval_days`, `maintenance_reminder_lead_days`, `notification_preferences`, `weather_provider`, `weather_refresh_interval_hours`, `weather_config`, `protocol_plugin`, `protocol_config`, `sensor_provider`, `sensor_config` |
 | `pool_circuits` | Circuit label and display-name mapping | `pool_id`, `circuit_key`, `display_name`, `circuit_type`, `bus_address`, `action_code`, `sort_order`, `enabled` |
 | `hardware_descriptions` | Pool-scoped configured hardware inventory and model limits | `pool_id`, `hardware_profile_id`, `equipment_id`, `configuration`, `source`, `confirmed_at` |
 
@@ -285,6 +285,8 @@ Notes:
 | `pump_state` | pump 0x07 poll response | `running`, `watts`, `rpm` |
 | `chlorinator_state` | chlorinator broadcast | `salt_ppm`, `output_percent`, `status` |
 | `weather` | scheduler weather fetch | `temp_f`, `uv_index`, `humidity`, `condition`, `forecast_high_f`, `forecast_low_f`, `precip_chance_pct`, `actual_precip_in` |
+| `weather_forecast_daily` | provider-normalized daily forecast snapshot | `weather_code`, `high_temp_f`, `high_temp_c`, `low_temp_f`, `low_temp_c`, `precipitation_probability_max`, `precipitation_amount`, `uv_index_max`, `sunrise`, `sunset`, `provider`, `fetched_at`, `forecast_generated_at` |
+| `weather_forecast_hourly` | provider-normalized hourly forecast snapshot | `temperature_f`, `temperature_c`, `relative_humidity`, `dew_point_f`, `dew_point_c`, `precipitation_probability`, `precipitation_amount`, `cloud_cover`, `wind_speed`, `wind_gusts`, `uv_index`, `provider`, `fetched_at`, `forecast_generated_at` |
 | `chemistry_sensor` | future automated chemistry hardware | `ph`, `free_chlorine`, `orp` |
 | `rainfall` | manual or provider-derived rainfall events | `inches` |
 | `easy_touch_temperature` | EasyTouch `0x02`-derived telemetry sampled at most once every 10 minutes per sensor type | `original_value`, `original_unit`, `normalized_f`, `normalized_c`, `raw_byte`, `raw_payload_json`, `packet_timestamp`, `controller_timestamp` |
@@ -296,6 +298,8 @@ Notes:
 | `equipment_state` | 30 days raw, then 5-minute downsample for 1 year |
 | `pump_state` | 90 days raw, then hourly downsample for 2 years |
 | `weather` | 1 year at 15-minute resolution |
+| `weather_forecast_daily` | default bucket retention / indefinite until explicit retention policy is designed |
+| `weather_forecast_hourly` | default bucket retention / indefinite until explicit retention policy is designed |
 | `chemistry_sensor` | 2 years full resolution |
 | `rainfall` | 2 years full resolution |
 | `easy_touch_temperature` | default bucket retention / indefinite until explicit retention policy is designed |
@@ -339,8 +343,34 @@ Do-not-swim conditions called out in the source:
 
 1. `splash-serial` reads the RS-485 bus and publishes raw transport events to NATS.
 2. `splash-protocol` reconstructs and decodes frames, then publishes normalized equipment events.
-3. `splash-scheduler` fetches weather, evaluates rules against normalized state, and publishes tasks, suggestions, and notifications.
-4. `splash-api` persists relational updates to PostgreSQL, exposes REST and SSE, emits normalized command intents when actions are approved, and writes sampled EasyTouch temperature telemetry to InfluxDB when that integration is configured.
+3. `splash-scheduler` evaluates rules against normalized state and long-term weather updates; the first forecast-fetch slice may temporarily live in `splash-api`.
+4. `splash-api` persists relational updates to PostgreSQL, exposes REST and SSE, emits normalized command intents when actions are approved, writes sampled EasyTouch temperature telemetry to InfluxDB when that integration is configured, and stores normalized weather forecast snapshots for frontend and later analytics use.
+
+## Weather forecast cache model
+
+Purpose:
+- cache the latest normalized site-level weather forecast per pool
+- avoid re-geocoding on every refresh
+- preserve last-known-valid forecast data when provider refresh fails
+
+Preferred pool profile fields:
+- `street_address`
+- `city`
+- `state`
+- `postal_code`
+- `latitude`
+- `longitude`
+- `timezone`
+
+Rules:
+- latitude and longitude may be user-specified overrides or geocoded provider
+  results
+- when latitude/longitude already exist, provider refreshes should use them
+  directly without repeated geocoding
+- `weather_provider` remains pool-scoped configuration
+- `weather_refresh_interval_hours` should default to `6`
+- `weather_config` may store provider-specific or future override metadata such
+  as geocoding source, manual-coordinate flag, or customer-endpoint settings
 5. The frontend bootstraps from REST and stays current through SSE and normalized events.
 
 ## Protocol metadata persistence

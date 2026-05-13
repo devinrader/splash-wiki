@@ -181,6 +181,22 @@ For the first browser milestone, `splash-api` should:
     - exposing local `/healthz`, `/readyz`, `/health`, and `/metrics`
     - emitting Prometheus metrics for health-check state, duration, failures,
       and freshness
+23. expose first site-level weather forecast integration by:
+    - keeping the provider boundary behind a `WeatherForecastProvider`
+    - implementing Open-Meteo as the first provider
+    - fetching and caching a normalized 10-day forecast for the active pool
+    - geocoding a pool address only when latitude/longitude are not already
+      cached or manually configured
+    - preserving the last known valid forecast when refreshes fail and marking
+      it stale
+    - exposing read-only latest forecast data and a best-effort manual refresh
+      route for the Home dashboard
+    - exposing a normalized `/weather/history` read model for persistence-backed
+      browser charts and later analytics surfaces
+    - optionally writing normalized daily and hourly forecast snapshots to
+      InfluxDB when that integration is configured
+    - reporting configured weather-provider availability through the aggregated
+      platform-status surface
 
 ## Platform health aggregation
 
@@ -203,6 +219,7 @@ The initial registry should cover:
 - `prometheus`
 - `nats`
 - `influxdb` when telemetry persistence is configured
+- `weather-provider` when weather forecast integration is configured
 - `splash-api`
 - `splash-serial`
 - `splash-frontend`
@@ -277,6 +294,64 @@ Read model rules:
   one or more requested sensor types
 - if no telemetry exists yet, routes should return explicit empty data rather
   than a transport or parsing error
+
+## Weather forecast provider and cache
+
+First-slice ownership:
+- the first weather-forecast implementation may live inside `splash-api`
+- this is a milestone exception to the long-term `splash-scheduler` weather
+  ownership so the Home dashboard can ship against one bounded service
+
+Provider abstraction:
+- `WeatherForecastProvider`
+- `getForecast(location): Promise<NormalizedWeatherForecast>`
+- `geocodeAddress(address): Promise<GeoLocation>`
+
+Open-Meteo rules:
+- default provider id: `openmeteo`
+- base forecast URL default:
+  `https://api.open-meteo.com/v1/forecast`
+- base geocoding URL default:
+  `https://geocoding-api.open-meteo.com/v1/search`
+- first slice should request `forecast_days=10`
+- request hourly variables:
+  - `temperature_2m`
+  - `relative_humidity_2m`
+  - `dew_point_2m`
+  - `precipitation_probability`
+  - `precipitation`
+  - `cloud_cover`
+  - `wind_speed_10m`
+  - `wind_gusts_10m`
+  - `uv_index`
+- request daily variables:
+  - `weather_code`
+  - `temperature_2m_max`
+  - `temperature_2m_min`
+  - `precipitation_probability_max`
+  - `precipitation_sum`
+  - `uv_index_max`
+  - `sunrise`
+  - `sunset`
+- include `timezone` in forecast requests so returned timestamps align with the
+  pool site
+
+Configuration:
+- `WEATHER_PROVIDER=openmeteo`
+- `WEATHER_REFRESH_INTERVAL_HOURS=6`
+- `OPEN_METEO_BASE_URL=https://api.open-meteo.com/v1`
+- `OPEN_METEO_GEOCODING_URL=https://geocoding-api.open-meteo.com/v1`
+- future customer API keys or paid endpoints belong in provider-specific
+  configuration rather than the provider-agnostic contract
+
+Refresh and stale rules:
+- refresh at most once every configured interval by default
+- geocode once and reuse cached coordinates until the pool address changes or a
+  manual coordinate override is saved
+- on provider error, continue serving the last known valid forecast with
+  `stale: true`
+- manual refresh should not clear a valid cached forecast when the provider
+  fails
 
 ## Initial equipment catalog bridge
 

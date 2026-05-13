@@ -354,6 +354,22 @@ Rules:
 - this event is persistence-oriented and does not replace
   `equipment.state.controller` as the main latest-state projection
 
+### `weather.forecast.updated`
+
+Purpose:
+- provide a provider-agnostic normalized weather forecast snapshot for one pool
+- let downstream services and the frontend work from Splash-owned normalized
+  data rather than provider-native response bodies
+
+Rules:
+- the event must not leak provider-native field names outside the weather
+  provider boundary
+- daily forecasts should include 10 days for the first Open-Meteo slice
+- hourly forecasts should include the provider-backed hourly range returned for
+  the configured 10-day forecast window
+- stale forecasts should continue to publish the last known valid normalized
+  data with `stale: true` instead of disappearing from the API
+
 ### `equipment.state.pump`
 
 ```json

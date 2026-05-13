@@ -46,10 +46,15 @@
 - `splash-protocol` should discover locally available protocol plugins from the packaged plugin set or plugin directory, while pool configuration selects one active plugin and supplies pool-specific plugin config.
 - a pool selecting a plugin that is not locally available is an unrecoverable deployment or configuration error and should be treated as fatal.
 - `WeatherProvider` is the abstraction boundary for external weather APIs.
+- The first weather-forecast provider implementation should be Open-Meteo behind
+  the `WeatherProvider` abstraction.
 - `SensorProvider` is the abstraction boundary for future chemistry hardware.
 - Protocol Explorer should reuse the same decode/encode engine used in production command and frame handling.
 - `splash-protocol` owns frame reconstruction buffers and command-response correlation.
 - `splash-api` and `splash-scheduler` must operate on normalized events and command intents, not raw vendor packets.
+- The first weather-forecast slice may live in `splash-api` as a practical
+  milestone exception, even though the long-term architecture keeps broader
+  scheduled weather evaluation in `splash-scheduler`.
 - Normalized equipment events and command types are the primary contract above the protocol layer.
 - `splash-serial` should generate and persist a durable `serial_instance_id`
   for raw transport identity, while `splash-core` owns any later binding of

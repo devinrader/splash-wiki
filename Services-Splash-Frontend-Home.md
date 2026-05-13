@@ -17,6 +17,9 @@ browser slice required by [Product Overview](Product-Overview) and
 - allow the operator to change pump RPM
 - show a basic Home temperature-history widget sourced from `splash-api` when
   EasyTouch telemetry is available
+- show concise site-level weather forecast data sourced from `splash-api`
+- show persistence-backed temperature and weather history charts on `History`
+  when those API surfaces are available
 
 ## Runtime role
 
@@ -50,6 +53,18 @@ It should:
 - expose a working Automation destination with in-page tabs for `Overview`,
   `Schedules`, `Rules`, `Scenes`, `Triggers`, and `Logs` as defined in
   [Splash Frontend Automation Surface](Services-Splash-Frontend-Automation)
+- show a concise weather block on `Home` with:
+  - current or next-day summary
+  - 10-day daily forecast strip or table
+  - UV max
+  - precipitation chance
+  - provider freshness or stale indicator
+- show a first persistence-backed `History` destination with:
+  - temperature history charts for `air`, `pool_water`, `spa_water`, and
+    `solar` when available
+  - weather-history charts for normalized weather metrics such as forecast air
+    temperature, cloud cover, UV index, and precipitation probability or
+    precipitation amount
 
 It should not:
 
@@ -57,6 +72,16 @@ It should not:
 - decode protocol frames
 - own command correlation
 - implement equipment scheduling in the milestone-1 slice
+- call external weather providers directly
+
+## Home weather widget rules
+
+- the frontend should treat `splash-api` as the authoritative weather source
+- it should render normalized data only and must not know Open-Meteo response
+  field names
+- if no forecast has been fetched yet, it should show an explicit empty state
+- if the latest forecast is stale, it should continue rendering the cached data
+  with a visible stale indicator
 
 ## Initial slice assumptions
 
@@ -80,3 +105,29 @@ It should not:
 - [SSE Event Contract](Interfaces-SSE-Events)
 - [Product Overview](Product-Overview)
 - [Product Requirements](Product-Requirements)
+
+
+## History destination rules
+
+- the frontend should treat `splash-api` as the authoritative history source
+- it should not query InfluxDB, Open-Meteo, or any other storage or provider
+  endpoint directly from the browser
+- the first `History` slice should render persistence-backed charts rather than
+  a generic placeholder when the documented history APIs are available
+- the first temperature-history chart set should expose separate operator-facing
+  series for `air`, `pool_water`, `spa_water`, and `solar` when those series
+  exist in API results
+- when a specific temperature series has no captured points, the UI should show
+  that series as unavailable rather than inventing zeros
+- the first weather-history chart set should use normalized browser-facing data
+  from `GET /weather/history`
+- weather-history charts should remain provider-agnostic and must not leak
+  Open-Meteo-native field names into the UI contract
+- the first weather-history slice may focus on forecast-derived trend views for:
+  - air temperature
+  - cloud cover
+  - UV index
+  - precipitation probability
+  - precipitation amount
+- if no persistence-backed history has been captured yet, the History page
+  should show explicit empty states rather than preserving a generic placeholder

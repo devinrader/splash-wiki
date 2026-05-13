@@ -39,6 +39,9 @@
 | `/controller/schedules` | `GET` | Read validated controller-native schedules when available |
 | `/telemetry/temperatures/latest` | `GET` | Latest EasyTouch temperature telemetry snapshot |
 | `/telemetry/temperatures/history` | `GET` | Historical EasyTouch temperature telemetry series |
+| `/weather/forecast` | `GET` | Latest normalized weather forecast snapshot for the active pool |
+| `/weather/history` | `GET` | Historical normalized weather series for the active pool |
+| `/weather/forecast/refresh` | `POST` | Trigger a manual weather forecast refresh |
 | `/seasonal` | `GET` | Active seasonal checklist |
 | `/seasonal/:id/start` | `POST` | Start checklist |
 | `/seasonal/:id/steps/:step_id/complete` | `POST` | Complete checklist step |
@@ -196,6 +199,86 @@ Rules:
 - the first slice may use simple bucketed reads aligned with the requested
   interval rather than prediction-oriented analytics
 
+### `GET /weather/forecast`
+
+Purpose:
+- return the latest normalized weather forecast snapshot for the active pool
+
+Rules:
+- Splash should return provider-agnostic normalized daily and hourly forecast
+  data
+- the first Open-Meteo slice should request `forecast_days=10`
+- the route should include provider metadata, `fetched_at`, and a `stale` flag
+- if no forecast has been fetched yet, return an explicit empty or unavailable
+  state rather than inventing forecast values
+
+Expected normalized daily fields:
+- `date`
+- `weather_code`
+- `high_temp_f`
+- `high_temp_c`
+- `low_temp_f`
+- `low_temp_c`
+- `precipitation_probability_max`
+- `precipitation_amount`
+- `uv_index_max`
+- `sunrise`
+- `sunset`
+
+Expected normalized hourly fields:
+- `timestamp`
+- `temperature_f`
+- `temperature_c`
+- `relative_humidity`
+- `dew_point_f`
+- `dew_point_c`
+- `precipitation_probability`
+- `precipitation_amount`
+- `cloud_cover`
+- `wind_speed_mph`
+- `wind_speed_kph`
+- `wind_gusts_mph`
+- `wind_gusts_kph`
+- `uv_index` when available
+
+
+### `GET /weather/history`
+
+Purpose:
+- return persistence-backed normalized weather history for browser charts and
+  later analytics surfaces
+
+Query parameters:
+- `metric`: normalized metric selector such as `temperature_f`, `cloud_cover`,
+  `uv_index`, `precipitation_probability`, or `precipitation_amount`
+- `start`: ISO 8601 UTC inclusive range start
+- `end`: ISO 8601 UTC inclusive range end
+- `interval`: optional downsample window such as `1h`, `6h`, or `1d`
+
+Rules:
+- the response should remain provider-agnostic and must not expose
+  Open-Meteo-native field names outside the normalized weather contract
+- the first slice may serve weather-history data from persisted Influx-backed
+  forecast snapshots when available
+- each series point should include `timestamp` and `value`
+- the response should include provider metadata, the effective metric name, and
+  a `stale` flag when the latest cached forecast backing the history is stale
+- if no weather history has been captured yet for the requested metric, return
+  an explicit empty state rather than inventing values
+
+### `POST /weather/forecast/refresh`
+
+Purpose:
+- trigger a best-effort manual refresh of the active pool forecast using the
+  configured weather provider
+
+Rules:
+- manual refresh should reuse cached latitude/longitude when already known
+- if latitude/longitude are absent and a pool address is present, Splash may
+  geocode before requesting the forecast
+- manual refresh failures should preserve the last known valid forecast and mark
+  it stale
+
 ## API design notes
 
 - The onboarding wizard is frontend-driven and only persists actual domain objects plus `POST /setup/complete`
@@ -326,7 +409,14 @@ Response:
       "email": false,
       "push": false
     },
-    "weather_provider": "tomorrowio",
+    "weather_provider": "openmeteo",
+    "weather_refresh_interval_hours": 6,
+    "weather_config": {
+      "openmeteo": {
+        "base_url": "https://api.open-meteo.com/v1",
+        "geocoding_url": "https://geocoding-api.open-meteo.com/v1"
+      }
+    },
     "protocol_plugin": "pentair_easytouch",
     "protocol_config": {
       "controller_type": "easytouch",

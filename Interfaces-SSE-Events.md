@@ -40,3 +40,5 @@ data: {"pool_id":"...","temp_f":82.0}
 - SSE is the browser-facing live-update channel
 - internal services should use NATS, not SSE
 - event naming should stay stable even if internal protocol plugins change
+- `weather.updated` should carry provider-agnostic normalized weather snapshot
+  metadata rather than provider-native response bodies
