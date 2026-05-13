@@ -338,6 +338,7 @@ Open-Meteo rules:
 
 Configuration:
 - `WEATHER_PROVIDER=openmeteo`
+- `WEATHER_REFRESH_MINUTES=15,45`
 - `WEATHER_REFRESH_INTERVAL_HOURS=6`
 - `OPEN_METEO_BASE_URL=https://api.open-meteo.com/v1`
 - `OPEN_METEO_GEOCODING_URL=https://geocoding-api.open-meteo.com/v1`
@@ -345,7 +346,14 @@ Configuration:
   configuration rather than the provider-agnostic contract
 
 Refresh and stale rules:
-- refresh at most once every configured interval by default
+- Splash API should perform one immediate forecast refresh at startup
+- if `WEATHER_REFRESH_MINUTES` is configured, Splash API should refresh on those
+  wall-clock minute marks each hour, for example `15,45` meaning `:15` and
+  `:45` every hour
+- when `WEATHER_REFRESH_MINUTES` is configured, it takes precedence over
+  `WEATHER_REFRESH_INTERVAL_HOURS`
+- if `WEATHER_REFRESH_MINUTES` is unset, refresh at most once every configured
+  `WEATHER_REFRESH_INTERVAL_HOURS`
 - geocode once and reuse cached coordinates until the pool address changes or a
   manual coordinate override is saved
 - on provider error, continue serving the last known valid forecast with
