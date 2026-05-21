@@ -33,9 +33,12 @@ The initial milestone runtime is intentionally narrow:
    - submits manual raw frame sends
    - shows outbound diagnostic request events such as `protocol.command.encoded`
      and `serial.tx.raw` when present
-10. allow the remaining milestone Diagnostics tabs and the non-System sidebar
+10. allow the remaining milestone Diagnostics tabs and most non-System sidebar
     destinations to remain placeholder surfaces until their deeper product
     workflows are implemented
+11. expose the first real `Settings` destination for:
+    - weather-location configuration backed by `splash-api`
+    - pool-chemistry bounds configuration backed by `splash-api`
 
 ## Data flow
 
@@ -213,6 +216,13 @@ Cross-origin local development rule:
   widget when `splash-api` exposes persisted latest/history temperature data
 - on the `Home` destination, show concise weather forecast data when
   `splash-api` exposes a normalized site forecast
+- on the `Settings` destination, render a `Pool Chemistry` section that:
+  - loads the configured chemistry bounds set from `GET /api/settings/pool-chemistry`
+  - lets the operator edit supported built-in chemistry keys
+  - preserves units, enabled flags, and min/target/max inputs
+  - saves changes through `PUT /api/settings/pool-chemistry`
+  - surfaces validation and save status using the same page-level patterns as
+    the weather-location settings section
 - the first Home telemetry widget should display latest `air`, `pool_water`,
   `spa_water` when available, `solar` when available, and the last updated
   timestamp
@@ -340,6 +350,24 @@ Cross-origin local development rule:
   history routes
 - the first `History` slice should not duplicate the concise Home widget; it
   should focus on longer-range trend visibility and operator review
+- when the `History` destination contains multiple chart families, it should
+  group them under internal page tabs rather than rendering every chart in one
+  long scroll by default
+- the first `History` tab set should include:
+  - `Temperature`
+  - `Pump`
+  - `Weather`
+- the default `History` tab should be `Temperature`
+- the `Temperature` tab should render the first temperature-history slice
+- the `Pump` tab should render the first pump-history slice
+- the `Weather` tab should render the first weather-history slice
+- the frontend should lazy-load History tab datasets on first activation rather
+  than fetching all History families on initial page mount
+- once a History tab dataset has been loaded successfully, the frontend may
+  retain it in in-memory page state for fast tab switching during the active
+  session
+- inactive History tabs should not mount their chart grid until the tab is
+  activated
 - the first temperature-history slice should render charted series for:
   - `air`
   - `pool_water`
@@ -348,6 +376,15 @@ Cross-origin local development rule:
 - the frontend may request those series through repeated
   `GET /telemetry/temperatures/history` calls or one future expanded history
   response, but it must stay within the documented API contract
+- the first pump-history slice should render charted series from
+  `GET /telemetry/pumps/history`
+- the first pump-history chart set should support at least:
+  - pump RPM
+  - pump watts
+- the first slice may render one card per metric for the default API-facing
+  pump id such as `pump-main`
+- if the API reports no persisted pump telemetry yet, the History page should
+  render an explicit unavailable or empty state rather than a placeholder
 - the first weather-history slice should render charted normalized weather
   series from `GET /weather/history`
 - the first weather-history chart set should support at least:
@@ -360,6 +397,35 @@ Cross-origin local development rule:
   explicit unavailable or empty state rather than preserving placeholder text
 - the History page should label stale weather data when the API reports that
   the most recent cached forecast snapshot is stale
+
+## Settings page rules
+
+- the `Settings` destination may transition from placeholder content to the
+  first real operator-managed configuration surface once `splash-api` exposes
+  the documented weather-location settings routes
+- the first `Settings` slice should render a `Weather Location` section
+- the section should allow the operator to choose exactly one location mode:
+  - `Use physical address`
+  - `Use latitude/longitude`
+- when address mode is active, the form should collect:
+  - `address line 1`
+  - `address line 2` optional
+  - `city`
+  - `state/region`
+  - `postal code`
+  - `country`
+- when coordinate mode is active, the form should collect:
+  - `latitude`
+  - `longitude`
+  - `timezone` optional
+- the frontend should load existing saved settings on page entry
+- the frontend should save through `PUT /api/settings/weather-location`
+- the frontend should render field validation errors returned by the API
+- the frontend should render a clear save success or failure state
+- the frontend should not require both address fields and coordinate fields in
+  the same submission
+- the first slice may stay focused on weather-location settings rather than
+  opening the full broader Settings taxonomy
 
 ## Command UX rules
 

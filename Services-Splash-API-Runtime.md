@@ -197,6 +197,20 @@ For the first browser milestone, `splash-api` should:
       InfluxDB when that integration is configured
     - reporting configured weather-provider availability through the aggregated
       platform-status surface
+24. expose configurable pool-chemistry bounds by:
+    - storing durable operator-managed chemistry targets in PostgreSQL rather
+      than InfluxDB
+    - seeding one built-in default chemistry-bounds profile for a saltwater
+      residential pool without overwriting later customizations
+    - exposing read and update routes for pool-chemistry settings on the
+      `Settings` page
+    - validating supported chemistry keys and numeric min/target/max ordering
+    - providing one recommendation-facing helper that returns normalized
+      chemistry bounds with safe fallback defaults when PostgreSQL is
+      unavailable
+    - keeping the configuration boundary separate from future recommendation
+      or swimmability engines so those engines read settings rather than own
+      them
 
 ## Platform health aggregation
 
@@ -295,6 +309,57 @@ Read model rules:
 - if no telemetry exists yet, routes should return explicit empty data rather
   than a transport or parsing error
 
+## EasyTouch pump telemetry persistence
+
+Preferred ownership:
+- the first pump-telemetry writer should live inside `splash-api`
+- this keeps InfluxDB persistence behind the existing API boundary rather than
+  coupling time-series storage logic to the protocol decoder or frontend
+
+Configuration:
+- reuse the same optional InfluxDB settings used by temperature telemetry:
+  - `INFLUX_URL`
+  - `INFLUX_TOKEN`
+  - `INFLUX_ORG`
+  - `INFLUX_BUCKET`
+
+Sampling policy:
+- maintain a per-pump last-write timestamp in API runtime memory
+- if a pump has no previously written value in the current process, write the
+  first observed valid point immediately
+- otherwise write at most once every `1m` per pump by default
+- persist the latest observed values when the sampling interval boundary is
+  reached rather than storing every `0x07` read-state event
+- keep the interval logic isolated so it can later become a pool setting
+
+Stored metric set:
+- `running`
+- `rpm`
+- `watts`
+
+Measurement model:
+- measurement name: `easy_touch_pump`
+- tags:
+  - `pump_id`
+  - `controller_id`
+  - `controller_type`
+  - `bus_address`
+  - `source`
+  - `service`
+- fields:
+  - `running`
+  - `rpm`
+  - `watts`
+  - `packet_timestamp`
+
+Read model rules:
+- `GET /telemetry/pumps/latest` should return the newest persisted point per
+  pump
+- `GET /telemetry/pumps/history` should return range-based series for one
+  requested pump or all known pumps
+- if no telemetry exists yet, routes should return explicit empty data rather
+  than a transport or parsing error
+
 ## Weather forecast provider and cache
 
 First-slice ownership:
@@ -360,6 +425,47 @@ Refresh and stale rules:
   `stale: true`
 - manual refresh should not clear a valid cached forecast when the provider
   fails
+
+## Weather location settings runtime
+
+Preferred ownership:
+- durable weather-location settings should live behind `splash-api`
+- PostgreSQL should store operator-managed location mode, address fields,
+  coordinate overrides, timezone hints, and later geocoded results
+- InfluxDB must not store weather-location settings because those values are not
+  time-series telemetry
+
+Read and write model:
+- `GET /api/settings/weather-location` should return the currently active
+  pool-scoped weather-location settings
+- `PUT /api/settings/weather-location` should validate and upsert the active
+  pool-scoped weather-location settings
+- `getActiveWeatherCoordinates()` should:
+  - return manual coordinates immediately when coordinate mode is active
+  - return stored geocoded coordinates when address mode is active and a prior
+    geocode result exists
+  - return a clear `requires_geocoding` state when address mode is active and
+    no resolved coordinates have been stored yet
+
+Validation rules:
+- `coordinates` mode requires valid latitude and longitude
+- `address` mode requires:
+  - `address_line1`
+  - `city`
+  - `state_region`
+  - `postal_code`
+  - `country`
+- invalid payloads should return `400` with field-specific error details
+
+Future compatibility rules:
+- later address geocoding should write:
+  - `weather_geocoded_latitude`
+  - `weather_geocoded_longitude`
+  - `weather_location_timezone` when a provider returns or confirms it
+  - `weather_geocode_provider`
+  - `weather_geocoded_at`
+- saving a new address should invalidate previously stored geocoded coordinates
+  until a fresh geocode run resolves the updated address
 
 ## Initial equipment catalog bridge
 

@@ -196,12 +196,47 @@ CREATE TABLE pool_settings (
   maintenance_reminder_lead_days INTEGER NOT NULL DEFAULT 7,
   notification_preferences JSONB NOT NULL DEFAULT '{"in_app": true, "email": false, "push": false}'::jsonb,
   weather_provider TEXT NOT NULL DEFAULT 'tomorrowio',
+  weather_refresh_interval_hours INTEGER NOT NULL DEFAULT 6,
+  weather_location_mode TEXT NOT NULL DEFAULT 'address' CHECK (weather_location_mode IN ('address', 'coordinates')),
+  weather_location_address_line1 TEXT,
+  weather_location_address_line2 TEXT,
+  weather_location_city TEXT,
+  weather_location_state_region TEXT,
+  weather_location_postal_code TEXT,
+  weather_location_country TEXT,
+  weather_location_latitude NUMERIC(9,6),
+  weather_location_longitude NUMERIC(9,6),
+  weather_location_timezone TEXT,
+  weather_geocoded_latitude NUMERIC(9,6),
+  weather_geocoded_longitude NUMERIC(9,6),
+  weather_geocode_provider TEXT,
+  weather_geocoded_at TIMESTAMPTZ,
+  chemistry_bounds JSONB NOT NULL DEFAULT '{}'::jsonb,
+  weather_config JSONB NOT NULL DEFAULT '{}'::jsonb,
   protocol_plugin TEXT NOT NULL DEFAULT 'pentair_easytouch',
   protocol_config JSONB NOT NULL DEFAULT '{}'::jsonb,
   sensor_provider TEXT NOT NULL DEFAULT 'manual',
   sensor_config JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CHECK (weather_location_latitude IS NULL OR weather_location_latitude BETWEEN -90 AND 90),
+  CHECK (weather_location_longitude IS NULL OR weather_location_longitude BETWEEN -180 AND 180),
+  CHECK (weather_geocoded_latitude IS NULL OR weather_geocoded_latitude BETWEEN -90 AND 90),
+  CHECK (weather_geocoded_longitude IS NULL OR weather_geocoded_longitude BETWEEN -180 AND 180),
+  CHECK (
+    weather_location_mode <> 'coordinates'
+    OR (weather_location_latitude IS NOT NULL AND weather_location_longitude IS NOT NULL)
+  ),
+  CHECK (
+    weather_location_mode <> 'address'
+    OR (
+      weather_location_address_line1 IS NOT NULL
+      AND weather_location_city IS NOT NULL
+      AND weather_location_state_region IS NOT NULL
+      AND weather_location_postal_code IS NOT NULL
+      AND weather_location_country IS NOT NULL
+    )
+  )
 );
 ```
 
@@ -210,6 +245,31 @@ Notes:
 - `protocol_plugin` identifies the active `splash-protocol` plugin for the pool
 - `protocol_config` stores plugin-specific values such as default controller type, decoder options, or family-specific quirks
 - `sensor_config` stores provider-specific sensor options without forcing schema churn
+- `weather_location_mode` defines whether Splash should resolve forecasts from a
+  physical address or a manual coordinate override
+- `weather_location_latitude` and `weather_location_longitude` store the
+  operator-managed coordinate override values when coordinate mode is active
+- `weather_geocoded_latitude` and `weather_geocoded_longitude` reserve durable
+  storage for a later address-geocoding workflow without forcing a table split
+- `weather_location_timezone` stores an operator-provided or later geocoded
+  timezone hint when available
+- `weather_config` remains the extension point for provider-specific metadata,
+  future API keys, customer endpoints, or later geocoding cache details that do
+  not justify first-class columns yet
+- `chemistry_bounds` stores pool-specific chemistry target ranges keyed by
+  stable chemical identifiers such as `free_chlorine`, `ph`, `salt`, and
+  `water_temperature`
+- each `chemistry_bounds` entry should preserve:
+  - `display_name`
+  - `unit`
+  - `minimum`
+  - `target`
+  - `maximum`
+  - `enabled`
+  - `sort_order`
+- defaults for a saltwater residential pool should be seeded once and then
+  treated as operator-editable durable settings rather than hard-coded rules in
+  later recommendation logic
 
 ASSUMPTION: `protocol_plugin` should evolve toward protocol-family-oriented identifiers rather than vendor-only labels when one vendor exposes multiple materially different integration surfaces.
 
@@ -289,6 +349,7 @@ Notes:
 | `weather_forecast_hourly` | provider-normalized hourly forecast snapshot | `temperature_f`, `temperature_c`, `relative_humidity`, `dew_point_f`, `dew_point_c`, `precipitation_probability`, `precipitation_amount`, `cloud_cover`, `wind_speed`, `wind_gusts`, `uv_index`, `provider`, `fetched_at`, `forecast_generated_at` |
 | `chemistry_sensor` | future automated chemistry hardware | `ph`, `free_chlorine`, `orp` |
 | `rainfall` | manual or provider-derived rainfall events | `inches` |
+| `easy_touch_pump` | EasyTouch `0x07`-derived pump telemetry sampled at most once every 1 minute per pump | `running`, `rpm`, `watts`, `packet_timestamp` |
 | `easy_touch_temperature` | EasyTouch `0x02`-derived telemetry sampled at most once every 10 minutes per sensor type | `original_value`, `original_unit`, `normalized_f`, `normalized_c`, `raw_byte`, `raw_payload_json`, `packet_timestamp`, `controller_timestamp` |
 
 ## Retention policy
@@ -302,6 +363,7 @@ Notes:
 | `weather_forecast_hourly` | default bucket retention / indefinite until explicit retention policy is designed |
 | `chemistry_sensor` | 2 years full resolution |
 | `rainfall` | 2 years full resolution |
+| `easy_touch_pump` | default bucket retention / indefinite until explicit retention policy is designed |
 | `easy_touch_temperature` | default bucket retention / indefinite until explicit retention policy is designed |
 | PostgreSQL `chemistry_readings` | kept indefinitely as the permanent user log |
 
@@ -369,8 +431,11 @@ Rules:
   directly without repeated geocoding
 - `weather_provider` remains pool-scoped configuration
 - `weather_refresh_interval_hours` should default to `6`
+- the canonical durable weather-location settings should live on
+  `pool_settings` rather than a disconnected per-feature table while Splash is
+  still single-pool oriented
 - `weather_config` may store provider-specific or future override metadata such
-  as geocoding source, manual-coordinate flag, or customer-endpoint settings
+  as customer-endpoint settings or later geocoding cache details
 5. The frontend bootstraps from REST and stays current through SSE and normalized events.
 
 ## Protocol metadata persistence

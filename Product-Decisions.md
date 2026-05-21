@@ -39,6 +39,9 @@
 - During SLAM, high FC should not generate standard chlorine alerts.
 - Cover state is modeled as an event log, not a mutable current-state column.
 - Notifications are not deleted; they are marked read.
+- The first configurable pool-chemistry bounds profile should ship with
+  sensible saltwater residential defaults, but those values remain
+  PostgreSQL-backed operator settings rather than immutable product rules.
 
 ## Integration decisions
 

@@ -39,6 +39,8 @@
 | `/controller/schedules` | `GET` | Read validated controller-native schedules when available |
 | `/telemetry/temperatures/latest` | `GET` | Latest EasyTouch temperature telemetry snapshot |
 | `/telemetry/temperatures/history` | `GET` | Historical EasyTouch temperature telemetry series |
+| `/telemetry/pumps/latest` | `GET` | Latest EasyTouch pump telemetry snapshot |
+| `/telemetry/pumps/history` | `GET` | Historical EasyTouch pump telemetry series |
 | `/weather/forecast` | `GET` | Latest normalized weather forecast snapshot for the active pool |
 | `/weather/history` | `GET` | Historical normalized weather series for the active pool |
 | `/weather/forecast/refresh` | `POST` | Trigger a manual weather forecast refresh |
@@ -71,7 +73,9 @@
 | `/protocol/pump-config/write` | `POST` | Manual Pentair EasyTouch pump configuration write |
 | `/protocol/raw-frame/send` | `POST` | Manual raw protocol frame send for Explorer diagnostics |
 | `/protocol/simulate` | `POST` | Dry-run or live-send protocol command |
-| `/settings` | `GET`, `PUT` | User preferences |
+| `/settings` | `GET`, `PUT` | Pool-scoped operator settings |
+| `/api/settings/weather-location` | `GET`, `PUT` | Weather location settings |
+| `/api/settings/pool-chemistry` | `GET`, `PUT` | Pool chemistry bounds and targets |
 | `/events` | `GET` as SSE | Main frontend event stream |
 | `/health` | `GET` | Service and dependency health |
 | `/healthz` | `GET` | Process liveness |
@@ -198,6 +202,37 @@ Rules:
   `normalizedC`
 - the first slice may use simple bucketed reads aligned with the requested
   interval rather than prediction-oriented analytics
+
+### `GET /telemetry/pumps/latest`
+
+Purpose:
+- return the latest persisted EasyTouch pump telemetry values for configured
+  pumps
+
+Rules:
+- values come from InfluxDB-backed pump telemetry persistence when configured
+- return direct pump identity metadata such as `pump_id` and `bus_address`
+- expose at least `running`, `rpm`, `watts`, and `timestamp`
+- if no pump telemetry has been captured yet, return an explicit empty state
+  rather than inventing zeros
+
+### `GET /telemetry/pumps/history`
+
+Purpose:
+- return time-series pump RPM and watt history for browser charts and later
+  maintenance-model inputs
+
+Query parameters:
+- `pumpId`: optional API-facing pump id such as `pump-main`
+- `start`: ISO 8601 UTC inclusive range start
+- `end`: ISO 8601 UTC inclusive range end
+- `interval`: optional downsample window such as `1m`, `5m`, `1h`, or `1d`
+
+Rules:
+- API should follow the existing JSON envelope pattern
+- history points should expose `timestamp`, `rpm`, `watts`, and `running`
+- the first slice may use simple bucketed reads aligned with the requested
+  interval rather than analytics-specific rollups
 
 ### `GET /weather/forecast`
 
@@ -411,10 +446,46 @@ Response:
     },
     "weather_provider": "openmeteo",
     "weather_refresh_interval_hours": 6,
+    "weather_location": {
+      "location_mode": "address",
+      "address_line1": "123 Main St",
+      "address_line2": "",
+      "city": "Gastonia",
+      "state_region": "NC",
+      "postal_code": "28054",
+      "country": "US",
+      "latitude": null,
+      "longitude": null,
+      "timezone": null,
+      "geocoded_latitude": null,
+      "geocoded_longitude": null,
+      "geocode_provider": null,
+      "geocoded_at": null
+    },
     "weather_config": {
       "openmeteo": {
         "base_url": "https://api.open-meteo.com/v1",
         "geocoding_url": "https://geocoding-api.open-meteo.com/v1"
+      }
+    },
+    "pool_chemistry": {
+      "free_chlorine": {
+        "display_name": "Free Chlorine",
+        "unit": "ppm",
+        "minimum": 3,
+        "target": 5,
+        "maximum": 10,
+        "enabled": true,
+        "sort_order": 10
+      },
+      "ph": {
+        "display_name": "pH",
+        "unit": null,
+        "minimum": 7.2,
+        "target": 7.6,
+        "maximum": 7.8,
+        "enabled": true,
+        "sort_order": 30
       }
     },
     "protocol_plugin": "pentair_easytouch",
@@ -426,6 +497,191 @@ Response:
     "sensor_config": {}
   },
   "error": null
+}
+```
+
+### `GET /api/settings/weather-location`
+
+Response:
+
+```json
+{
+  "data": {
+    "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
+    "locationMode": "coordinates",
+    "addressLine1": null,
+    "addressLine2": null,
+    "city": null,
+    "stateRegion": null,
+    "postalCode": null,
+    "country": null,
+    "latitude": 35.2621,
+    "longitude": -81.1873,
+    "timezone": "America/New_York",
+    "geocodedLatitude": null,
+    "geocodedLongitude": null,
+    "geocodeProvider": null,
+    "geocodedAt": null,
+    "locationStatus": "resolved"
+  },
+  "error": null
+}
+```
+
+`locationStatus` rules:
+
+- `resolved` when coordinate mode is active or when an address already has a
+  stored geocoded result
+- `requires_geocoding` when address mode is active and no geocoded coordinates
+  are stored yet
+
+### `PUT /api/settings/weather-location`
+
+Coordinate request:
+
+```json
+{
+  "locationMode": "coordinates",
+  "latitude": 35.2621,
+  "longitude": -81.1873,
+  "timezone": "America/New_York"
+}
+```
+
+Address request:
+
+```json
+{
+  "locationMode": "address",
+  "addressLine1": "123 Main St",
+  "addressLine2": "",
+  "city": "Gastonia",
+  "stateRegion": "NC",
+  "postalCode": "28054",
+  "country": "US"
+}
+```
+
+Validation rules:
+
+- `locationMode` is required
+- `coordinates` mode requires valid `latitude` and `longitude`
+- `address` mode requires:
+  - `addressLine1`
+  - `city`
+  - `stateRegion`
+  - `postalCode`
+  - `country`
+- invalid coordinate ranges should return `400`
+- invalid address payloads should return `400`
+
+Validation error example:
+
+```json
+{
+  "data": null,
+  "error": {
+    "code": "validation_error",
+    "message": "Weather location settings are invalid.",
+    "details": {
+      "latitude": "Latitude must be between -90 and 90.",
+      "longitude": "Longitude must be between -180 and 180."
+    }
+  }
+}
+```
+
+### `GET /api/settings/pool-chemistry`
+
+Response:
+
+```json
+{
+  "data": {
+    "settings": [
+      {
+        "chemicalKey": "free_chlorine",
+        "displayName": "Free Chlorine",
+        "unit": "ppm",
+        "minimum": 3,
+        "target": 5,
+        "maximum": 10,
+        "enabled": true,
+        "sortOrder": 10
+      },
+      {
+        "chemicalKey": "ph",
+        "displayName": "pH",
+        "unit": null,
+        "minimum": 7.2,
+        "target": 7.6,
+        "maximum": 7.8,
+        "enabled": true,
+        "sortOrder": 30
+      }
+    ],
+    "source": "postgres"
+  },
+  "error": null
+}
+```
+
+Rules:
+
+- the response returns the full known chemistry-bounds set in a stable order
+- unknown custom chemistry keys are not part of the first slice
+- if PostgreSQL is unavailable, the route may return a safe default-backed
+  payload with an explicit non-`postgres` source indicator
+
+### `PUT /api/settings/pool-chemistry`
+
+Request:
+
+```json
+{
+  "settings": [
+    {
+      "chemicalKey": "free_chlorine",
+      "minimum": 3,
+      "target": 5,
+      "maximum": 10,
+      "enabled": true
+    },
+    {
+      "chemicalKey": "ph",
+      "minimum": 7.2,
+      "target": 7.6,
+      "maximum": 7.8,
+      "enabled": true
+    }
+  ]
+}
+```
+
+Validation rules:
+
+- `settings` must be a non-empty array
+- each item requires `chemicalKey`
+- the first slice allows only the documented built-in chemistry keys
+- numeric values must be valid numbers when present
+- `minimum` must not be greater than `target`
+- `target` must not be greater than `maximum`
+- invalid payloads should return `400` with field-specific error details
+
+Validation error example:
+
+```json
+{
+  "data": null,
+  "error": {
+    "code": "validation_error",
+    "message": "Pool chemistry settings are invalid.",
+    "details": {
+      "ph": {
+        "target": "Target must be greater than or equal to minimum and less than or equal to maximum."
+      }
+    }
+  }
 }
 ```
 

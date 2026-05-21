@@ -57,13 +57,59 @@ Purpose:
 - show the operator the current scheduling surface and scheduling-mode posture
 
 Initial content:
-- a working schedule table using seeded rows that match the mockup structure
-- columns for name, action, days, time, season, status, and next run
-- a scheduling mode side panel with:
-  - current mode summary
-  - controller-managed vs platform-managed toggle presentation
-  - explanatory copy
-  - a non-destructive migration call to action
+- a controller-managed scheduling summary surface above the main table
+- a compact capacity strip that explains EasyTouch scheduling limits:
+  - `12 total programs max`
+  - `9 max per circuit`
+  - currently used vs remaining program capacity
+- a per-circuit capacity card or meter for the currently emphasized circuit when
+  validated controller schedule ownership is available
+- a working schedule table that may evolve from the earlier seeded mockup into a
+  more controller-native layout
+- for the controller-backed slice, the primary columns may include:
+  - circuit
+  - program slot
+  - days
+  - start
+  - stop
+  - heat
+  - status
+  - actions
+- when a field such as heat mode is not yet validated by the controller payload,
+  the page should render an explicit placeholder such as `—` rather than invent
+  a decoded value
+- the page may still include scheduling-mode guidance and explanatory copy, but
+  the primary emphasis should shift to controller capacity and schedule-slot
+  visibility rather than the earlier side-panel-first presentation
+
+Rules:
+- program-capacity accounting in the summary strip should use active schedules
+  to determine used vs unused controller slots
+- inactive schedules should still remain visible in the table because they are
+  part of the operator's controller-backed schedule inventory, but they should
+  be visually secondary
+- the schedule editor must appear inside the schedule-page main content
+  rather than in a modal dialog
+- when the desktop or tablet layout has a schedule-detail side column, the
+  schedule editor should appear in that right-hand column beside the table rather
+  than pushing the schedule table downward
+- the schedule editor should remain visible by default in this slice
+- when validated controller schedule rows are available, the editor should
+  default to the first stable controller program, such as program `1`
+- the schedule-row `Review` action should load the selected row into the
+  right-hand editor instead of opening a modal
+- the schedule editor may be frontend-local and non-destructive for this
+  slice as long as it does not claim that controller schedule create/update
+  writes already exist
+- the schedule editor should reflect the controller constraints in the UI:
+  - circuit selector
+  - schedule type or program intent
+  - day selection
+  - start and stop times
+  - optional heat placeholder or disabled control when controller-backed heat
+    semantics are not yet implemented
+  - contextual copy about active-slot capacity and the selected controller
+    program
 
 Rules:
 - the first slice may present the scheduling mode toggle as UI-only
@@ -76,6 +122,9 @@ Next slice: controller-backed schedules
   with real EasyTouch controller schedule records
 - those rows should come from a documented `splash-api` read-only route rather
   than direct frontend protocol access
+- the controller-backed schedule view may summarize schedule-slot utilization in
+  the browser as long as it is derived only from validated schedule ownership
+  and record counts returned by the API
 - Splash must not present guessed byte interpretations as real schedule fields
 - if validated controller schedule data is unavailable, stale, or only partially
   decoded, the page should surface that limitation explicitly instead of

@@ -391,6 +391,46 @@ Rules:
 }
 ```
 
+### `telemetry.pump.easytouch`
+
+Purpose:
+- provide a persistence-oriented normalized EasyTouch pump telemetry event
+  derived from validated pump `0x07` read-state
+- let downstream services store RPM and watt history without reparsing raw
+  protocol frames or projecting from frontend state
+
+Rules:
+- source action is EasyTouch pump-status family `0x07`
+- the first slice may reuse already-decoded normalized `equipment.state.pump`
+  values instead of duplicating low-level byte parsing in downstream services
+- telemetry payloads must preserve the direct pump identity needed for
+  per-pump history reads
+- omitted values should remain omitted rather than being synthesized
+
+```json
+{
+  "occurred_at": "2026-05-18T01:53:29.016Z",
+  "source": {
+    "service": "splash-protocol",
+    "protocol_name": "pentair_easytouch",
+    "frame_id": "uuid",
+    "action": 7,
+    "label": "easytouch.action7"
+  },
+  "pump": {
+    "pump_id": "pump-main",
+    "controller_id": "default",
+    "controller_type": "easytouch",
+    "bus_address": "0x60"
+  },
+  "metrics": {
+    "running": true,
+    "rpm": 2800,
+    "watts": 1450
+  }
+}
+```
+
 ### `equipment.state.chlorinator`
 
 ```json
