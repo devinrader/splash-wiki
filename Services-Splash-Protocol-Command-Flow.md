@@ -149,6 +149,29 @@ Rules:
 - expect decoded `0x11` or `0x91` EasyTouch schedule-detail replies to arrive
   asynchronously and be captured separately by the decode path
 
+## EasyTouch Schedule Payload Construction
+
+Splash may construct compact EasyTouch schedule update payloads for validation,
+unit testing, and later command-path integration without transmitting them to
+the RS-485 bus in this slice.
+
+Rules:
+
+- target only Pentair EasyTouch or IntelliTouch-style compact schedule payloads
+- use action `0x91` (`145`) only as a frame-wrapping reference when the payload
+  is later embedded into an outbound command
+- keep payload construction separate from transport send-path behavior
+- supported repeating schedule payload layout is `[scheduleId, circuitId,
+  startHour, startMinute, endHour, endMinute, dayMask]`
+- supported egg-timer payload layout is `[scheduleId, circuitId, 25, 0,
+  runtimeHours, runtimeMinutes, 0]`
+- validate all byte positions explicitly and fail closed on unsupported or
+  unvalidated special cases
+- do not guess run-once, delete, disable, or IntelliCenter schedule-table
+  semantics in this slice
+- warning: generated outbound schedule-write frames must be verified against
+  packet captures before they are enabled on real equipment
+
 ## Startup Schedule Warmup
 
 When `splash-api` first observes controller state and does not yet have cached

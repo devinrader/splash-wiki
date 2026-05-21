@@ -155,7 +155,20 @@ For the first browser milestone, `splash-api` should:
       are not yet sufficiently decoded
     - keeping controller-native schedule visibility separate from maintenance
       schedules and from future Splash-native scheduling ownership
-21. expose first EasyTouch temperature telemetry persistence by:
+21. add validated EasyTouch compact schedule payload construction by:
+    - placing the payload builders beside the EasyTouch protocol plugin rather
+      than in frontend or API code
+    - supporting only the compact seven-byte EasyTouch or IntelliTouch-style
+      repeating-schedule and egg-timer payloads in this slice
+    - validating every byte position explicitly and returning structured
+      argument errors instead of coercing invalid input
+    - keeping outbound frame wrapping optional and non-transmitting in this
+      slice unless a separately validated send path already exists
+    - leaving run-once, delete, disable, and IntelliCenter schedule-table
+      semantics unsupported until packet captures validate them
+    - documenting that payload construction alone does not mean controller
+      schedule writes are safe to enable on live equipment
+22. expose first EasyTouch temperature telemetry persistence by:
     - subscribing to normalized EasyTouch temperature events derived from
       controller-status broadcasts
     - writing sampled temperature points to InfluxDB no more than once every 10
@@ -682,6 +695,7 @@ Rules:
   - `nats`
   - `splash_protocol`
   - `splash_frontend`
+  - `postgres` when PostgreSQL is configured
 - each service entry may expose:
   - `status`
   - `summary`

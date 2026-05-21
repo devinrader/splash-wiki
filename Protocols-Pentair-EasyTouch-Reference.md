@@ -545,7 +545,7 @@ Reply notes:
 - EasyTouch schedule frame classification should remain separate from payload
   decoding
 
-Validated EasyTouch schedule payload rules:
+Validated EasyTouch compact schedule payload layout:
 - `payload[0]` = schedule id
 - `payload[1]` = circuit id byte
 - `payload[2]` = start hour or egg-timer marker
@@ -553,6 +553,39 @@ Validated EasyTouch schedule payload rules:
 - `payload[4]` = end hour, schedule type marker, or egg-timer runtime hours
 - `payload[5]` = end minute or egg-timer runtime minutes
 - `payload[6]` = schedule days bitmask
+
+Validated repeating schedule construction rules:
+- `payload[0] = scheduleId`
+- `payload[1] = circuitId & 0x7f`
+- `payload[2] = startHour` where `0-23` is required
+- `payload[3] = startMinute` where `0-59` is required
+- `payload[4] = endHour` where `0-23` is required
+- `payload[5] = endMinute` where `0-59` is required
+- `payload[6] = dayMask & 0x7f`
+- supported day bits are:
+  - Sunday = `1`
+  - Monday = `2`
+  - Tuesday = `4`
+  - Wednesday = `8`
+  - Thursday = `16`
+  - Friday = `32`
+  - Saturday = `64`
+- a repeating schedule day mask must be between `1` and `127`
+- example Monday-Friday repeating schedule for schedule `6`, circuit `12`,
+  `08:30 -> 17:00`:
+  - payload = `[6, 12, 8, 30, 17, 0, 62]`
+
+Validated egg-timer construction rules:
+- `payload[0] = scheduleId`
+- `payload[1] = circuitId & 0x7f`
+- `payload[2] = 25`
+- `payload[3] = 0`
+- `payload[4] = runtimeHours`
+- `payload[5] = runtimeMinutes`
+- `payload[6] = 0`
+- runtime must be greater than zero
+- example egg timer for schedule `6`, circuit `12`, runtime `6h30m`:
+  - payload = `[6, 12, 25, 0, 6, 30, 0]`
 
 Validated decode rules:
 - `scheduleId = payload[0]`
@@ -575,6 +608,16 @@ Validated decode rules:
 - if payload length is less than `7`, return an invalid parse result plus a
   warning rather than throwing
 - unusual or unresolved values should become warnings rather than hard failures
+
+Unsupported special cases for this slice:
+- TODO: validate and document run-once schedule semantics beyond the observed
+  `payload[4] == 26` marker
+- TODO: validate controller-side delete or disable schedule behavior before
+  enabling mutation support for those operations
+- TODO: do not reuse this compact payload format for IntelliCenter schedule
+  tables
+- warning: outbound schedule writes should be verified against packet captures
+  before being enabled on real equipment
 
 ##### Frame Payload
 
