@@ -54,6 +54,7 @@ flowchart TB
 - Docker Compose runtime using package-backed service images
 - mDNS hostname: `splash-core.local`
 - Exposes NATS across the LAN
+- the current lab host for `splash-core` deployment is `automa` at `10.0.40.52`
 
 ### Developer-local milestone topology
 
@@ -221,6 +222,9 @@ Deployment expectations:
 - `splash-zero` installs Debian packages from the Gitea Debian registry
 - `splash-zero` should follow the latest published `splash-serial` package by default, unless an explicit version pin is provided for controlled rollout or rollback
 - `splash-core` deploys published OCI images assembled from versioned package-backed builds
+- the first `splash-core` Ansible slice may deploy PostgreSQL independently on
+  `automa` before the rest of the Compose stack is automated, as long as the
+  database still runs under Docker Compose and remains internal-only
 - registry publishing credentials should be provided through Gitea Actions secrets using dedicated automation credentials rather than personal interactive credentials
 - `splash-zero` should consume the Debian registry through an apt source entry and the Gitea Debian repository signing key installed under `/etc/apt/keyrings/`
 - manual host setup may use documented apt and curl commands, but environment-specific host configuration should ultimately be managed by Ansible rather than repository shell wrappers
