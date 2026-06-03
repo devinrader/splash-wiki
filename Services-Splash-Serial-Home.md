@@ -75,7 +75,7 @@ resolved on `splash-core`.
 
 `splash-serial` should not require these services to start or continue basic transport operation:
 
-- PostgreSQL
+- SQLite-backed API storage
 - InfluxDB
 - frontend availability
 - REST API availability

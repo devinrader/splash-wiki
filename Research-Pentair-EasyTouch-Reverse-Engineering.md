@@ -206,6 +206,17 @@ Operator tooling note:
       4. capture the resulting `0x0b` `circuit_configuration` reply
       5. record the requested label together with the observed `functionId`, `base_function_id`, `base_function_label`, and full reply fields
 - the saved report for these workflows should include the ordered requested labels plus the extracted observed configuration record for each step so the report itself can be used as the mapping table source without replaying raw frames
+- Protocol Explorer should also expose a non-sweep one-shot helper for this
+  family of work:
+  - `request-circuit-config`
+    - target: one controller circuit index
+    - workflow:
+      1. operator enters the circuit index
+      2. Explorer sends the existing controller circuit-configuration request
+      3. Explorer waits only for the matching decoded `0x0b`
+         `circuit_configuration` reply
+      4. Explorer shows the compact decoded result instead of requiring the
+         operator to inspect the full `/protocol/frames` stream manually
 
 Current operator-assisted candidate labels for `feature8-name-sweep`:
 - `FEATURE 1`, `FEATURE 2`, `FEATURE 3`, `FEATURE 4`, `FEATURE 5`, `FEATURE 6`, `FEATURE 7`, `FEATURE 8`, `AERATOR`, `AIR BLOWER`, `AUX 1`, `AUX 2`, `AUX 3`, `AUX 4`, `AUX 5`, `AUX 6`, `AUX 7`, `AUX 8`, `AUX 9`, `AUX 10`, `BACKWASH`, `BACK LIGHT`, `BBQ LIGHT`, `BEACH LIGHT`, `BOOSTER PUMP`, `BUG LIGHT`, `CABANA LIGHTS`, `CHEM FEEDER`, `CHLORINATOR`, `CLEANER`, `COLOR WHEEL`, `DECK LIGHT`, `DRAIN LINE`, `DRIVE LIGHTS`, `EDGE PUMP`, `ENTRY LIGHT`, `FAN`, `FIBER OPTIC`, `FIBER WORKS`, `FILL LINE`, `FLOOR CLEANER`, `FOGGER`, `FOUNTAIN`, `FOUNTAIN 1`, `FOUNTAIN 2`, `FOUNTAIN 3`, `FOUNTAINS`, `FRONT LIGHT`, `GARDEN LIGHTS`, `GAZEBO LIGHTS`, `HIGH SPEED`, `HI TEMP`, `HOUSE LIGHTS`, `JETS`, `LIGHTS`, `LOW SPEED`, `LO TEMP`, `MALIBU LIGHTS`, `MIST`, `MUSIC`, `NOT USED`, `OZONATER`, `PATH LIGHTS`, `PATIO LIGHTS`, `PARAMETER LIGHTS`, `PG2000`, `POND LIGHT`, `POND PUMP`, `POOL`, `Pool high`, `Pool light`, `Pool low`, `Pool sam`, `Pool sam 1`, `Pool sam 2`, `Pool sam 3`, `Security light`, `Sliude`, `Solar`, `Spa`, `Spa high`, `Spa light`, `Spa low`, `Spa sal`, `Spa sam`, `Spa waterfall`, `Spillway`, `SPRINKLERS`, `STREAM`, `STATUE LT`, `SWIM JETS`, `WTR FEATURES`, `WTR FTR LT`, `WATERFALL`, `WATERFALL  1`, `WATERFALL 2`, `WATERFALL 3`, `WHIRLPOOL`, `WTRFL LIGHT`, `YARD LIGHT`, `AUX EXTRA`

@@ -19,7 +19,8 @@
 
 ## Technical assumptions
 
-- ASSUMPTION: `splash-core` has enough resources to run PostgreSQL, InfluxDB, NATS, Prometheus, API, scheduler, and frontend together.
+- ASSUMPTION: `splash-core` has enough resources to run SQLite-backed API
+  storage, InfluxDB, NATS, Prometheus, API, scheduler, and frontend together.
 - ASSUMPTION: `splash-zero` should avoid Docker due to memory overhead.
 - ASSUMPTION: mDNS hostnames such as `splash-core.local` and `splash-zero.local` are available on the LAN.
 - ASSUMPTION: Accurate time synchronization is available through `systemd-timesyncd`.
@@ -39,7 +40,7 @@
 
 - Weather API access
 - RS-485 adapter availability
-- PostgreSQL health
+- SQLite health
 - InfluxDB health
 - NATS connectivity between `splash-zero` and `splash-core`
 - Ansible-managed host provisioning

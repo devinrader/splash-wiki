@@ -396,7 +396,8 @@ If NATS is unavailable at startup or becomes unavailable later:
 
 ## Observability dependencies
 
-- local health and metrics do not depend on PostgreSQL, InfluxDB, API, or scheduler availability
+- local health and metrics do not depend on SQLite, InfluxDB, API, or
+  scheduler availability
 - NATS state may influence degraded health reporting, but must not remove access to `GET /healthz` or `GET /metrics`
 - Prometheus scraping is an external operational dependency, not a runtime requirement for the daemon to function
 

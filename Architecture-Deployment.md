@@ -11,13 +11,13 @@ This document defines how Splash is deployed across hosts, runtimes, and support
 ```mermaid
 flowchart TB
   subgraph core[splash-core.local]
-    compose[Docker Compose]
+    ansible[Ansible-managed containers]
     frontend[splash-frontend]
     api[splash-api]
     scheduler[splash-scheduler]
     protocol[splash-protocol]
     nats[splash-nats]
-    postgres[splash-postgres]
+    sqlite[splash-sqlite\nSQLite database file]
     influx[splash-influx]
     prometheus[splash-prometheus]
   end
@@ -31,17 +31,16 @@ flowchart TB
 
   systemd --> serial
   env --> serial
-  compose --> frontend
-  compose --> api
-  compose --> scheduler
-  compose --> protocol
-  compose --> nats
-  compose --> postgres
-  compose --> influx
-  compose --> prometheus
+  ansible --> frontend
+  ansible --> api
+  ansible --> scheduler
+  ansible --> protocol
+  ansible --> nats
+  ansible --> influx
+  ansible --> prometheus
   serial --> nats
   serial --> rs485
-  api --> postgres
+  api --> sqlite
   api --> influx
   scheduler --> nats
   protocol --> nats
@@ -51,7 +50,8 @@ flowchart TB
 ### `splash-core`
 
 - Raspberry Pi 4/5, arm64
-- Docker Compose runtime using package-backed service images
+- Docker runtime using Ansible-managed standalone containers built from
+  package-backed service images
 - mDNS hostname: `splash-core.local`
 - Exposes NATS across the LAN
 - the current lab host for `splash-core` deployment is `automa` at `10.0.40.52`
@@ -83,16 +83,19 @@ Rules:
 - Connects to NATS at `nats://splash-core.local:4222`
 - The target host may run either an `armv7` or `arm64` Debian-family userspace, but `splash-serial` v1 packages are published as `armhf`
 
-## Compose and host layout
+## Container and host layout
 
-### Core host Compose responsibilities
+### Core host container responsibilities
 
-- `splash-core/docker-compose.yml` runs all services except `splash-serial`
-- Compose services should consume prebuilt, versioned package-backed images rather than building directly from unchecked source on the host
+- Ansible should manage the `splash-core` containers directly rather than
+  depending on a host-resident Compose file as the primary runtime contract
+- standalone containers should consume prebuilt, versioned package-backed
+  images rather than building directly from unchecked source on the host
 - NATS binds to `0.0.0.0:4222` for LAN clients
 - API binds to `0.0.0.0:8080`
 - Frontend binds to `0.0.0.0:3000`
-- PostgreSQL, InfluxDB, and Prometheus remain internal-only
+- SQLite should live on host-managed persistent storage local to the API
+  container, while InfluxDB and Prometheus remain internal-only
 - Prometheus scrape configuration should target `splash-protocol` on `splash-core` and `splash-serial` on its local health and metrics listener, with optional later targets for `splash-api` and NATS monitoring when those surfaces are formalized
 
 ### Pi Zero runtime
@@ -114,7 +117,9 @@ Splash prefers package-based artifacts across both hosts.
 
 - versioned packages are the preferred release artifact for services
 - host-native services such as `splash-serial` should prefer OS-native packages, with Debian packages as the expected v1 path on Raspberry Pi hosts
-- containerized services on `splash-core` should still originate from versioned packaged service builds wherever practical, with OCI images treated as the deployment wrapper rather than the only distributable artifact
+- containerized services on `splash-core` should still originate from versioned
+  packaged service builds wherever practical, with OCI images treated as the
+  deployment wrapper rather than the only distributable artifact
 - deployment automation should install or assemble from published packages instead of compiling from source on production hosts
 - Gitea package publishing is the preferred internal distribution mechanism for release artifacts
 - package publication should happen on every merge to `main`
@@ -147,7 +152,9 @@ Splash prefers package-based artifacts across both hosts.
 ### Package examples
 
 - `splash-serial`: Debian package installed on `splash-zero`, enabling consistent placement of the binary, `systemd` unit, and default config assets
-- `splash-api`, `splash-scheduler`, `splash-protocol`, `splash-frontend`: versioned service packages that can be embedded into container images used by Compose on `splash-core`
+- `splash-api`, `splash-scheduler`, `splash-protocol`, `splash-frontend`:
+  versioned service packages that can be embedded into container images
+  deployed as Ansible-managed standalone containers on `splash-core`
 - `splash-nats`: infrastructure image remains containerized, but release and deployment should still prefer versioned artifacts over host-local ad hoc builds
 
 ### Configuration ownership
@@ -159,8 +166,8 @@ Splash prefers package-based artifacts across both hosts.
 ### Example environment variables
 
 ```dotenv
-POSTGRES_DB=splash
-POSTGRES_USER=splash
+SQLITE_PATH=/var/lib/splash-api/splash.sqlite
+SQLITE_JOURNAL_MODE=WAL
 INFLUXDB_ORG=splash
 INFLUXDB_BUCKET=pool_data
 NATS_URL=nats://splash-nats:4222
@@ -221,10 +228,16 @@ Deployment expectations:
 - Ansible installs published artifacts from the appropriate Gitea registry
 - `splash-zero` installs Debian packages from the Gitea Debian registry
 - `splash-zero` should follow the latest published `splash-serial` package by default, unless an explicit version pin is provided for controlled rollout or rollback
-- `splash-core` deploys published OCI images assembled from versioned package-backed builds
-- the first `splash-core` Ansible slice may deploy PostgreSQL independently on
-  `automa` before the rest of the Compose stack is automated, as long as the
-  database still runs under Docker Compose and remains internal-only
+- `splash-core` deploys published OCI images assembled from versioned
+  package-backed builds
+- `splash-core` services should be deployed and configured primarily through
+  Ansible roles and playbooks that manage each service as an independent Docker
+  container
+- SQLite should be provisioned as a host directory and database file mounted
+  into `splash-api` rather than as a separate network database container
+- relational backup and restore should operate on the SQLite database file
+  rather than a standalone database service
+- InfluxDB and Prometheus should remain internal-only
 - registry publishing credentials should be provided through Gitea Actions secrets using dedicated automation credentials rather than personal interactive credentials
 - `splash-zero` should consume the Debian registry through an apt source entry and the Gitea Debian repository signing key installed under `/etc/apt/keyrings/`
 - manual host setup may use documented apt and curl commands, but environment-specific host configuration should ultimately be managed by Ansible rather than repository shell wrappers
@@ -245,3 +258,14 @@ Caption: Provisioning and deployment automation flow managed by Ansible across `
 - `splash-serial` health and Prometheus endpoints should be bound locally unless an explicit remote-scrape design is added later
 - `splash-serial` deployment artifacts should build a Debian package that installs the binary, `systemd` unit, and env-file defaults without manual file copy steps
 - the package-provided `/etc/splash/splash-serial.env` should be treated as a sample or default artifact, with Ansible responsible for rendering the live host-specific file
+
+## Relational storage transition note
+
+Transition note for `#109`:
+- current implementation and automation may still temporarily include
+  PostgreSQL-specific assets while the migration is in flight
+- the target deployment model is a SQLite database file owned by the
+  `splash-api` service on `splash-core`
+- new relational deployment work should provision directories, permissions,
+  mounts, backup cadence, and restore paths for SQLite rather than introducing
+  new PostgreSQL dependencies

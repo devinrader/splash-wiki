@@ -6,7 +6,8 @@
 
 Splash is distributed across dedicated devices on the local network:
 
-- `splash-core` on a Raspberry Pi 4/5 runs the main services, usually as containers orchestrated by Docker Compose
+- `splash-core` on a Raspberry Pi 4/5 runs the main services, usually as
+  Ansible-managed standalone containers plus host-managed persistent storage
 - `splash-zero` on a Raspberry Pi Zero 2W runs the RS-485 serial service as a `systemd`-managed native service
 - developer machines may run local app services against shared infrastructure on `splash-core`
 
@@ -20,7 +21,7 @@ flowchart TB
     scheduler[splash-scheduler\nTypeScript/Node.js]
     protocol[splash-protocol\nTypeScript/Node.js]
     nats[splash-nats\nNATS + JetStream]
-    pg[splash-postgres\nPostgreSQL]
+    sqlite[splash-sqlite\nSQLite database file]
     influx[splash-influx\nInfluxDB]
     prom[splash-prometheus\nPrometheus]
   end
@@ -35,7 +36,7 @@ flowchart TB
   api <--> nats
   scheduler <--> nats
   protocol <--> nats
-  api --> pg
+  api --> sqlite
   api --> influx
   scheduler --> influx
   prom --> api
@@ -56,7 +57,7 @@ TODO: The original document says the living architecture diagram also exists in 
 | `splash-protocol` | `splash-core` | plugin-based protocol decode/encode, frame reconstruction, normalized event publication, Protocol Explorer protocol operations. Preferred language: TypeScript/Node.js |
 | `splash-serial` | `splash-zero` | RS-485 I/O, raw byte ingress and egress, bus timing enforcement, port monitoring. Preferred language: Go |
 | `splash-nats` | `splash-core` | event backbone and JetStream durability |
-| `splash-postgres` | `splash-core` | relational system of record |
+| SQLite store | `splash-core` | embedded relational system of record |
 | `splash-influx` | `splash-core` | time-series telemetry store |
 | `splash-prometheus` | `splash-core` | service metrics scraping |
 | `splash-frontend` | `splash-core` | React web UI |
@@ -69,7 +70,7 @@ TODO: The original document says the living architecture diagram also exists in 
 - `splash-scheduler`: TypeScript/Node.js
 - `splash-protocol`: TypeScript/Node.js
 - `splash-serial`: Go
-- Datastores: PostgreSQL and InfluxDB
+- Datastores: SQLite and InfluxDB
 - Event backbone: NATS with JetStream
 - Metrics: Prometheus
 - Future predictive layer: Python in a later phase
@@ -97,7 +98,14 @@ Rules:
 - The first weather-forecast implementation may temporarily run inside
   `splash-api` until a dedicated `splash-scheduler` forecast-refresh slice is
   implemented.
-- Base-plus-override Docker Compose configuration
+- Ansible-managed independent containers plus host-managed embedded relational
+  storage
+
+## Relational storage note
+
+- `#109` changes the canonical relational store from PostgreSQL to SQLite
+- during the implementation transition, deployed code may temporarily still use
+  PostgreSQL until the SQLite migration completes
 
 ## Event backbone
 
@@ -358,7 +366,7 @@ ASSUMPTION: Plugin identifiers should evolve toward protocol-family-oriented nam
 
 ## Data architecture
 
-- PostgreSQL stores configuration, tasks, schedules, notifications, and manual chemistry history
+- SQLite stores configuration, tasks, schedules, notifications, and manual chemistry history
 - InfluxDB stores time-series equipment, pump, chlorinator, weather, chemistry-sensor, and rainfall telemetry
 - `pool_id` exists on child records to keep the schema ready for future multi-pool support
 - protocol-level metadata may be persisted selectively for diagnostics, but raw transport traffic is not the primary system of record

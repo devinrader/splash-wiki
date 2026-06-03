@@ -31,7 +31,7 @@ The first `splash-api` implementation should support:
 
 ## Initial design constraint
 
-The full PostgreSQL-backed equipment and repository layer is not required
+The full SQLite-backed equipment and repository layer is not required
 before the first browser milestone.
 
 For the initial slice:

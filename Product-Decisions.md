@@ -16,7 +16,9 @@
 - Use Go for `splash-serial`.
 - Use a polyglot monorepo rather than requiring all backend services to share one language toolchain.
 - Prefer package-based artifacts for deployable services, even when the final runtime is containerized.
-- Run most application services on `splash-core` under Docker Compose, but treat the container image as a deployment wrapper around a versioned packaged service build.
+- Run most application services on `splash-core` as Ansible-managed
+  standalone containers, but treat the container image as a deployment wrapper
+  around a versioned packaged service build.
 - Keep `splash-serial` as a native `systemd`-managed service on `splash-zero`, installed from an OS package rather than by copying an ad hoc binary.
 - `splash-serial` is a transport-edge service, not the owner of protocol decode and encode.
 - `splash-protocol` is the protocol boundary for all vendor-specific framing, checksum, decode, and encode behavior.
@@ -26,11 +28,19 @@
 
 ## Data decisions
 
-- Split relational and time-series responsibilities between PostgreSQL and InfluxDB.
-- Keep manual chemistry readings indefinitely in PostgreSQL as the durable user log.
+- Split relational and time-series responsibilities between SQLite and InfluxDB.
+- Use SQLite as the embedded relational system of record for single-host Splash
+  deployments on `splash-core`.
+- Keep manual chemistry readings indefinitely in SQLite as the durable user
+  log.
 - Add `pool_id` to schemas now even though v1 supports only one pool.
 - Store approved automation command payloads directly on tasks to avoid rebuilding commands later.
 - Do not persist all raw transport or protocol-frame traffic by default; treat it as ephemeral observability data unless an explicit archival feature is added.
+- `#109` migration rule:
+  - the current implementation may continue to use PostgreSQL temporarily while
+    the SQLite migration is in progress
+  - all new relational persistence work should target the SQLite design rather
+    than expanding PostgreSQL-specific coupling
 
 ## Domain and UX decisions
 
@@ -41,7 +51,7 @@
 - Notifications are not deleted; they are marked read.
 - The first configurable pool-chemistry bounds profile should ship with
   sensible saltwater residential defaults, but those values remain
-  PostgreSQL-backed operator settings rather than immutable product rules.
+  SQLite-backed operator settings rather than immutable product rules.
 
 ## Integration decisions
 
@@ -64,7 +74,7 @@
   that edge identity to a controller domain or Splash pool.
 - The initial `splash-api` milestone may use a minimal local equipment catalog
   bridge to preserve `/equipment/:id/control` without blocking on the full
-  PostgreSQL-backed equipment repository implementation.
+  SQLite-backed equipment repository implementation.
 - The initial `splash-frontend` milestone may be a single-page dashboard that
   consumes `GET /equipment`, `GET /health`, and `GET /events` before the full
   long-term navigation tree is implemented.
@@ -74,7 +84,7 @@
   adapter.
 - The milestone-1 `splash-protocol` concrete configuration provider may be a
   temporary env-backed implementation so the initial local and host-integrated
-  slice can run before the full PostgreSQL-backed provider exists.
+  slice can run before the full SQLite-backed provider exists.
 - Protocol plugin identity should be organized around protocol family and variant, not vendor name alone, when a vendor exposes multiple distinct integration surfaces.
 - Protocol plugins should resolve one capability profile per equipment instance in v1.
 - Capability profiles should be defined in code and docs, not primarily authored as relational records.

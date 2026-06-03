@@ -225,6 +225,7 @@ Example:
 
 The initial registry should cover:
 
+- `sqlite`
 - `grafana`
 - `prometheus`
 - `nats`
@@ -285,6 +286,22 @@ Rules:
   - probe publish or subscribe path fails
 - down:
   - TCP connection is refused or times out
+
+### SQLite
+
+- primary responsibility: provide durable relational storage for
+  operator-managed settings and later broader application data
+- criticality: `important`
+- healthy:
+  - application reads and writes against the SQLite database succeed
+- degraded:
+  - the database file is available, but some non-critical query path or lock
+    condition is impaired
+- unhealthy:
+  - the database file is present, but application queries fail consistently
+- down:
+  - the database file cannot be opened, is missing, or startup integrity
+    checks fail
 
 ### splash-api
 

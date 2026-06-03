@@ -366,37 +366,58 @@ Current working `functionId` bit layout:
 - bit `6`: freeze flag (`0x40`)
 - bit `7`: high / special-behavior flag (`0x80`)
 
+Observed live-value notes from issue `#78`:
+- raw values should be treated as authoritative during mapping work
+- current Splash label guesses were incorrect for at least some values on the
+  live EasyTouch installation
+- live operator validation now distinguishes:
+  - raw `14` as `SPILLWAY`
+  - raw `16` as `INTELLIBRITE`
+  - raw `17` as `MAGICSTREAM`
+- raw `65` and `66` were observed on the controller panel as `LO-TEMP` and
+  `HI-TEMP`; these are not new base ids, but flagged forms of lower values
+  within the current working bit layout
+
 #### Circuit-Configuration Base Function Values
 
-Current working base-function mapping:
+Current working observed mapping on the live EasyTouch installation:
 - `0`: Generic
 - `1`: Spa
 - `2`: Pool
-- `3`: Spillway
-- `4`: Master Cleaner
-- `5`: Cleaner
+- `5`: Master Cleaner
+- `7`: Light
+- `9`: SAM Light
+- `10`: SAL Light
+- `11`: Photon Gen
+- `12`: Color Wheel
+- `13`: Valve
+- `14`: Spillway
+- `15`: Floor Cleaner
+- `16`: IntelliBrite
+- `17`: MagicStream
+- `19`: NOT USED
+- `65`: LO-TEMP
+- `66`: HI-TEMP
+
+Legacy inferred values that remain unvalidated on this installation:
+- `3`: Spillway (`QUESTION:` conflicts with the current live observation that
+  raw `14` maps to `SPILLWAY`)
+- `4`: Master Cleaner (`QUESTION:` conflicts with the current live observation
+  that raw `5` maps to `MSTR CLEANER`)
 - `6`: Solar
-- `7`: Heat Boost
 - `8`: Heat Enable
-- `9`: Jets
-- `10`: Aux (standard relay)
-- `11`: Feature
-- `12`: Light
-- `13`: IntelliBrite
-- `14`: MagicStream
-- `15`: Laminar
-- `16`: Waterfall
-- `17`: Fountain
+- `17`: Fountain (`QUESTION:` conflicts with the current live observation that
+  raw `17` maps to `MAGICSTREAM`)
 - `18`: Blower
-- `19`: Pool Light
-- `20`: Spa Light
-- `21`: Landscape Light
-- `22`: Floor Cleaner
+- `20`: Pool Light / other light-family preset still unresolved
+- `21`: Spa Light / other light-family preset still unresolved
+- `22`: Landscape Light / other preset still unresolved
 - `23`: Booster Pump
-- `24`: Valve
+- `24`: Heater / Valve-family interpretation still unresolved
 - `25`: Heater
 - `26`: Heat Pump
-- `27`: Color Wheel
+- `27`: Color Wheel (`QUESTION:` conflicts with the current live observation
+  that raw `12` maps to `COLOR WHEEL`)
 - `28`: Dimmer
 - `29`: Unknown / Reserved
 - `30`: Egg Timer Only
@@ -1030,6 +1051,115 @@ Observed feature-circuit sweep note:
 | `22` | `0x03` | Pool heat mode low bits: `0` = off, `1` = heater, `2` = solar preferred, `3` = solar | inferred |
 | `22` | `0x0c` | Spa heat mode high bits: `0x00` = off, `0x04` = heater, `0x08` = solar preferred, `0x0c` = solar | inferred |
 
+## EasyTouch Heater And Heat Pump Actions
+
+Safety boundary:
+- EasyTouch-owned heater control is the current supported architecture for Splash
+- Splash may construct and validate EasyTouch heater payloads, but direct UltraTemp action `114` / `115` traffic is research-only and must not be transmitted by production write paths in this slice
+- Action `162` changes EasyTouch controller configuration and must never be sent automatically on startup
+
+### Heater Type Values
+
+| Name | Integer | Meaning | Confidence |
+| --- | --- | --- | --- |
+| `gas` | `1` | Conventional heater path | inferred |
+| `solar` | `2` | Solar-only or solar-preferred controller path | inferred |
+| `ultratempHeatPumpCom` | `3` | Pentair Heat Pump Com / UltraTemp integration owned by EasyTouch | inferred |
+| `ultratempEtiHybrid` | `4` | ETi / hybrid heater configuration | inferred |
+
+### Solar / Heat Pump Status (`0x22` / `34`)
+
+Purpose:
+- controller-originated status/configuration family for solar and Heat Pump Com related controller state
+- current Splash use is decode-only and diagnostic unless a later task enables controller-backed config writes
+
+Current reverse-engineered payload bits:
+
+| Payload byte | Mask | Meaning | Confidence |
+| --- | --- | --- | --- |
+| `0` | `0x02` | Solar / heat-pump-related controller configuration enabled | inferred |
+| `1` | `0x01` | Heating enabled | inferred |
+| `1` | `0x02` | Cooling enabled | inferred |
+| `1` | `0x10` | Heat-pump or hybrid-related controller behavior bit | inferred |
+| `1` | `0x20` | Heat-pump-related capability/config bit | inferred |
+| `1` | `0x80` | Freeze protection enabled | inferred |
+
+Detection rule:
+- combinations with `payload[0] & 0x02` plus `payload[1] & 0x10` are treated as Heat Pump Com or related controller-managed heat-pump configurations
+- `payload[0] = 5`, `payload[1] = 16`, `payload[2] = 118` is the current working ETi / hybrid signature
+- unknown bit combinations must be preserved as raw bytes and surfaced as `unknown` rather than coerced into a misleading heater type
+
+### Set Heat / Temperature (`0x88` / `136`)
+
+Purpose:
+- set EasyTouch-owned pool and spa heat setpoints and heat modes
+- may also carry an UltraTemp cool setpoint in byte `3`
+
+Compact payload layout:
+
+| Byte | Meaning |
+| --- | --- |
+| `0` | pool heat setpoint |
+| `1` | spa heat setpoint |
+| `2` | packed heat modes: `(spaHeatMode << 2) | poolHeatMode` |
+| `3` | cool setpoint, default `0` when not used |
+
+Heat mode values:
+- `0` = off
+- `1` = heater
+- `2` = solar / heat pump preferred
+- `3` = solar / heat pump only
+
+Validation rules:
+- setpoints must be explicit integers
+- default accepted range is `40-104 F` unless an implementation is explicitly configured otherwise
+- pool and spa heat modes must each be `0-3`
+- `cool_setpoint` defaults to `0` when omitted
+- invalid values must be rejected, not clamped
+
+Example:
+- input: pool `89`, spa `99`, pool mode `3`, spa mode `1`, cool `0`
+- expected payload: `[89, 99, 7, 0]`
+
+### Set Solar / Heat Pump Configuration (`0xa2` / `162`)
+
+Purpose:
+- modify EasyTouch controller heater configuration, including Heat Pump Com / UltraTemp related settings
+
+Current supported payload families:
+
+#### UltraTemp / Heat Pump Com
+
+Three-byte payload:
+- `payload[0]` includes `0x02`
+- `payload[1]` includes `0x10`
+- `payload[1]` additionally includes `0x20` when controller cooling is enabled
+- `payload[2]` defaults to `0` in the current supported builder
+
+Interpretation rule:
+- this path configures EasyTouch to own a Heat Pump Com style heater integration
+- it does not make Splash the direct heater controller
+
+#### UltraTemp ETi / Hybrid
+
+Three-byte payload:
+- `payload[0] = 5`
+- `payload[1] = 16`
+- `payload[2] = 118`
+
+Validation rule:
+- unsupported heater modes or undocumented bit combinations must raise explicit unsupported-operation errors
+- implementations must not guess delete, disable, or other undocumented config mutations
+
+Unsupported or deferred heater cases:
+- direct UltraTemp action `114` / `115` command transmission
+- guessed behavior for undocumented action `162` payload variants
+- automatic Heat Pump Com enablement on startup
+- autonomous Splash-owned heater arbitration
+
+Verification warning:
+- outbound `0x88` and `0xa2` writes should be validated against packet captures and real controller behavior before being enabled on production pool equipment
+
 ## Available Circuit Assigned Names
 
 EasyTouch circuit assigned names may be selected from:
@@ -1040,30 +1170,48 @@ The table below lists the built-in assigned-name values.
 
 Where known from live validation, the assigned-name integer representation is shown in parentheses.
 
+Live-observed assigned-name token values from issue `#75` currently include:
+- `1`: `AERATOR`
+- `2`: `AIR BLOWER`
+- `3`: `AUX 1`
+- `4`: `AUX 2`
+- `5`: `AUX 3`
+- `6`: `AUX 4`
+- `7`: `AUX 5`
+- `8`: `AUX 6`
+- `9`: `AUX 7`
+- `10`: `AUX 8`
+- `11`: `AUX 9`
+- `12`: `AUX 10`
+- `22`: `CLEANER`
+- `47`: `POOL LOW`
+- `61`: `POOL`
+- `62`: `POOL HIGH`
+
 <table>
-  <tr><td><code>AERATOR</code></td><td><code>DRIVE LIGHT</code></td><td><code>HI-TEMP</code></td><td><code>POOL (3)</code></td></tr>
-  <tr><td><code>AIR BLOWER</code></td><td><code>EDGE PUMP</code></td><td><code>HIGH SPEED</code></td><td><code>SECURITY LT</code></td></tr>
-  <tr><td><code>AUX 10</code></td><td><code>ENTRY LIGHT</code></td><td><code>HOUSE LIGHT</code></td><td><code>SLIDE</code></td></tr>
-  <tr><td><code>AUX 1</code></td><td><code>FAN</code></td><td><code>JETS</code></td><td><code>SOLAR</code></td></tr>
-  <tr><td><code>AUX 2</code></td><td><code>FEATURE 1</code></td><td><code>LIGHTS (5)</code></td><td><code>SPA HIGH</code></td></tr>
-  <tr><td><code>AUX 3</code></td><td><code>FEATURE 2</code></td><td><code>LO-TEMP</code></td><td><code>SPA LIGHT</code></td></tr>
-  <tr><td><code>AUX 4</code></td><td><code>FEATURE 3</code></td><td><code>LOW SPEED</code></td><td><code>SPA LOW</code></td></tr>
-  <tr><td><code>AUX 5</code></td><td><code>FEATURE 4</code></td><td><code>MALIBU LTS</code></td><td><code>SPA SAL</code></td></tr>
-  <tr><td><code>AUX 6</code></td><td><code>FEATURE 5</code></td><td><code>MIST</code></td><td><code>SPA SAM</code></td></tr>
-  <tr><td><code>AUX 7</code></td><td><code>FEATURE 6</code></td><td><code>MUSIC</code></td><td><code>SPA WTRFLL</code></td></tr>
-  <tr><td><code>AUX 8</code></td><td><code>FEATURE 7</code></td><td><code>NOT USED</code></td><td><code>SPA (148)</code></td></tr>
-  <tr><td><code>AUX 9</code></td><td><code>FEATURE 8</code></td><td><code>OZONATOR</code></td><td><code>SPILLWAY</code></td></tr>
+  <tr><td><code>AERATOR (1)</code></td><td><code>DRIVE LIGHT</code></td><td><code>HI-TEMP</code></td><td><code>POOL (61)</code></td></tr>
+  <tr><td><code>AIR BLOWER (2)</code></td><td><code>EDGE PUMP</code></td><td><code>HIGH SPEED</code></td><td><code>SECURITY LT</code></td></tr>
+  <tr><td><code>AUX 10 (12)</code></td><td><code>ENTRY LIGHT</code></td><td><code>HOUSE LIGHT</code></td><td><code>SLIDE</code></td></tr>
+  <tr><td><code>AUX 1 (3)</code></td><td><code>FAN</code></td><td><code>JETS</code></td><td><code>SOLAR</code></td></tr>
+  <tr><td><code>AUX 2 (4)</code></td><td><code>FEATURE 1</code></td><td><code>LIGHTS (5)</code></td><td><code>SPA HIGH</code></td></tr>
+  <tr><td><code>AUX 3 (5)</code></td><td><code>FEATURE 2</code></td><td><code>LO-TEMP</code></td><td><code>SPA LIGHT</code></td></tr>
+  <tr><td><code>AUX 4 (6)</code></td><td><code>FEATURE 3</code></td><td><code>LOW SPEED</code></td><td><code>SPA LOW</code></td></tr>
+  <tr><td><code>AUX 5 (7)</code></td><td><code>FEATURE 4</code></td><td><code>MALIBU LTS</code></td><td><code>SPA SAL</code></td></tr>
+  <tr><td><code>AUX 6 (8)</code></td><td><code>FEATURE 5</code></td><td><code>MIST</code></td><td><code>SPA SAM</code></td></tr>
+  <tr><td><code>AUX 7 (9)</code></td><td><code>FEATURE 6</code></td><td><code>MUSIC</code></td><td><code>SPA WTRFLL</code></td></tr>
+  <tr><td><code>AUX 8 (10)</code></td><td><code>FEATURE 7</code></td><td><code>NOT USED</code></td><td><code>SPA (148)</code></td></tr>
+  <tr><td><code>AUX 9 (11)</code></td><td><code>FEATURE 8</code></td><td><code>OZONATOR</code></td><td><code>SPILLWAY</code></td></tr>
   <tr><td><code>AUX EXTRA</code></td><td><code>FIBER OPTIC</code></td><td><code>PATH LIGHTS</code></td><td><code>SPRINKLERS</code></td></tr>
   <tr><td><code>BACK LIGHT</code></td><td><code>FIBER WORKS</code></td><td><code>PATIO LTS</code></td><td><code>STATUE LT</code></td></tr>
   <tr><td><code>BACKWASH</code></td><td><code>FILL LINE</code></td><td><code>PERIMETER L</code></td><td><code>STREAM</code></td></tr>
   <tr><td><code>BBQ LIGHT</code></td><td><code>FLOOR CLNR</code></td><td><code>PG2000</code></td><td><code>SWIM JETS</code></td></tr>
   <tr><td><code>BEACH LIGHT</code></td><td><code>FOGGER</code></td><td><code>POND LIGHT</code></td><td><code>WATERFALL 1</code></td></tr>
-  <tr><td><code>BOOSTER PUMP</code></td><td><code>FOUNTAIN 1</code></td><td><code>POOL HIGH (64)</code></td><td><code>WATERFALL 2</code></td></tr>
+  <tr><td><code>BOOSTER PUMP</code></td><td><code>FOUNTAIN 1</code></td><td><code>POOL HIGH (62)</code></td><td><code>WATERFALL 2</code></td></tr>
   <tr><td><code>BUG LIGHT</code></td><td><code>FOUNTAIN 2</code></td><td><code>POOL LIGHT</code></td><td><code>WATERFALL 3</code></td></tr>
-  <tr><td><code>CABANA LTS</code></td><td><code>FOUNTAIN 3</code></td><td><code>POOL LOW (0)</code></td><td><code>WATERFALL</code></td></tr>
+  <tr><td><code>CABANA LTS</code></td><td><code>FOUNTAIN 3</code></td><td><code>POOL LOW (47)</code></td><td><code>WATERFALL</code></td></tr>
   <tr><td><code>CHEM. FEEDER</code></td><td><code>FOUNTAINS</code></td><td><code>POOL PUMP</code></td><td><code>WHIRLPOOL</code></td></tr>
   <tr><td><code>CHLORINATOR</code></td><td><code>FOUNTAIN</code></td><td><code>POOL SAM 1</code></td><td><code>WTR FEAT LT</code></td></tr>
-  <tr><td><code>CLEANER (62)</code></td><td><code>FRONT LIGHT</code></td><td><code>POOL SAM 2</code></td><td><code>WTR FEATURE</code></td></tr>
+  <tr><td><code>CLEANER (22)</code></td><td><code>FRONT LIGHT</code></td><td><code>POOL SAM 2</code></td><td><code>WTR FEATURE</code></td></tr>
   <tr><td><code>COLOR WHEEL</code></td><td><code>GARDEN LTS</code></td><td><code>POOL SAM 3</code></td><td><code>WTRFL LGHT</code></td></tr>
   <tr><td><code>DECK LIGHT</code></td><td><code>GAZEBO LTS</code></td><td><code>POOL SAM</code></td><td><code>YARD LIGHT</code></td></tr>
   <tr><td><code>DRAIN LINE</code></td><td></td><td></td><td></td></tr>
@@ -1111,6 +1259,9 @@ Request notes:
   from Splash system time
 - dashboard UX should clearly label this path as a controller clock sync action,
   not as a fully validated protocol control
+- EasyTouch8 page clock editing may expose date, time, DST mode, and clock
+  advance fields, but DST and clock-advance write semantics remain provisional
+  until packet captures confirm their exact payload layout
 
 ASSUMPTION:
 - request action `0x85`

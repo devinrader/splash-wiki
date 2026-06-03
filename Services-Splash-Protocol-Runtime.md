@@ -68,7 +68,7 @@ Degraded but non-fatal failures:
 
 - NATS unavailable at startup or runtime
 - configuration-provider unavailable
-- PostgreSQL unavailable
+- SQLite-backed configuration unavailable
 - active plugin selection unavailable
 - serial stream unavailable or stale
 - command correlation timeout
@@ -220,7 +220,7 @@ defines a stricter command family expectation.
 
 ## Configuration-provider boundary
 
-`splash-protocol` should not hard-code PostgreSQL as its only configuration
+`splash-protocol` should not hard-code SQLite as its only configuration
 source for pool selection or plugin configuration.
 
 Design requirement:
@@ -229,9 +229,9 @@ Design requirement:
   packaged plugin set or plugin directory
 - pool-level active plugin selection and plugin config should be obtained
   through a configuration-provider abstraction
-- the provider may read from PostgreSQL in normal operation
+- the provider may read from SQLite in normal operation
 - the milestone-1 concrete provider may read from explicit env vars
-- the runtime should support degraded startup when PostgreSQL is unavailable
+- the runtime should support degraded startup when SQLite is unavailable
 - degraded startup means the service stays alive while decode and command flow
   remain blocked until the provider can return a valid pool-selected plugin and
   config

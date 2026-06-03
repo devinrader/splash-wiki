@@ -64,7 +64,7 @@ Those responsibilities remain with application services and data stores.
 
 `splash-nats` should not require these services to start:
 
-- PostgreSQL
+- SQLite-backed API storage
 - InfluxDB
 - frontend
 - `splash-api`

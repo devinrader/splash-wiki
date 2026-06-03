@@ -26,9 +26,11 @@ This document defines how Splash behaves under dependency failure, disconnect, a
 
 ### Database issues
 
-- PostgreSQL failures return `503`-style errors
+- SQLite failures return `503`-style errors or degraded fallback payloads when
+  the route contract allows safe defaults
 - InfluxDB writes retry and may be dropped after retry exhaustion
-- Startup ordering depends on Compose health checks
+- startup ordering depends on Ansible-managed container health and local
+  service readiness rather than Compose health checks
 
 ### Frontend disconnect
 

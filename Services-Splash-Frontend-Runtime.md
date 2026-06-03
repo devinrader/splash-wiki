@@ -29,6 +29,12 @@ The initial milestone runtime is intentionally narrow:
    - creates saved bundles
    - compares saved bundles
    - reads and creates annotations and prompts
+   - requests one controller circuit-configuration record by circuit index
+   - waits for only the matching decoded `circuit_configuration` reply instead
+     of requiring the operator to inspect the full live frame stream manually
+   - shows the matched `function_id`, `base_function_id`,
+     `base_function_label`, `name_id`, `name_label`, `freeze_flag`, and
+     `high_flag` in a compact result panel
    - submits manual Remote Layout page requests
    - submits manual raw frame sends
    - shows outbound diagnostic request events such as `protocol.command.encoded`
@@ -60,7 +66,9 @@ Protocol Explorer flow inside Diagnostics:
 4. frontend compares saved bundles through `POST /protocol/bundles/compare`
 5. frontend reads or creates annotations and prompts through
    `/protocol/annotations` and `/protocol/prompts`
-6. frontend may send manual Remote Layout or raw frame diagnostic requests
+6. frontend may send a one-shot controller circuit-configuration request for a
+   selected circuit index and then wait for the matching decoded reply
+7. frontend may send manual Remote Layout or raw frame diagnostic requests
 
 Cross-origin local development rule:
 
@@ -132,8 +140,10 @@ Cross-origin local development rule:
   should render the columns:
   - `ID`
   - `Type`
-  - `Name`
   - `Function`
+  - `Function Value`
+  - `Name`
+  - `Name Value`
   - `Freeze`
   - `State`
   - `Action`
@@ -143,11 +153,15 @@ Cross-origin local development rule:
   - live controller circuit-configuration metadata for the configured name,
     function, and freeze state
   - live controller status for the current enabled or disabled state
-- the `Name` column may render as a staged select box seeded from the known
-  Pentair assigned-name list, with the current discovered circuit name selected
 - the `Function` column may render as a staged select box seeded from the known
   Pentair circuit-function list, with the current discovered circuit function
   selected
+- the `Function Value` column should render the raw controller `function_id`
+  numeric value when available
+- the `Name` column may render as a staged select box seeded from the known
+  Pentair assigned-name list, with the current discovered circuit name selected
+- the `Name Value` column should render the raw controller `name_id` numeric
+  value when available
 - the `Freeze` column may render as a staged toggle seeded from the current
   discovered freeze flag
 - the `State` column may render as a staged toggle only for circuits that have
@@ -155,6 +169,15 @@ Cross-origin local development rule:
   unsupported or unavailable state rows must remain non-interactive
 - the `Action` column may render placeholder save and discard icon buttons in
   this slice; those buttons do not need to persist row edits yet
+- the `Circuit Configuration` card should expose a `Refresh circuit
+  configuration` action that triggers a fresh controller circuit-configuration
+  discovery request using the existing diagnostic request path
+- while that refresh is in flight, the card-level refresh action should disable
+  itself and show pending status inline
+- when a circuit is marked not installed by the configured hardware inventory,
+  the table should render the staged `Name`, `Function`, `Freeze`, and `Action`
+  cells as unavailable rather than interactive, and the `State` column should
+  show `Not installed`
 - the `Custom Circuit Names` table may also render an `Action` column with the
   same placeholder save and discard icon buttons per row; those buttons do not
   need to persist custom-name edits yet in this slice
@@ -366,6 +389,20 @@ Cross-origin local development rule:
 - once a History tab dataset has been loaded successfully, the frontend may
   retain it in in-memory page state for fast tab switching during the active
   session
+- the History page should expose a time-range selector that applies to
+  Temperature, Pump, and Weather tabs
+- the first selector slice should support:
+  - `Last hour` with `5m` history interval
+  - `Last 6 hours` with `15m` history interval
+  - `Last 12 hours` with `15m` history interval
+  - `Last 24 hours` with `15m` history interval
+  - `Last 36 hours` with `15m` history interval
+  - `Last 3 days` with `1h` history interval
+  - `Last 7 days` with `4h` history interval
+- the default selected range should be `Last 36 hours`
+- when the selected range changes, the frontend should request the newly
+  selected range for the active History tab and use the matching interval for
+  documented history API calls
 - inactive History tabs should not mount their chart grid until the tab is
   activated
 - the first temperature-history slice should render charted series for:
@@ -501,6 +538,122 @@ Cross-origin local development rule:
 - events without an `action_code` may remain visible unless later event-type
   filtering is added separately
 - manual Remote Layout and raw-frame send actions should remain clearly labeled
+
+## EasyTouch8 Hardware Page Controller Clock Surface
+
+The EasyTouch8 hardware page should expose controller clock information in two
+separate surfaces:
+
+1. `Main Controller` summary
+2. `Controller Clock Configuration` card
+
+### Main Controller summary
+
+Read-only fields:
+- controller date
+- controller time
+- DST mode
+- clock advance
+
+Rules:
+- this box is read-only
+- it should show the latest controller-derived values when available
+- it should not expose write buttons
+- if values are only available from provisional `0x05` date/time reply data,
+  the UI must label them as provisional
+
+### Controller Clock Configuration card
+
+Editable fields:
+- date
+- time
+- DST mode
+- clock advance
+
+Actions:
+- `Refresh controller clock`
+- `Save controller clock configuration`
+
+Rules:
+- `clock advance` maps directly to the EasyTouch `Clock Advance` setting
+- save behavior remains provisional until the EasyTouch clock-setting payload is
+  fully live-validated
+- the card must show pending, success, and failure states independently from the
+  read-only summary
+- after save, the page must refresh from controller-derived state rather than
+  assuming the submitted values are authoritative
+
+## EasyTouch8 Hardware Page Pump Configuration Card
+
+The EasyTouch8 hardware page should expose a `Pump Configuration` card.
+
+Rendering rules:
+- render configuration sections only for pumps the live controller reports as
+  installed
+- do not render placeholder pump editors for pumps that are not present in live
+  controller state
+- the number and shape of pump sections should follow the EasyTouch controller
+  configuration description/menu structure
+
+Supported first-slice branches:
+- Pump #1 when installed
+- Pump #2 when installed
+- `Pump Type`
+- all documented configuration branches for the active pump type, including:
+  - `VS`
+  - `VSF`
+  - `VF`
+
+Interaction rules:
+- load from live controller-acquired pump configuration, not from static local
+  defaults
+- writes must use read-modify-write from a fresh controller baseline
+- save should remain per-pump, not global across all installed pumps
+- each pump section must show independent pending, success, and failure state
+- the page must refresh from controller-derived state after save confirmation
+
+## EasyTouch8 Hardware Page Heater Panel
+
+The EasyTouch8 hardware page should expose an EasyTouch-owned heater panel.
+
+Panel sections:
+- `Configuration`
+- `Heat Settings`
+
+Visible read-only status:
+- detected heater type
+- solar or heat-pump enabled
+- heating enabled
+- cooling enabled
+- freeze protection enabled
+- current pool heat mode
+- current spa heat mode
+- current pool setpoint when available
+- current spa setpoint when available
+- current cool setpoint when available
+
+Editable configuration fields:
+- heater type
+- cooling enabled
+- freeze protection enabled
+
+Editable heat-setting fields:
+- pool setpoint
+- spa setpoint
+- pool heat mode
+- spa heat mode
+- cool setpoint
+
+Interaction rules:
+- the page must expose separate `Save configuration` and `Save heat settings`
+  actions
+- each action must show independent pending, success, and failure state
+- after a successful save, the page should reload from refreshed controller
+  data
+- unsupported direct UltraTemp controls must remain hidden or disabled with
+  explanatory copy
+- the UI must state clearly that EasyTouch remains the authoritative heater
+  controller
   as diagnostic-only
 - raw-frame send should preserve the operator-provided lowercase hex exactly and
   should not imply protocol-level success when the transport write succeeds

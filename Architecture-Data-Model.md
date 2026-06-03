@@ -6,12 +6,18 @@
 
 Splash uses a dual-database model:
 
-- PostgreSQL for relational, configuration, and user-log data
+- SQLite for relational, configuration, and user-log data
 - InfluxDB for time-series measurements and telemetry
 
 The design is single-pool in v1, but child records carry `pool_id` to keep future multi-pool support possible without a schema reset.
 
-## PostgreSQL entities
+`#109` transition note:
+- the current implementation may still contain PostgreSQL-backed code while the
+  migration is in flight
+- the canonical target design is SQLite as the embedded relational store on
+  `splash-core`
+
+## SQLite entities
 
 | Entity | Purpose | Key fields |
 | --- | --- | --- |
@@ -170,7 +176,8 @@ the first implementation?
 
 ## Audit and key conventions
 
-- UUID v4 primary keys on all PostgreSQL tables
+- UUID v4 primary keys on all relational entities that remain normalized rather
+  than embedded in SQLite-friendly JSON structures
 - `created_at` and `updated_at` on mutable entities
 - Shared trigger updates `updated_at`
 - Notifications are immutable after creation except for `read` state
@@ -182,7 +189,14 @@ BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$ LANGUAGE plpgsql;
 ```
 
-## Proposed PostgreSQL definitions
+## Proposed relational definitions
+
+Transition note for `#109`:
+- the SQL examples in this section still use PostgreSQL-flavored DDL in places
+  and should be translated to concrete SQLite migration files during
+  implementation
+- the logical entities remain authoritative, but the exact SQL dialect is now
+  expected to be SQLite-first
 
 ### `pool_settings`
 
@@ -365,7 +379,7 @@ Notes:
 | `rainfall` | 2 years full resolution |
 | `easy_touch_pump` | default bucket retention / indefinite until explicit retention policy is designed |
 | `easy_touch_temperature` | default bucket retention / indefinite until explicit retention policy is designed |
-| PostgreSQL `chemistry_readings` | kept indefinitely as the permanent user log |
+| SQLite `chemistry_readings` | kept indefinitely as the permanent user log |
 
 ## Chemistry reference
 
@@ -406,7 +420,7 @@ Do-not-swim conditions called out in the source:
 1. `splash-serial` reads the RS-485 bus and publishes raw transport events to NATS.
 2. `splash-protocol` reconstructs and decodes frames, then publishes normalized equipment events.
 3. `splash-scheduler` evaluates rules against normalized state and long-term weather updates; the first forecast-fetch slice may temporarily live in `splash-api`.
-4. `splash-api` persists relational updates to PostgreSQL, exposes REST and SSE, emits normalized command intents when actions are approved, writes sampled EasyTouch temperature telemetry to InfluxDB when that integration is configured, and stores normalized weather forecast snapshots for frontend and later analytics use.
+4. `splash-api` persists relational updates to SQLite, exposes REST and SSE, emits normalized command intents when actions are approved, writes sampled EasyTouch temperature telemetry to InfluxDB when that integration is configured, and stores normalized weather forecast snapshots for frontend and later analytics use.
 
 ## Weather forecast cache model
 
@@ -444,11 +458,11 @@ The system design does not require durable storage of every raw transport chunk.
 
 ### Persisted by design
 
-- `protocol_annotations` in PostgreSQL
-- `pool_settings` in PostgreSQL
-- `pool_circuits` in PostgreSQL
+- `protocol_annotations` in SQLite
+- `pool_settings` in SQLite
+- `pool_circuits` in SQLite
 - user-facing equipment state in InfluxDB through normalized measurements
-- command/task history in PostgreSQL
+- command/task history in SQLite
 
 ### Not required as a primary store
 
@@ -461,7 +475,9 @@ ASSUMPTION: Raw transport and protocol-frame traffic is primarily ephemeral and 
 ### Potential future persistence
 
 - QUESTION: Should a bounded protocol-frame archive be added for debugging difficult vendor-specific issues?
-- TODO: If protocol-frame archival becomes a requirement, add explicit PostgreSQL or object-storage design rather than treating NATS as a historical store.
+- TODO: If protocol-frame archival becomes a requirement, add explicit SQLite
+  archival constraints, a larger relational store, or object-storage design
+  rather than treating NATS as a historical store.
 
 ## Remaining schema questions
 

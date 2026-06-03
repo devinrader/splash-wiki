@@ -89,6 +89,7 @@ For the first browser milestone, `splash-api` should:
     - stopping and returning the captured frame set for later inspection
 17. expose a first controller-circuit configuration discovery request by:
     - accepting a diagnostic API request from the dashboard or Protocol Explorer
+      and from the EasyTouch8 `Circuit Configuration` card refresh action
     - publishing a `protocol.command.intent` that asks the active protocol
       plugin to request controller circuit-configuration records
     - keeping the request diagnostic and non-mutating
@@ -97,6 +98,8 @@ For the first browser milestone, `splash-api` should:
     - recording decoded `0x0b` `circuit_configuration` replies into the
       controller latest-state diagnostic configuration map so dashboard rows can
       show returned function/name byte values and labels
+      and so the EasyTouch8 table can show both the decoded labels and the raw
+      `function_id` / `name_id` numeric values per circuit
     - continuing to show the raw `0xcb` request frames and `0x0b` controller
       replies in the Protocol Explorer frame stream
 17. expose a first custom-name-bank diagnostic request by:
@@ -140,7 +143,29 @@ For the first browser milestone, `splash-api` should:
       record so frontend views can show cached firmware and bootloader values
     - keeping unresolved payload bytes visible as diagnostic data rather than
       projecting guessed meanings into equipment state
-20. expose first controller-native schedule visibility by:
+20. expose EasyTouch8 controller clock configuration by:
+    - exposing a read model that combines normalized controller clock fields and
+      provisional `0x05` reply data without collapsing them into one invented
+      source of truth
+    - accepting a `GET /controller/clock` request for EasyTouch8 read-only and
+      editable clock surfaces
+    - accepting a provisional `PUT /controller/clock` request for controller
+      clock configuration
+    - treating DST mode and clock-advance fields as provisional until their full
+      EasyTouch payload semantics are live-validated
+    - requesting refreshed controller-derived state after a clock write rather
+      than assuming the submitted values are authoritative
+21. expose EasyTouch8 live installed-pump configuration by:
+    - exposing `GET /controller/pumps/configuration` that returns only pumps the
+      live controller reports as installed
+    - shaping each pump record by active pump type and supported EasyTouch menu
+      branches
+    - promoting pump-config writes from Protocol Explorer-only diagnostics to a
+      page-owned `PUT /controller/pumps/:pump_id/configuration` workflow
+    - requiring a fresh live controller baseline before constructing a full
+      `0x9b` write payload
+    - refreshing controller-derived pump configuration after write completion
+22. expose first controller-native schedule visibility by:
     - exposing a read-only `GET /controller/schedules` route for the Automation
       `Schedules` tab
     - projecting only validated EasyTouch controller schedule fields from
@@ -162,13 +187,41 @@ For the first browser milestone, `splash-api` should:
       repeating-schedule and egg-timer payloads in this slice
     - validating every byte position explicitly and returning structured
       argument errors instead of coercing invalid input
-    - keeping outbound frame wrapping optional and non-transmitting in this
-      slice unless a separately validated send path already exists
     - leaving run-once, delete, disable, and IntelliCenter schedule-table
       semantics unsupported until packet captures validate them
-    - documenting that payload construction alone does not mean controller
-      schedule writes are safe to enable on live equipment
-22. expose first EasyTouch temperature telemetry persistence by:
+22. add first direct EasyTouch controller schedule update support by:
+    - exposing `PUT /controller/schedules/:schedule_id` for direct controller
+      schedule writes on supported EasyTouch selections
+    - accepting only validated `repeat` and `egg_timer` write inputs in the
+      first write slice
+    - rejecting `run_once`, delete, disable, and heat-setting mutations until
+      protocol captures validate them
+    - using the existing protocol command path rather than browser-direct frame
+      transmission
+    - serializing schedule writes so only one controller schedule update is in
+      flight at a time
+    - treating transport acknowledgement as insufficient for success
+    - requiring a read-after-write refresh for the same schedule slot before
+      marking the write completed
+    - using the refreshed controller-native schedule record as the authoritative
+      browser-facing result after save
+23. expose first EasyTouch heater configuration and heat-setting control by:
+    - exposing `GET /controller/heater` as the EasyTouch-owned heater read model
+    - projecting validated action `34` solar or heat-pump status fields into
+      API latest-state and the controller equipment latest-state
+    - exposing `PUT /controller/heater/configuration` for documented action
+      `162` payload variants only
+    - exposing `PUT /controller/heater/settings` for documented action `136`
+      payload writes
+    - rejecting unsupported gas-only, solar-only, or direct UltraTemp control
+      paths until packet captures validate them
+    - serializing heater writes so only one heater operation is in flight at a
+      time
+    - waiting for compatible controller follow-up state before reporting
+      completion, rather than treating transport write alone as success
+    - preserving EasyTouch as the authoritative heater controller and keeping
+      direct UltraTemp action `114` / `115` out of scope
+24. expose first EasyTouch temperature telemetry persistence by:
     - subscribing to normalized EasyTouch temperature events derived from
       controller-status broadcasts
     - writing sampled temperature points to InfluxDB no more than once every 10
@@ -210,8 +263,8 @@ For the first browser milestone, `splash-api` should:
       InfluxDB when that integration is configured
     - reporting configured weather-provider availability through the aggregated
       platform-status surface
-24. expose configurable pool-chemistry bounds by:
-    - storing durable operator-managed chemistry targets in PostgreSQL rather
+25. expose configurable pool-chemistry bounds by:
+    - storing durable operator-managed chemistry targets in SQLite rather
       than InfluxDB
     - seeding one built-in default chemistry-bounds profile for a saltwater
       residential pool without overwriting later customizations
@@ -219,7 +272,7 @@ For the first browser milestone, `splash-api` should:
       `Settings` page
     - validating supported chemistry keys and numeric min/target/max ordering
     - providing one recommendation-facing helper that returns normalized
-      chemistry bounds with safe fallback defaults when PostgreSQL is
+      chemistry bounds with safe fallback defaults when SQLite is
       unavailable
     - keeping the configuration boundary separate from future recommendation
       or swimmability engines so those engines read settings rather than own
@@ -441,9 +494,16 @@ Refresh and stale rules:
 
 ## Weather location settings runtime
 
+Transition note for `#109`:
+- current code may still temporarily load PostgreSQL-oriented repositories or
+  environment variables while the relational settings migration is in flight
+- new durable settings work should target SQLite-backed storage contracts
+- browser-facing health and source labels should move toward `sqlite` or the
+  more generic `database` naming rather than `postgres`
+
 Preferred ownership:
 - durable weather-location settings should live behind `splash-api`
-- PostgreSQL should store operator-managed location mode, address fields,
+- SQLite should store operator-managed location mode, address fields,
   coordinate overrides, timezone hints, and later geocoded results
 - InfluxDB must not store weather-location settings because those values are not
   time-series telemetry
@@ -483,7 +543,7 @@ Future compatibility rules:
 ## Initial equipment catalog bridge
 
 The first API slice may use a minimal local equipment catalog bridge rather than
-the full PostgreSQL-backed inventory model.
+the full SQLite-backed inventory model.
 
 Rules:
 
@@ -695,7 +755,7 @@ Rules:
   - `nats`
   - `splash_protocol`
   - `splash_frontend`
-  - `postgres` when PostgreSQL is configured
+  - `sqlite` when relational settings storage is configured
 - each service entry may expose:
   - `status`
   - `summary`
@@ -791,6 +851,13 @@ Rules:
   as long as it is explicitly scoped to Protocol Explorer diagnostics
 - the first manual pump-config write slice may remain a thin API-to-NATS bridge
   as long as it is explicitly scoped to Protocol Explorer diagnostics
+- the existing `POST /protocol/circuit-config/request` route should also support
+  a narrow Protocol Explorer one-shot workflow where the browser requests one
+  circuit index, keeps the returned command id, and waits for only the matching
+  decoded `circuit_configuration` reply from `GET /protocol/frames`
+- that one-shot circuit-config workflow does not require a new API route as
+  long as the browser can correlate the reply by requested circuit index and
+  request start time
 - the first watch-session slice may stay API-local and in-memory before a
   broader persistent capture model exists
 - the first watch-session filter may remain a simple explicit allowlist of

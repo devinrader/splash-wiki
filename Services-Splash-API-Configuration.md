@@ -14,15 +14,18 @@ The initial `splash-api` slice should support:
 | `API_SERIAL_HEALTH_URL` | Optional `splash-serial` health endpoint, such as `http://10.0.40.54:9108/healthz`, used for platform service aggregation |
 | `API_PROTOCOL_HEALTH_URL` | Optional `splash-protocol` health endpoint, such as `http://127.0.0.1:9109/healthz`, used for platform service aggregation |
 | `API_HTTP_BIND` | Local HTTP bind address |
-| `DATABASE_URL` | PostgreSQL connection string used for durable relational settings and later multi-pool metadata |
-| `PGHOST` | Optional PostgreSQL host when `DATABASE_URL` is not used |
-| `PGPORT` | Optional PostgreSQL port when `DATABASE_URL` is not used |
-| `PGDATABASE` | Optional PostgreSQL database name when `DATABASE_URL` is not used |
-| `PGUSER` | Optional PostgreSQL username when `DATABASE_URL` is not used |
-| `PGPASSWORD` | Optional PostgreSQL password when `DATABASE_URL` is not used |
+| `SQLITE_PATH` | Absolute path to the SQLite database file used for durable relational settings and later multi-pool metadata |
+| `SQLITE_BUSY_TIMEOUT_MS` | Optional SQLite busy timeout override for concurrent access handling |
+| `SQLITE_JOURNAL_MODE` | Optional SQLite journal mode override, with `wal` as the preferred default |
 | `DATABASE_MIGRATIONS_DIR` | Optional SQL migrations directory override |
 | `LOG_LEVEL` | Structured log verbosity |
 | `TZ` | Service timezone |
+
+`#109` transition note:
+- the current implementation may still accept PostgreSQL-oriented settings
+  during the migration window
+- the target configuration model is SQLite-first and should replace
+  PostgreSQL-specific variables as code migration proceeds
 
 ## Initial equipment bridge configuration
 
@@ -46,7 +49,7 @@ milestone.
 
 ## Durable settings ownership
 
-- PostgreSQL is the durable store for relational and operator-managed settings
+- SQLite is the durable store for relational and operator-managed settings
   such as pool-scoped weather-location configuration
 - InfluxDB remains reserved for time-series telemetry such as temperatures,
   pump read-state history, and weather forecast snapshots
@@ -57,7 +60,7 @@ milestone.
 
 - `splash-api` should apply SQL migrations in a deterministic sorted order from
   a migrations directory during an explicit migration run
-- the migration runner should record applied migration names in PostgreSQL so
+- the migration runner should record applied migration names in SQLite so
   repeated runs are idempotent
 - a local operator should be able to run migrations before starting the API,
   for example through an npm script or dedicated startup helper

@@ -555,6 +555,10 @@ Validation rule:
 }
 ```
 
+Current EasyTouch rule:
+- when the active heater capability resolves to `pentair.easytouch_heater`, Splash should prefer controller-owned heater writes through EasyTouch action `136`
+- Splash must not use direct UltraTemp action `114` / `115` traffic unless a future direct-equipment-control mode is explicitly designed and enabled
+
 ## Mapping rule
 
 - protocol plugins may emit protocol-specific decoded fields for diagnostics

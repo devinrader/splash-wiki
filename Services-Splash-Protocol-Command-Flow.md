@@ -172,6 +172,29 @@ Rules:
 - warning: generated outbound schedule-write frames must be verified against
   packet captures before they are enabled on real equipment
 
+## Controller Schedule Write
+
+Splash may trigger `set_controller_schedule` to write one validated EasyTouch
+controller schedule slot through the existing command transport path.
+
+Rules:
+
+- accept only schedule selectors `1-12`
+- support only validated compact `repeat` and `egg_timer` payload construction
+  in this slice
+- encode the outbound command in controller-family format with protocol byte
+  `0x34` and action `0x91` (`145`)
+- reject `run_once`, delete, disable, and heat-setting mutations until packet
+  captures validate them
+- after transport acknowledgement, do not mark the command complete
+- immediately request the same schedule slot using `0xd1` so Splash can perform
+  read-after-write confirmation
+- complete the command only after a refreshed decoded `0x11` or `0x91`
+  schedule-detail reply for the same slot is observed
+- if that confirmation is not observed before timeout, fail the command rather
+  than treating transport acknowledgement as proof of success
+- permit only one in-flight controller schedule write at a time
+
 ## Startup Schedule Warmup
 
 When `splash-api` first observes controller state and does not yet have cached
@@ -318,6 +341,41 @@ Initial rules:
   - complete once the transport write is observed successfully
 - later `0x18` response correlation remains part of protocol mapping and
   milestone-1 confirmation work
+
+## EasyTouch8 controller clock configuration
+
+EasyTouch8 may expose a provisional controller clock configuration workflow
+separate from the existing diagnostic request/sync buttons.
+
+Initial rules:
+
+- protocol plugin: `pentair_easytouch`
+- command types:
+  - `request_controller_datetime`
+  - `set_controller_clock_configuration`
+- destination: controller `0x10`
+- source: Splash remote/client address `0x21`
+- reads and writes must refresh from controller-derived state after completion
+- clock-setting completion must not rely on transport ack alone
+- DST mode and clock-advance semantics remain provisional until live captures
+  validate the full EasyTouch payload
+
+## EasyTouch8 live pump configuration
+
+EasyTouch8 may expose installed-pump configuration as a page-owned controller
+workflow rather than a Protocol Explorer-only diagnostic write.
+
+Initial rules:
+
+- protocol plugin: `pentair_easytouch`
+- command type: `write_pump_config`
+- destination: controller `0x10`
+- source: Splash remote/client address `0x21`
+- only pumps reported as installed by live controller state may be writable
+- payload construction must use a fresh controller-acquired baseline before
+  applying operator edits
+- completion must verify refreshed controller pump configuration rather than
+  transport ack alone
 
 ## Manual pump-config diagnostic write
 

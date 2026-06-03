@@ -37,6 +37,13 @@
 | `/schedules` | `GET`, `POST` | Maintenance schedules |
 | `/schedules/:id` | `PUT`, `DELETE` | Schedule mutation |
 | `/controller/schedules` | `GET` | Read validated controller-native schedules when available |
+| `/controller/schedules/:schedule_id` | `PUT` | Directly update one validated EasyTouch controller schedule slot |
+| `/controller/clock` | `GET`, `PUT` | Read and provisionally update EasyTouch controller clock configuration |
+| `/controller/pumps/configuration` | `GET` | Read live EasyTouch installed-pump configuration for the EasyTouch8 page |
+| `/controller/pumps/:pump_id/configuration` | `PUT` | Update one installed EasyTouch pump configuration from a fresh live baseline |
+| `/controller/heater` | `GET` | Read EasyTouch-owned heater status, configuration, and editable field availability |
+| `/controller/heater/configuration` | `PUT` | Update EasyTouch-owned heater configuration through controller action `162` |
+| `/controller/heater/settings` | `PUT` | Update EasyTouch-owned heater settings through controller action `136` |
 | `/telemetry/temperatures/latest` | `GET` | Latest EasyTouch temperature telemetry snapshot |
 | `/telemetry/temperatures/history` | `GET` | Historical EasyTouch temperature telemetry series |
 | `/telemetry/pumps/latest` | `GET` | Latest EasyTouch pump telemetry snapshot |
@@ -125,6 +132,57 @@ defined in [Service Health Architecture](Architecture-Service-Health).
 
 ### `GET /controller/schedules`
 
+### `PUT /controller/schedules/:schedule_id`
+
+Purpose:
+- update one validated EasyTouch controller-native schedule slot directly on the
+  controller using the compact seven-byte payload flow
+
+Rules:
+- this route is limited to EasyTouch controller-native scheduling
+- accept only schedule ids `1-12`
+- the first write slice accepts only validated compact payload fields:
+  - `mode`: `repeat` or `egg_timer`
+  - `circuit_id`: integer
+  - `start_time_minutes`: integer for `repeat`
+  - `end_time_minutes`: integer for `repeat`
+  - `days_mask`: integer `1-127` for `repeat`
+  - `runtime_minutes`: integer greater than `0` for `egg_timer`
+- reject `run_once`, delete, disable, and heat-setting mutations until packet
+  captures validate them
+- reject unsupported or unvalidated fields with `400`
+- return `409` when controller schedule writes are unsupported for the active
+  controller selection or cached controller state
+- return `503` when protocol command transport is unavailable
+- after a successful write, Splash should refresh the same schedule slot and use
+  the refreshed controller-native schedule record as the browser-facing source
+  of truth
+
+Example request body:
+
+```json
+{
+  "mode": "repeat",
+  "circuit_id": 12,
+  "start_time_minutes": 510,
+  "end_time_minutes": 1020,
+  "days_mask": 62
+}
+```
+
+Example accepted response:
+
+```json
+{
+  "data": {
+    "command_id": "command-123",
+    "status": "accepted"
+  },
+  "error": null
+}
+```
+
+
 Purpose:
 - expose controller-native schedule visibility for the Automation `Schedules`
   tab without pretending that Splash already owns all scheduling
@@ -166,6 +224,69 @@ When validated records exist, each returned schedule record should include:
 - stop time in minutes after midnight when validated
 - day mask or explicit days when validated
 - enabled or active state when validated
+
+### `GET /controller/heater`
+
+Purpose:
+- expose the EasyTouch-owned heater read model used by the EasyTouch8 hardware page
+
+Rules:
+- this route is specific to controller-owned heater configuration and heat settings
+- it must not imply direct UltraTemp ownership by Splash
+- it should return only validated controller-derived fields plus explicitly labeled cached write-confirmation fields when a live controller read for that field is not yet available
+- unsupported direct-heater fields must remain absent rather than guessed
+
+The first slice should return:
+- detected heater type when validated
+- solar or heat-pump enablement
+- heating enabled
+- cooling enabled
+- freeze protection enabled
+- current pool and spa heat modes
+- current pool and spa setpoints when available
+- current cool setpoint when available
+- field availability metadata for configuration vs heat-setting edits
+
+### `PUT /controller/heater/configuration`
+
+Purpose:
+- update EasyTouch-owned heater configuration from the EasyTouch8 hardware page
+
+Accepted request body:
+- `heater_type`
+- `cooling_enabled`
+- `freeze_protection_enabled`
+
+Rules:
+- the first slice supports only documented EasyTouch action `162` variants:
+  - `ultratempHeatPumpCom`
+  - `ultratempEtiHybrid`
+- undocumented gas or solar-only action `162` writes must be rejected with `400`
+- direct UltraTemp action `114` / `115` behavior must remain out of scope
+- Splash must use the protocol command path rather than browser-direct frame transmission
+- transport write alone is not sufficient evidence of configuration truth
+- the API should complete only after observing a compatible controller refresh or cached controller acknowledgement path for the configuration write
+
+### `PUT /controller/heater/settings`
+
+Purpose:
+- update EasyTouch-owned heat settings from the EasyTouch8 hardware page
+
+Accepted request body:
+- `pool_setpoint`
+- `spa_setpoint`
+- `pool_heat_mode`
+- `spa_heat_mode`
+- `cool_setpoint`
+
+Rules:
+- the route must build EasyTouch action `136`
+- setpoints must be validated as explicit integers within the configured safe range
+- pool and spa heat modes must each be `0-3`
+- unsupported or unvalidated fields must be rejected with `400`
+- Splash must use the protocol command path rather than browser-direct frame transmission
+- transport write alone is not sufficient evidence of live controller state
+- the API should complete only after observing a compatible refreshed controller status or equivalent verified controller follow-up
 - freshness metadata
 - raw payload or debug data only when exposed through an explicit diagnostic
   field rather than mixed into operator-facing schedule values
@@ -620,7 +741,7 @@ Response:
         "sortOrder": 30
       }
     ],
-    "source": "postgres"
+    "source": "sqlite"
   },
   "error": null
 }
@@ -630,8 +751,8 @@ Rules:
 
 - the response returns the full known chemistry-bounds set in a stable order
 - unknown custom chemistry keys are not part of the first slice
-- if PostgreSQL is unavailable, the route may return a safe default-backed
-  payload with an explicit non-`postgres` source indicator
+- if SQLite is unavailable, the route may return a safe default-backed
+  payload with an explicit non-`sqlite` source indicator
 
 ### `PUT /api/settings/pool-chemistry`
 

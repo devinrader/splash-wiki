@@ -196,12 +196,12 @@ below. It is the first implementation target that validates:
 
 ## Dependencies
 
-- PostgreSQL
+- SQLite
 - InfluxDB
 - NATS with JetStream
 - USB-to-RS-485 adapter
 - Weather provider API key
-- Docker and Docker Compose on `splash-core`
+- Docker on `splash-core`
 - Gitea package registry for internal artifact distribution
 - Ansible for provisioning and disaster recovery
 - Gitea Actions secrets for non-interactive package and image publishing

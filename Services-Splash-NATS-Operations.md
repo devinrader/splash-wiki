@@ -34,5 +34,5 @@ When `splash-nats` is unavailable:
 ## Operational notes
 
 - `splash-nats` should remain lightweight and local-first for v1
-- NATS is a backbone dependency, not a substitute for PostgreSQL or InfluxDB
+- NATS is a backbone dependency, not a substitute for SQLite or InfluxDB
 - if JetStream state grows materially, retention and storage policy should be revisited explicitly in the design

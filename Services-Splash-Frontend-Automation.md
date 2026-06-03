@@ -98,9 +98,12 @@ Rules:
   default to the first stable controller program, such as program `1`
 - the schedule-row `Review` action should load the selected row into the
   right-hand editor instead of opening a modal
-- the schedule editor may be frontend-local and non-destructive for this
-  slice as long as it does not claim that controller schedule create/update
-  writes already exist
+- the schedule editor should become controller-backed for the validated write
+  slice rather than remaining browser-local preview only
+- the first direct-write slice should support saving only validated EasyTouch
+  `repeat` and `egg_timer` schedule fields
+- the UI must reject or disable `run_once`, delete, disable, and heat-setting
+  mutations until those controller semantics are protocol-validated
 - the schedule editor should reflect the controller constraints in the UI:
   - circuit selector
   - schedule type or program intent
@@ -112,7 +115,8 @@ Rules:
     program
 
 Rules:
-- the first slice may present the scheduling mode toggle as UI-only
+- save actions should show pending, success, and failure state inline in the editor
+- after save, the editor should reload from refreshed controller data rather than trusting the unsaved draft as truth
 - the first slice must not claim that platform-managed scheduling is already
   active unless backed by real platform state
 

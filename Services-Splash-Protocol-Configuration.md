@@ -16,7 +16,7 @@ static service env alone.
 
 For milestone-1 implementation work, `splash-protocol` may use a temporary
 environment-backed provider as the concrete configuration-provider
-implementation until the fuller PostgreSQL-backed provider exists.
+implementation until the fuller SQLite-backed provider exists.
 
 ## Expected service-level environment variables
 
@@ -68,7 +68,7 @@ The provider must supply:
 
 Provider rules:
 
-- normal operation may read from PostgreSQL-backed configuration
+- normal operation may read from SQLite-backed configuration
 - milestone-1 local and early integration work may use the temporary env-backed
   provider
 - provider-backed plugin selection must resolve only against locally discovered

@@ -9,7 +9,7 @@ This document captures testing, observability, and operational guidance that sup
 ## Testing strategy
 
 - Unit tests cover rule evaluation, protocol decoder logic, chemistry calculations, and API handlers
-- Integration tests cover API access to PostgreSQL and InfluxDB, scheduler jobs, and SSE broker behavior
+- Integration tests cover API access to SQLite and InfluxDB, scheduler jobs, and SSE broker behavior
 - Integration tests should also cover raw-stream to decoded-event flow through `splash-protocol`
 - Hardware-in-the-loop checks validate real raw-byte capture, command round-trip behavior, and adapter reconnect handling
 - `splash-serial` tests should cover stream-id rollover, stale write rejection, native read-boundary publishing, and idle-timing enforcement
@@ -40,9 +40,10 @@ This document captures testing, observability, and operational guidance that sup
 
 ## Backup and recovery
 
-- PostgreSQL is backed up daily with `pg_dump`
+- SQLite is backed up daily using file-level snapshot or copy procedures that
+  preserve database consistency, such as WAL-aware backup steps
 - InfluxDB is backed up weekly
-- backup retention target is 30 daily PostgreSQL backups and 4 weekly InfluxDB backups
+- backup retention target is 30 daily SQLite backups and 4 weekly InfluxDB backups
 - off-device copy is recommended but manual in v1
 - Ansible-based restore is the intended disaster-recovery path
 
