@@ -246,6 +246,24 @@ Cross-origin local development rule:
   - saves changes through `PUT /api/settings/pool-chemistry`
   - surfaces validation and save status using the same page-level patterns as
     the weather-location settings section
+- expose a real `Water Test Log` destination at `/water-test-log` that:
+  - loads the latest reading from `GET /chemistry/latest`
+  - loads chemistry history from `GET /chemistry/history`
+  - lets the operator submit manual readings through `POST /chemistry`
+  - accepts first-slice inputs for `pH`, `Free Chlorine`,
+    `Total Alkalinity`, `Calcium Hardness`, `Cyanuric Acid`,
+    `Salt`, `Rainfall`, and `Recorded At`
+  - disables submit while a save is pending
+  - refreshes latest and history data after save success
+  - shows a non-blocking warning when both `pH` and `Free Chlorine` are
+    omitted from a saved reading
+  - shows a latest-reading summary card when data exists
+  - shows first-slice trend charts for `pH`, `Free Chlorine`, and `Salt`
+  - shows a recent-readings table with sparse values rendered as `—`
+  - supports time-range presets of `Last 7 days`, `Last 30 days`, and
+    `Last 90 days`
+  - keeps first-slice chemistry logging separate from later SLAM, cover, or
+    swimmability overlays
 - the first Home telemetry widget should display latest `air`, `pool_water`,
   `spa_water` when available, `solar` when available, and the last updated
   timestamp

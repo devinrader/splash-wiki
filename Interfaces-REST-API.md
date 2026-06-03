@@ -518,6 +518,100 @@ Rules:
 }
 ```
 
+### `GET /chemistry/latest`
+
+Purpose:
+- return the latest known chemistry reading for the active pool
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "7b22a40f-f3e0-4ac6-8d6d-f3cb4b4d4f7d",
+    "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
+    "ph": 7.5,
+    "free_chlorine": 5.8,
+    "total_alkalinity": 90,
+    "calcium_hardness": 260,
+    "cyanuric_acid": 70,
+    "salt_level": 3100,
+    "rainfall_inches": 0.25,
+    "source": "manual",
+    "recorded_at": "2026-03-26T19:30:00Z",
+    "created_at": "2026-03-26T19:30:03Z"
+  },
+  "error": null
+}
+```
+
+### `GET /chemistry/history`
+
+Purpose:
+- return chemistry-reading history for charting and recent-entry review
+
+Query parameters:
+- `start`
+- `end`
+- `interval`
+
+Rules:
+- the first slice supports `raw` and `1d`
+- `raw` returns individual persisted readings in ascending time order
+- `1d` returns daily average series for each supported chemistry metric
+- the first slice includes:
+  - `ph`
+  - `free_chlorine`
+  - `total_alkalinity`
+  - `calcium_hardness`
+  - `cyanuric_acid`
+  - `salt_level`
+  - `rainfall_inches`
+- sparse values remain `null`; the API must not invent omitted measurements
+
+Response:
+
+```json
+{
+  "data": {
+    "start": "2026-03-01T00:00:00Z",
+    "end": "2026-03-31T23:59:59Z",
+    "interval": "raw",
+    "readings": [
+      {
+        "id": "7b22a40f-f3e0-4ac6-8d6d-f3cb4b4d4f7d",
+        "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
+        "ph": 7.5,
+        "free_chlorine": 5.8,
+        "total_alkalinity": 90,
+        "calcium_hardness": 260,
+        "cyanuric_acid": 70,
+        "salt_level": 3100,
+        "rainfall_inches": 0.25,
+        "source": "manual",
+        "recorded_at": "2026-03-26T19:30:00Z",
+        "created_at": "2026-03-26T19:30:03Z"
+      }
+    ],
+    "series": [
+      {
+        "metric": "ph",
+        "points": [
+          { "recorded_at": "2026-03-26T19:30:00Z", "value": 7.5 }
+        ]
+      },
+      {
+        "metric": "free_chlorine",
+        "points": [
+          { "recorded_at": "2026-03-26T19:30:00Z", "value": 5.8 }
+        ]
+      }
+    ]
+  },
+  "error": null
+}
+```
+
 ### `POST /chemistry`
 
 Request:
@@ -536,17 +630,28 @@ Request:
 }
 ```
 
+Rules:
+- manual entry is the only writable browser source in the first slice
+- partial chemistry entries are allowed
+- `recorded_at` defaults to API receive time when omitted
+- if both `ph` and `free_chlorine` are omitted, the API accepts the entry but returns a non-blocking warning
+- the API must reject requests when every chemistry field and `rainfall_inches` are absent
+- after persistence succeeds, the API emits a `chemistry.reading` event
+
 Response:
 
 ```json
 {
   "data": {
-    "id": "7b22a40f-f3e0-4ac6-8d6d-f3cb4b4d4f7d",
-    "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
-    "ph": 7.5,
-    "free_chlorine": 5.8,
-    "source": "manual",
-    "recorded_at": "2026-03-26T19:30:00Z"
+    "reading": {
+      "id": "7b22a40f-f3e0-4ac6-8d6d-f3cb4b4d4f7d",
+      "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
+      "ph": 7.5,
+      "free_chlorine": 5.8,
+      "source": "manual",
+      "recorded_at": "2026-03-26T19:30:00Z"
+    },
+    "warnings": []
   },
   "error": null
 }

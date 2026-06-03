@@ -277,6 +277,22 @@ For the first browser milestone, `splash-api` should:
     - keeping the configuration boundary separate from future recommendation
       or swimmability engines so those engines read settings rather than own
       them
+26. expose manual chemistry-reading persistence and trend reads by:
+    - storing manual chemistry readings durably in SQLite in a dedicated
+      `chemistry_readings` table
+    - exposing `GET /chemistry/latest`, `GET /chemistry/history`, and
+      `POST /chemistry` for the active pool
+    - preserving sparse values instead of coercing omitted measurements to zero
+    - accepting partial manual readings while warning when both `ph` and
+      `free_chlorine` are omitted
+    - rejecting write requests when every chemistry field and
+      `rainfall_inches` are absent
+    - emitting a normalized `chemistry.reading` event after persistence
+      succeeds
+    - supporting first-slice history intervals of `raw` and `1d` with
+      aggregation performed inside `splash-api`
+    - keeping chemistry-reading history separate from chemistry-bounds settings
+      so future recommendation and swimmability engines read both as inputs
 
 ## Platform health aggregation
 
