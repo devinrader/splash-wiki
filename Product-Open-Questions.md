@@ -18,14 +18,12 @@
 - QUESTION: Are zero-based payload bytes `16` and `17` EasyTouch firmware major and minor version indicators?
 - QUESTION: Are zero-based payload bytes `18` and `19` air temperature and solar temperature in Fahrenheit?
 - QUESTION: Is zero-based payload byte `22` the EasyTouch pool and spa heat-setting field with low two bits for pool and next two bits for spa?
-- QUESTION: Should controller type be auto-detected from bus framing, or remain an explicit configuration choice in v1?
 - QUESTION: What is the exact production path and timeline for Hayward support?
 - QUESTION: What is the exact production path and timeline for Jandy support?
 
 ## API and schema completeness
 
 - QUESTION: Where are the appendix-level request and response schemas that the source references for API details?
-- QUESTION: What are the exact DDL definitions for `pool_circuits` and `pool_settings` if those tables are part of the intended canonical schema?
 - TODO: Add exact payload examples for REST, SSE, and NATS once the appendix material or implementation source is reviewed.
 
 ## Product behavior
