@@ -28,17 +28,8 @@ Splash is intended to make proactive pool management practical for non-experts b
 
 ### Initial implementation target
 
-The initial implementation of Splash is a narrow end-to-end vertical slice:
-
-- read and display current air temperature
-- read and display current water temperature
-- read and display current salt level
-- read and display current pump RPM
-- change pump-circuit RPM from the browser
-
-This first slice exists to validate the minimum useful closed loop from live
-RS-485 traffic through protocol decode, persistence, API delivery, browser
-presentation, command encode, serial write, and command-result tracking.
+See [Initial Milestone](Initial-Milestone.md) for the full description of the
+end-to-end vertical slice.
 
 Longer-term platform direction:
 
@@ -72,10 +63,8 @@ Longer-term platform direction:
 
 ## Business and product posture
 
-- Business model: free to use in v1
-- Primary deployment model: self-hosted, local-first
-- Core trust model: suggest-and-approve automation in v1, not full autonomy
-- Primary delivery surfaces: responsive web app, MagicMirror module, and developer tooling via Protocol Explorer
+See [Product Posture](Product-Posture.md) for the canonical product and
+deployment stance.
 
 ## User experience direction
 
@@ -131,17 +120,13 @@ Within that milestone shell:
 
 ### V1 definition of done
 
-- Initial implementation milestone completed:
-  - browser UI shows current air temp, water temp, salt level, and pump RPM
-- browser UI can change pump-circuit RPM
-  - the end-to-end read and write path is proven on real equipment
-- Working RS-485 connection that can read status from and send commands to at
-  least one connected pool-equipment target
-- Chemistry logging plus historical trend charts in the web UI
+See [Initial Milestone](Initial-Milestone.md) for the full definition of the
+end-to-end vertical slice.
 
 ### Build phases
 
-1. Initial implementation slice: Raspberry Pi hosts, RS-485 communication, protocol decode, minimal API and frontend, persistence or logging for live temperatures, salt, and pump RPM, plus browser pump-circuit RPM control
+1. Initial implementation slice: see
+   [Initial Milestone](Initial-Milestone.md)
 2. Core platform expansion: chemistry screen, equipment screen, dashboard, notification delivery, and broader normalized equipment coverage
 3. Remaining v1 features: maintenance reminders, seasonal checklists, task list, predictive rules, cover tracking, SLAM workflow, Protocol Explorer, and rainfall tracking
 4. Future roadmap: scheduling-mode selection between controller-native and Splash-native scheduling, machine-readable equipment-parameter definitions and UI surfacing of equipment limits, controller clock sync from Splash system time, dosing recommendations, usage-based maintenance, autonomous automation, predictive fault detection, energy optimization, dark mode, and virtual or mock pool simulation for hardware-free testing and demos

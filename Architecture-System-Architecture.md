@@ -50,6 +50,10 @@ TODO: The original document says the living architecture diagram also exists in 
 
 ## Service boundaries
 
+Terminology such as [service](Product-Glossary#service) and
+[host](Product-Glossary#host) is defined in
+[Product Glossary](Product-Glossary.md).
+
 | Service | Host | Responsibility |
 | --- | --- | --- |
 | `splash-api` | `splash-core` | REST API, SSE broker, envelope responses, repository access, notification worker, first-slice weather forecast cache and telemetry read model. Preferred language: TypeScript/Node.js |
@@ -64,16 +68,8 @@ TODO: The original document says the living architecture diagram also exists in 
 
 ## Technology stack
 
-- Frontend: React, TypeScript, Vite
-- Charts: Recharts or Chart.js
-- `splash-api`: TypeScript/Node.js
-- `splash-scheduler`: TypeScript/Node.js
-- `splash-protocol`: TypeScript/Node.js
-- `splash-serial`: Go
-- Datastores: SQLite and InfluxDB
-- Event backbone: NATS with JetStream
-- Metrics: Prometheus
-- Future predictive layer: Python in a later phase
+See [Technology Stack](Technology-Stack.md) for the detailed technology
+choices.
 
 ## Deployment artifact strategy
 
@@ -155,7 +151,7 @@ interface ProtocolDecoder {
 
 Current decoder states:
 
-- `pentair_easytouch`: implemented and default
+- `pentair_easytouch`: implemented
 - `jandy_aqualink_rs`: stubbed, pending fuller reverse engineering
 - `hayward_omnilogic_local`: implied future path, not yet implemented in the source
 

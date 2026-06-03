@@ -4,16 +4,14 @@
 
 ## Product and deployment decisions
 
-- Splash is local-first and self-hosted rather than SaaS-first.
-- v1 is free to use and does not include a monetization feature set.
-- v1 remote access is deferred; LAN-only operation is the default trust boundary.
-- v2 remote access uses Cloudflare Tunnel and Cloudflare Access instead of building native auth first.
+See [Product Posture](Product-Posture.md) for the canonical product and
+deployment stance.
 
 ## Architecture decisions
 
+- See [Technology Stack](Technology-Stack.md) for the detailed technology
+  choices.
 - Use a mixed backend stack chosen by service responsibility.
-- Use TypeScript/Node.js for `splash-api`, `splash-scheduler`, and `splash-protocol`.
-- Use Go for `splash-serial`.
 - Use a polyglot monorepo rather than requiring all backend services to share one language toolchain.
 - Prefer package-based artifacts for deployable services, even when the final runtime is containerized.
 - Run most application services on `splash-core` as Ansible-managed
@@ -22,8 +20,6 @@
 - Keep `splash-serial` as a native `systemd`-managed service on `splash-zero`, installed from an OS package rather than by copying an ad hoc binary.
 - `splash-serial` is a transport-edge service, not the owner of protocol decode and encode.
 - `splash-protocol` is the protocol boundary for all vendor-specific framing, checksum, decode, and encode behavior.
-- Use NATS as the backbone between services.
-- Use JetStream only where message loss would create missed actions.
 - Use SSE, not polling, for the primary live frontend update path.
 
 ## Data decisions

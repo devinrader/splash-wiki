@@ -6,28 +6,8 @@
 
 ### Initial implementation milestone
 
-The first end-to-end implementation of Splash should prove one complete read and
-write equipment-control slice before the broader v1 surface is considered in
-scope.
-
-Initial milestone goals:
-
-- show current air temperature in the browser
-- show current water temperature in the browser
-- show current salt level in the browser
-- show current pump RPM in the browser
-- allow the operator to change pump-circuit RPM from the browser
-- persist or log enough state and command history to verify the read and write
-  path end to end
-
-This milestone is intentionally narrower than the full v1 requirements table
-below. It is the first implementation target that validates:
-
-- RS-485 read transport
-- protocol decode and normalized event publication
-- API and frontend state presentation
-- command encode, serial write, and command-result tracking
-- historical logging of the surfaced values and control actions
+See [Initial Milestone](Initial-Milestone.md) for the full description of the
+end-to-end vertical slice.
 
 | Area | v1 requirements |
 | --- | --- |
