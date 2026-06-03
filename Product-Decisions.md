@@ -56,7 +56,11 @@
 ## Integration decisions
 
 - `ProtocolDecoder` is loaded by `splash-protocol`, not by `splash-serial`.
-- `splash-protocol` should discover locally available protocol plugins from the packaged plugin set or plugin directory, while pool configuration selects one active plugin and supplies pool-specific plugin config.
+- There is no hard-coded default decoder. `splash-protocol` discovers
+  installed protocol plug-ins from the packaged plug-in set or plug-in
+  directory, and pool configuration determines which one is active. The first
+  implementation may ship with a Pentair plug-in, but it is not selected
+  unless configured.
 - a pool selecting a plugin that is not locally available is an unrecoverable deployment or configuration error and should be treated as fatal.
 - `WeatherProvider` is the abstraction boundary for external weather APIs.
 - The first weather-forecast provider implementation should be Open-Meteo behind
@@ -106,11 +110,16 @@
 - Secrets live in Ansible Vault, not in committed `.env` files.
 - Docker log rotation is required because Splash targets embedded hosts with limited storage.
 - Prometheus is included for metrics; Grafana is recommended but not required in the base v1 topology.
+- High-frequency telemetry published on Core NATS is lossy by design; services
+  should use JetStream for durable events and handle possible message loss.
 
 ## Tradeoffs
 
 - LAN trust in v1 reduces implementation scope but leaves local access unauthenticated.
-- Using Core NATS for high-frequency telemetry accepts message loss during reconnect windows in exchange for simpler, lighter operation.
+- Using Core NATS for high-frequency telemetry accepts message loss during
+  reconnect windows in exchange for simpler, lighter operation; durable
+  workflows should rely on JetStream-backed events instead of assuming all
+  telemetry is durable.
 - Separating transport (`splash-serial`) from protocol (`splash-protocol`) improves cohesion and testability, but increases distributed-service complexity and NATS contract surface area.
 - Using TypeScript for most backend services improves development speed and alignment with the frontend, but introduces a mixed-runtime operational model.
 - Keeping Go only at the transport edge optimizes the most hardware-sensitive service without forcing the full backend into a lower-level language.

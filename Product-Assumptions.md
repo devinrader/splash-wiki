@@ -24,7 +24,10 @@
 - ASSUMPTION: `splash-zero` should avoid Docker due to memory overhead.
 - ASSUMPTION: mDNS hostnames such as `splash-core.local` and `splash-zero.local` are available on the LAN.
 - ASSUMPTION: Accurate time synchronization is available through `systemd-timesyncd`.
-- ASSUMPTION: The Pentair protocol is the initial production protocol and is the default decoder.
+- ASSUMPTION: Splash assumes no protocol plug-ins by default. On startup,
+  `splash-protocol` discovers all installed plug-ins, such as Pentair, Jandy,
+  or Hayward, and pool configuration selects one. If no plug-in is installed,
+  startup should fail with a clear error.
 - ASSUMPTION: `splash-core` can comfortably host Node.js-based application services in containers.
 - ASSUMPTION: The strongest runtime constraint applies to `splash-serial`, not to the rest of the backend.
 

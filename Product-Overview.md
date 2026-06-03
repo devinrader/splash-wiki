@@ -42,16 +42,13 @@ presentation, command encode, serial write, and command-result tracking.
 
 Longer-term platform direction:
 
-- Splash should become the primary scheduling authority for pool equipment
-- the operator should not need to rely on EasyTouch scheduling for normal
-  operation once Splash scheduling is implemented
+- In v1, the controller remains the source of truth for scheduling. Splash
+  reads and surfaces controller schedules but does not override them by
+  default. Operators can choose between controller-native and Splash-native
+  scheduling modes; long-term direction is to make Splash-native scheduling the
+  preferred mode in future releases. See
+  [Requirements](Product-Requirements#equipment).
 - pump-speed scheduling is the most important early scheduling replacement goal
-- Splash should also support an explicit scheduling mode choice so the operator
-  can choose either:
-  - controller-native scheduling, where Splash programs or cooperates with the
-    controller's built-in schedules
-  - Splash-native scheduling, where Splash becomes the scheduling authority and
-    the controller schedule can remain minimal or unused
 - Splash should define machine-readable equipment-parameter data so the product
   can understand and explain model-specific limits such as circuit inventory,
   valid assigned names, supported functions, and other hardware constraints

@@ -60,15 +60,20 @@ below. It is the first implementation target that validates:
 - The first browser control surface must expose pump RPM readout and
   controller-managed pump-circuit RPM control before broader equipment-control
   coverage is considered complete
-- Splash should ultimately own normal pool-equipment scheduling so the operator
-  does not need to rely on EasyTouch scheduling for day-to-day pump-speed and
-  related equipment schedule changes
+- v1 must support both controller-native and Splash-native scheduling modes.
+  Users can choose their preferred mode. Controller-native remains the default
+  in v1.
 - Splash should support a user-selectable scheduling strategy so the operator
   can choose either controller-native schedule management or Splash-native
   schedule management depending on equipment capability and preference
 - when controller-native scheduling is selected, Splash should provide a way to
   view, manage, or coordinate with controller schedules rather than assuming
   Splash is always the only scheduling authority
+- when Splash-native scheduling is selected, Splash may become the preferred
+  scheduling surface for supported workflows, but v1 should not assume that
+  controller-native scheduling is absent or disabled
+- Commands must wait for an explicit confirmation (`command.result`) and
+  should not assume a value has changed until it is validated.
 - Log maintenance history and surface upcoming service dates
 - Resolve each controllable equipment instance to zero or one capability profile in v1
 - Validate UI controls and normalized commands against effective per-equipment capabilities rather than equipment type alone
@@ -161,6 +166,11 @@ below. It is the first implementation target that validates:
 - Degrade gracefully when weather data, InfluxDB, or SSE becomes stale
 - Keep the app usable for read and manual-entry workflows during partial outages
 - Reject stale transport write requests after serial reconnect rather than risking writes on a replaced port session
+
+Services using Core NATS for high-frequency telemetry can accept loss of those
+messages. All services must assume that NATS and RS-485 links can drop
+messages. Command workflows should time-box execution and validate
+configuration changes via command-result tracking before updating state.
 
 ### Performance and platform constraints
 
