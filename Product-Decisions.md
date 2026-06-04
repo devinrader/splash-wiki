@@ -37,6 +37,8 @@ deployment stance.
 - The first swimmability slice should treat chemistry as the primary safety
   signal and use chemistry age, rainfall since the last test, cover state, UV,
   hot weather, and warmer water as confidence or comfort modifiers.
+  See [Product-Swimmability-Scoring](Product-Swimmability-Scoring.md) for the
+  current first-slice algorithm summary.
 - Add `pool_id` to schemas now even though v1 supports only one pool.
 - Store approved automation command payloads directly on tasks to avoid rebuilding commands later.
 - Do not persist all raw transport or protocol-frame traffic by default; treat it as ephemeral observability data unless an explicit archival feature is added.
