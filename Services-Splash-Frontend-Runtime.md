@@ -435,6 +435,18 @@ Cross-origin local development rule:
   - `pH`
   - `Free Chlorine`
   - `Total Chlorine`
+- the first richer-context chemistry-history slice should also load
+  `GET /pool/cover/history` for the same active History time range
+- the first cover-overlay slice should render read-only vertical event markers
+  on the chemistry charts for:
+  - `Cover On`
+  - `Cover Off`
+- the first cover-overlay slice should:
+  - include compact marker labels derived from `cover_type`
+  - include a small legend explaining cover-on and cover-off markers
+  - remain read-only and not duplicate cover logging from `Home`
+- defer temperature-tab cover overlays, interval shading, and richer combined
+  chemistry-plus-weather-plus-cover annotations to later `#117` work
 - the frontend should lazy-load History tab datasets on first activation rather
   than fetching all History families on initial page mount
 - once a History tab dataset has been loaded successfully, the frontend may
