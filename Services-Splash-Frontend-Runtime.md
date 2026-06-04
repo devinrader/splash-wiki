@@ -235,8 +235,33 @@ Cross-origin local development rule:
   has a chance to populate without a manual button press
 - show the latest known air temperature, water temperature, heater state,
   salt level, controller system time, and pump RPM
-- on the `Home` destination, show concise weather forecast data when
+- on the `Home` destination, show a `Weather Impact` summary card when
   `splash-api` exposes a normalized site forecast
+- replace the current Home `Weather Forecast` and `Weather Detail` cards with a
+  single `Weather Impact` card
+- keep the Home weather slice focused on operator-facing pool-impact context
+  rather than a generic long-form forecast table
+- the first `Weather Impact` card should show:
+  - one larger `today` tile with:
+    - current or primary daytime weather symbol
+    - today temperature headline
+    - short sky-condition label
+    - short pool-impact label such as chlorine-demand guidance
+  - three compact upcoming-day tiles with:
+    - day label
+    - high / low range
+    - weather symbol
+    - short impact or UV-intensity label
+- the card may derive its first-slice pool-impact labels heuristically from
+  existing normalized weather forecast data
+- the first-slice impact language should remain simple and explainable, for
+  example:
+  - `Low chlorine demand`
+  - `Elevated chlorine demand`
+  - `Rain may dilute chemistry`
+  - `Stable conditions`
+- keep provider and stale metadata secondary:
+  - show it in subdued supporting text on the card rather than as a primary row
 - on the `Home` destination, keep the first slice focused on operator-facing
   summary cards rather than duplicating the richer telemetry and history views
   already owned by the `History` destination
