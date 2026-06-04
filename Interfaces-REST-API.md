@@ -59,6 +59,7 @@
 | `/notifications/read-all` | `POST` | Mark all read |
 | `/pool/cover` | `GET`, `POST` | Current cover state and update |
 | `/pool/cover/history` | `GET` | Cover event history |
+| `/swimmability` | `GET` | Current swimmability assessment for the active pool |
 | `/slam` | `GET` | SLAM sessions |
 | `/slam/start` | `POST` | Start SLAM |
 | `/slam/:id/criterion` | `POST` | Mark a SLAM criterion |
@@ -729,6 +730,75 @@ Rules:
 - return newest-first events
 - default limit: `100`
 - the first slice does not aggregate cover history
+
+### `GET /swimmability`
+
+Purpose:
+- return a first normalized swimmability assessment for the active pool
+
+Response:
+
+```json
+{
+  "data": {
+    "status": "good",
+    "score": 82,
+    "summary": "Water is currently suitable for swimming.",
+    "updated_at": "2026-06-04T19:20:00Z",
+    "drivers": [
+      {
+        "key": "free_chlorine",
+        "severity": "good",
+        "message": "Free chlorine is within the configured target range."
+      },
+      {
+        "key": "chemistry_recency",
+        "severity": "caution",
+        "message": "Chemistry confidence is aging because the pool is uncovered and UV is elevated."
+      },
+      {
+        "key": "water_temperature",
+        "severity": "good",
+        "message": "Pool water is within the preferred swim range."
+      }
+    ],
+    "inputs": {
+      "chemistry_latest_at": "2026-06-04T18:45:00Z",
+      "cover_latest_at": "2026-06-04T17:30:00Z",
+      "forecast_fetched_at": "2026-06-04T19:00:00Z",
+      "telemetry_latest_at": "2026-06-04T19:18:00Z"
+    }
+  },
+  "error": null
+}
+```
+
+Rules:
+- first-slice `status` values:
+  - `good`
+  - `caution`
+  - `poor`
+  - `unknown`
+- first slice is read-only
+- first slice should not block on all inputs being present
+- when required inputs are missing, return `status = unknown` with explanatory
+  drivers
+- the first slice should evaluate:
+  - latest manual chemistry reading
+  - configured chemistry bounds
+  - latest pool-cover state
+  - latest weather forecast snapshot
+  - latest water-temperature telemetry when available
+- chemistry-reading age should be a confidence input
+- chemistry confidence should degrade faster when:
+  - the latest cover state is `off`
+  - forecast or current UV is elevated
+  - forecast or current air temperature is high
+  - water temperature is elevated when telemetry is available
+- chemistry confidence should degrade more slowly when the latest cover state
+  is `on`
+- rainfall since the last chemistry reading should degrade confidence further
+  because rain can disturb chemistry after the last test
 
 ### `GET /settings`
 

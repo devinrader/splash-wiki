@@ -32,6 +32,11 @@ deployment stance.
 - Manual chemistry logging should exclude telemetry-derived salt and
   weather-derived rainfall; those remain tracked through chlorinator telemetry
   and weather history rather than user-entered chemistry rows.
+- The first swimmability slice should be a read-only, explainable guidance
+  signal rather than an automation engine or opaque score.
+- The first swimmability slice should treat chemistry as the primary safety
+  signal and use chemistry age, rainfall since the last test, cover state, UV,
+  hot weather, and warmer water as confidence or comfort modifiers.
 - Add `pool_id` to schemas now even though v1 supports only one pool.
 - Store approved automation command payloads directly on tasks to avoid rebuilding commands later.
 - Do not persist all raw transport or protocol-frame traffic by default; treat it as ephemeral observability data unless an explicit archival feature is added.

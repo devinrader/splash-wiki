@@ -311,6 +311,38 @@ For the first browser milestone, `splash-api` should:
       succeeds
     - keeping cover-event history in SQLite even though later chart overlays
       may project those events into History surfaces
+28. expose a first read-only swimmability assessment by:
+    - exposing `GET /swimmability` for the active pool
+    - computing the assessment inside `splash-api` as a read model rather than
+      storing a durable swimmability table in the first slice
+    - reading existing inputs from:
+      - latest chemistry reading
+      - pool-chemistry bounds
+      - current cover state
+      - latest normalized weather forecast snapshot
+      - latest normalized water-temperature telemetry when available
+    - returning:
+      - overall `status`
+      - bounded integer `score` from `0` to `100`
+      - short summary
+      - driver list
+      - timestamps describing source freshness
+    - using documented do-not-swim chemistry conditions as the first hard
+      driver for `poor`
+    - degrading otherwise healthy chemistry to `caution` or `unknown` when
+      chemistry confidence is weakened by stale tests or post-test rainfall
+    - treating cover and forecast as context drivers rather than absolute
+      blockers in the first slice
+    - treating water temperature as a comfort driver rather than a safety
+      blocker in the first slice
+    - evaluating chemistry-recency confidence as a context-aware heuristic:
+      - start from elapsed time since the latest chemistry reading
+      - accelerate degradation for uncovered pools, higher UV, hotter air, and
+        warmer water
+      - slow degradation for covered pools
+      - further degrade confidence when meaningful rainfall has occurred since
+        the last chemistry reading
+    - keeping the first scoring model intentionally simple and explainable
 
 ## Platform health aggregation
 

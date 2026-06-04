@@ -261,6 +261,29 @@ Cross-origin local development rule:
     `GET /pool/cover/history`
   - keeps cover-event overlays out of the first slice; those belong to later
     `History` page work
+- on the `Home` destination, add a read-only `Swimmability` card that:
+  - loads `GET /swimmability`
+  - shows:
+    - overall status
+    - numeric score
+    - short summary
+    - top driver messages
+    - last updated timestamp
+  - uses first-slice visual states of:
+    - `Good`
+    - `Caution`
+    - `Poor`
+    - `Unknown`
+  - surfaces an explicit unknown state when the API cannot make a confident
+    assessment
+  - remains read-only in the first slice
+  - keeps detailed chemistry entry on `Water Test Log`
+  - keeps chart context on `History`
+  - treats chemistry as the primary safety signal
+  - treats chemistry age and rainfall since the last test as confidence
+    modifiers
+  - treats cover, UV, hot weather, and warmer water as modifiers that can make
+    chemistry confidence age faster when the pool is uncovered
 - on the `Settings` destination, render a `Pool Chemistry` section that:
   - loads the configured chemistry bounds set from `GET /api/settings/pool-chemistry`
   - lets the operator edit supported built-in chemistry keys
