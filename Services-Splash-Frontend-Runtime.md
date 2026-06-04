@@ -247,19 +247,23 @@ Cross-origin local development rule:
   - surfaces validation and save status using the same page-level patterns as
     the weather-location settings section
 - expose a real `Water Test Log` destination at `/water-test-log` that:
-  - loads the latest reading from `GET /chemistry/latest`
   - loads chemistry history from `GET /chemistry/history`
   - lets the operator submit manual readings through `POST /chemistry`
-  - accepts first-slice inputs for `pH`, `Free Chlorine`,
-    `Total Alkalinity`, `Calcium Hardness`, `Cyanuric Acid`,
-    `Salt`, `Rainfall`, and `Recorded At`
+  - accepts first-slice manual-entry inputs for `pH`, `Free Chlorine`,
+    `Total Chlorine`, `Total Alkalinity`, `Calcium Hardness`, and
+    `Cyanuric Acid`
+  - does not expose editable `Recorded At` in the first slice; the API
+    assigns save time as the reading timestamp
+  - does not expose manual `Salt` or `Rainfall` inputs because those are
+    tracked from chlorinator telemetry and weather history
   - disables submit while a save is pending
-  - refreshes latest and history data after save success
+  - refreshes chemistry history data after save success
   - shows a non-blocking warning when both `pH` and `Free Chlorine` are
     omitted from a saved reading
-  - shows a latest-reading summary card when data exists
-  - shows first-slice trend charts for `pH`, `Free Chlorine`, and `Salt`
-  - shows a recent-readings table with sparse values rendered as `—`
+  - surfaces load and save errors inline inside the existing page status area
+    rather than through separate error summary cards
+  - focuses on manual chemistry entry and prior-log review
+  - shows a prior-log table with sparse values rendered as `—`
   - supports time-range presets of `Last 7 days`, `Last 30 days`, and
     `Last 90 days`
   - keeps first-slice chemistry logging separate from later SLAM, cover, or
@@ -398,17 +402,24 @@ Cross-origin local development rule:
   - `Temperature`
   - `Pump`
   - `Weather`
+  - `Chemistry`
 - the default `History` tab should be `Temperature`
 - the `Temperature` tab should render the first temperature-history slice
 - the `Pump` tab should render the first pump-history slice
 - the `Weather` tab should render the first weather-history slice
+- the `Chemistry` tab should render the first chemistry-history slice sourced
+  from `GET /chemistry/history`
+- the first `Chemistry` tab should chart:
+  - `pH`
+  - `Free Chlorine`
+  - `Total Chlorine`
 - the frontend should lazy-load History tab datasets on first activation rather
   than fetching all History families on initial page mount
 - once a History tab dataset has been loaded successfully, the frontend may
   retain it in in-memory page state for fast tab switching during the active
   session
 - the History page should expose a time-range selector that applies to
-  Temperature, Pump, and Weather tabs
+  Temperature, Pump, Weather, and Chemistry tabs
 - the first selector slice should support:
   - `Last hour` with `5m` history interval
   - `Last 6 hours` with `15m` history interval

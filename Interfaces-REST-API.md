@@ -26,7 +26,7 @@
 | `/equipment/:id/control` | `POST` | Equipment control command |
 | `/chemistry/latest` | `GET` | Latest chemistry reading |
 | `/chemistry/history` | `GET` | Chemistry history |
-| `/chemistry` | `POST` | Manual chemistry reading, optionally with `rainfall_inches` |
+| `/chemistry` | `POST` | Manual chemistry reading |
 | `/rainfall` | `POST` | Standalone rainfall event |
 | `/rainfall/history` | `GET` | Rainfall history |
 | `/tasks` | `GET` | Filterable task list |
@@ -532,11 +532,10 @@ Response:
     "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
     "ph": 7.5,
     "free_chlorine": 5.8,
+    "total_chlorine": 6.1,
     "total_alkalinity": 90,
     "calcium_hardness": 260,
     "cyanuric_acid": 70,
-    "salt_level": 3100,
-    "rainfall_inches": 0.25,
     "source": "manual",
     "recorded_at": "2026-03-26T19:30:00Z",
     "created_at": "2026-03-26T19:30:03Z"
@@ -562,12 +561,12 @@ Rules:
 - the first slice includes:
   - `ph`
   - `free_chlorine`
+  - `total_chlorine`
   - `total_alkalinity`
   - `calcium_hardness`
   - `cyanuric_acid`
-  - `salt_level`
-  - `rainfall_inches`
 - sparse values remain `null`; the API must not invent omitted measurements
+- tracked rainfall and salt remain separate platform data sources and are not part of manual chemistry-log payloads
 
 Response:
 
@@ -583,13 +582,12 @@ Response:
         "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
         "ph": 7.5,
         "free_chlorine": 5.8,
+        "total_chlorine": 6.1,
         "total_alkalinity": 90,
         "calcium_hardness": 260,
         "cyanuric_acid": 70,
-        "salt_level": 3100,
-        "rainfall_inches": 0.25,
         "source": "manual",
-        "recorded_at": "2026-03-26T19:30:00Z",
+        "recorded_at": "2026-03-26T19:30:03Z",
         "created_at": "2026-03-26T19:30:03Z"
       }
     ],
@@ -620,22 +618,20 @@ Request:
 {
   "ph": 7.5,
   "free_chlorine": 5.8,
+  "total_chlorine": 6.1,
   "total_alkalinity": 90,
   "calcium_hardness": 260,
   "cyanuric_acid": 70,
-  "salt_level": 3100,
-  "rainfall_inches": 0.25,
-  "source": "manual",
-  "recorded_at": "2026-03-26T19:30:00Z"
+  "source": "manual"
 }
 ```
 
 Rules:
 - manual entry is the only writable browser source in the first slice
 - partial chemistry entries are allowed
-- `recorded_at` defaults to API receive time when omitted
+- `recorded_at` is assigned by the API at save time and is not client-editable in the first slice
 - if both `ph` and `free_chlorine` are omitted, the API accepts the entry but returns a non-blocking warning
-- the API must reject requests when every chemistry field and `rainfall_inches` are absent
+- the API must reject requests when every manual chemistry field is absent
 - after persistence succeeds, the API emits a `chemistry.reading` event
 
 Response:
@@ -648,8 +644,9 @@ Response:
       "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
       "ph": 7.5,
       "free_chlorine": 5.8,
+      "total_chlorine": 6.1,
       "source": "manual",
-      "recorded_at": "2026-03-26T19:30:00Z"
+      "recorded_at": "2026-03-26T19:30:03Z"
     },
     "warnings": []
   },

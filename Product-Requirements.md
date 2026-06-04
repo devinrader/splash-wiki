@@ -26,9 +26,10 @@ end-to-end vertical slice.
 
 ### Chemistry
 
-- Track pH, free chlorine, total alkalinity, calcium hardness, cyanuric acid, salt, and rainfall
+- Track manual chemistry values for pH, free chlorine, total chlorine, total alkalinity, calcium hardness, and cyanuric acid
 - Allow partial chemistry entries
 - Warn when both pH and free chlorine are omitted from a manual reading
+- Track salt from chlorinator or controller telemetry and rainfall from weather history rather than manual chemistry entry
 - Show ideal ranges, alerts, SLAM shading, cover events, and rainfall markers on trend charts
 - Use CYA-adjusted free chlorine minimums instead of relying on a single FC target
 

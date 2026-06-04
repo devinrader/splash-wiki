@@ -285,8 +285,7 @@ For the first browser milestone, `splash-api` should:
     - preserving sparse values instead of coercing omitted measurements to zero
     - accepting partial manual readings while warning when both `ph` and
       `free_chlorine` are omitted
-    - rejecting write requests when every chemistry field and
-      `rainfall_inches` are absent
+    - rejecting write requests when every manual chemistry field is absent
     - emitting a normalized `chemistry.reading` event after persistence
       succeeds
     - supporting first-slice history intervals of `raw` and `1d` with
