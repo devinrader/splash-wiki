@@ -292,6 +292,25 @@ For the first browser milestone, `splash-api` should:
       aggregation performed inside `splash-api`
     - keeping chemistry-reading history separate from chemistry-bounds settings
       so future recommendation and swimmability engines read both as inputs
+27. expose manual pool-cover event persistence and current-state reads by:
+    - storing manual cover events durably in SQLite in a dedicated
+      `pool_cover_events` table
+    - exposing `GET /pool/cover`, `POST /pool/cover`, and
+      `GET /pool/cover/history` for the active pool
+    - treating cover state as an append-only event log rather than a separate
+      mutable current-state row
+    - deriving current cover state from the newest persisted cover event
+    - accepting first-slice manual `state` values of `on` and `off`
+    - accepting first-slice `cover_type` values of `unknown`, `solar`,
+      `winter`, `safety`, and `automatic`
+    - requiring `cover_type` when recording `state = on`
+    - assigning `recorded_at` at API save time in the first slice
+    - returning newest-first cover-event history with optional start/end
+      filtering and limit control
+    - emitting a normalized `pool.cover.event` event after persistence
+      succeeds
+    - keeping cover-event history in SQLite even though later chart overlays
+      may project those events into History surfaces
 
 ## Platform health aggregation
 

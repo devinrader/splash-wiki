@@ -239,6 +239,28 @@ Cross-origin local development rule:
   widget when `splash-api` exposes persisted latest/history temperature data
 - on the `Home` destination, show concise weather forecast data when
   `splash-api` exposes a normalized site forecast
+- on the `Home` destination, add a `Pool Cover` card that:
+  - loads current cover state from `GET /pool/cover`
+  - shows current state, cover type, and last updated timestamp when a cover
+    event exists
+  - shows an explicit empty state when no cover event has been recorded
+  - allows the operator to record:
+    - `Cover On`
+    - `Cover Off`
+  - requires cover-type selection before submitting `Cover On`
+  - uses first-slice cover-type choices of:
+    - `Solar`
+    - `Winter`
+    - `Safety`
+    - `Automatic`
+    - `Unknown`
+  - disables actions while a save is pending
+  - refreshes current state and recent history after save success
+  - surfaces load and save errors inline on the card
+  - may show a compact recent-events list on the same card using
+    `GET /pool/cover/history`
+  - keeps cover-event overlays out of the first slice; those belong to later
+    `History` page work
 - on the `Settings` destination, render a `Pool Chemistry` section that:
   - loads the configured chemistry bounds set from `GET /api/settings/pool-chemistry`
   - lets the operator edit supported built-in chemistry keys

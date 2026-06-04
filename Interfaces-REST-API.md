@@ -654,6 +654,82 @@ Response:
 }
 ```
 
+### `GET /pool/cover`
+
+Purpose:
+- return the current known cover state for the active pool
+
+Response:
+
+```json
+{
+  "data": {
+    "current": {
+      "id": "2a26b4b9-6f6f-4b95-8dc6-8459f2a7c44d",
+      "pool_id": "0d0d6c6e-7c38-4c0c-9e6d-d4c6c3f4d0f1",
+      "state": "on",
+      "cover_type": "solar",
+      "source": "manual",
+      "recorded_at": "2026-06-04T18:30:00Z",
+      "created_at": "2026-06-04T18:30:03Z"
+    }
+  },
+  "error": null
+}
+```
+
+Rules:
+- when no cover event has ever been recorded, return `"current": null`
+- the first slice supports `state` values:
+  - `on`
+  - `off`
+- the first slice supports `cover_type` values:
+  - `unknown`
+  - `solar`
+  - `winter`
+  - `safety`
+  - `automatic`
+
+### `POST /pool/cover`
+
+Purpose:
+- record a new manual cover event and make it the current cover state
+
+Request:
+
+```json
+{
+  "state": "on",
+  "cover_type": "solar"
+}
+```
+
+Rules:
+- the first slice is manual-entry only
+- the API assigns `recorded_at` at save time
+- `cover_type` is required when `state = "on"`
+- `cover_type` may be omitted when `state = "off"` and should be stored as
+  `unknown`
+- after persistence succeeds, the API emits a `pool.cover.event` event
+
+Response:
+- return the saved event in the standard envelope
+
+### `GET /pool/cover/history`
+
+Purpose:
+- return prior cover events for operator review and later chart overlays
+
+Query parameters:
+- `start`
+- `end`
+- `limit`
+
+Rules:
+- return newest-first events
+- default limit: `100`
+- the first slice does not aggregate cover history
+
 ### `GET /settings`
 
 ```json

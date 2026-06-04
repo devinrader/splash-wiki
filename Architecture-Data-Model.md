@@ -28,7 +28,7 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 | `checklist_steps` | Checklist steps | `definition_id`, `title`, `notes`, `sort_order` |
 | `checklist_completions` | Checklist runs | `definition_id`, `started_at`, `completed_at` |
 | `chemistry_readings` | User and sensor chemistry log | `pool_id`, `ph`, `free_chlorine`, `total_chlorine`, `total_alkalinity`, `calcium_hardness`, `cyanuric_acid`, `source`, `recorded_at`, `created_at` |
-| `pool_cover_events` | Cover state history | `state`, `cover_type`, `recorded_at` |
+| `pool_cover_events` | Cover state history | `pool_id`, `state`, `cover_type`, `source`, `recorded_at`, `created_at` |
 | `slam_sessions` | SLAM workflow state | `status`, `cya_at_start`, `slam_fc_target`, `criterion_cc`, `criterion_clear`, `criterion_oclt`, `oclt_fc_before`, `oclt_fc_after` |
 | `tasks` | Actionable work items | `status`, `priority`, `source`, `automation_command`, `due_at`, `snooze_until` |
 | `notifications` | Notification inbox | `type`, `title`, `body`, `read`, `related_entity_type`, `related_entity_id` |
