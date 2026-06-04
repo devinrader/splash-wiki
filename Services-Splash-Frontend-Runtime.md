@@ -235,10 +235,11 @@ Cross-origin local development rule:
   has a chance to populate without a manual button press
 - show the latest known air temperature, water temperature, heater state,
   salt level, controller system time, and pump RPM
-- on the `Home` destination, show a basic EasyTouch temperature telemetry
-  widget when `splash-api` exposes persisted latest/history temperature data
 - on the `Home` destination, show concise weather forecast data when
   `splash-api` exposes a normalized site forecast
+- on the `Home` destination, keep the first slice focused on operator-facing
+  summary cards rather than duplicating the richer telemetry and history views
+  already owned by the `History` destination
 - on the `Home` destination, add a `Pool Cover` card that:
   - loads current cover state from `GET /pool/cover`
   - shows current state, cover type, and last updated timestamp when a cover
@@ -278,7 +279,7 @@ Cross-origin local development rule:
     assessment
   - remains read-only in the first slice
   - keeps detailed chemistry entry on `Water Test Log`
-  - keeps chart context on `History`
+  - keeps telemetry and chart context on `History`
   - treats chemistry as the primary safety signal
   - treats chemistry age and rainfall since the last test as confidence
     modifiers
@@ -313,14 +314,6 @@ Cross-origin local development rule:
     `Last 90 days`
   - keeps first-slice chemistry logging separate from later SLAM, cover, or
     swimmability overlays
-- the first Home telemetry widget should display latest `air`, `pool_water`,
-  `spa_water` when available, `solar` when available, and the last updated
-  timestamp
-- the first Home telemetry widget may include a small historical chart for
-  `air` and `pool_water` when history data is available through the API
-- when no EasyTouch temperature history has been captured yet, the widget
-  should show the explicit empty state: `No EasyTouch temperature history has
-  been captured yet.`
 - when no weather forecast has been fetched yet, the weather widget should show
   an explicit empty state rather than inventing weather values
 - when the cached weather forecast is stale, the widget should continue showing
