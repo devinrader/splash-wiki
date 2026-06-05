@@ -48,6 +48,15 @@ The first slice returns:
   - bounded integer from `0` to `100`
 - `summary`
   - short human-readable interpretation
+- `headline`
+  - short operator-facing status text for the Home card
+- `confidence`
+  - `high`, `medium`, `low`, or `unknown` depending on how trustworthy the
+    chemistry context still is
+- `last_chemistry_age_label`
+  - human-readable chemistry recency text such as `3 days ago`
+- `highlights`
+  - a small curated set of operator-facing badges for the Home card
 - `drivers`
   - explainable contributing reasons
 

@@ -325,6 +325,10 @@ For the first browser milestone, `splash-api` should:
       - overall `status`
       - bounded integer `score` from `0` to `100`
       - short summary
+      - short operator-facing `headline`
+      - assessment `confidence`
+      - human-readable `last_chemistry_age_label`
+      - curated `highlights`
       - driver list
       - timestamps describing source freshness
     - using documented do-not-swim chemistry conditions as the first hard
@@ -343,6 +347,8 @@ For the first browser milestone, `splash-api` should:
       - further degrade confidence when meaningful rainfall has occurred since
         the last chemistry reading
     - keeping the first scoring model intentionally simple and explainable
+    - deriving Home-card presentation fields from the same underlying drivers
+      rather than creating a second independent scoring model
 
 ## Platform health aggregation
 

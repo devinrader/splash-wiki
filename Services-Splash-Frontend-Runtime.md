@@ -290,11 +290,13 @@ Cross-origin local development rule:
 - on the `Home` destination, add a read-only `Swimmability` card that:
   - loads `GET /swimmability`
   - shows:
+    - a score-ring style score treatment
     - overall status
-    - numeric score
+    - short operator-facing headline
     - short summary
-    - top driver messages
-    - last updated timestamp
+    - `Last Chemistry`
+    - `Confidence`
+    - curated highlight badges
   - uses first-slice visual states of:
     - `Good`
     - `Caution`
@@ -302,6 +304,10 @@ Cross-origin local development rule:
     - `Unknown`
   - surfaces an explicit unknown state when the API cannot make a confident
     assessment
+  - keeps raw driver details out of the primary card body when curated
+    highlights are available
+  - omits a `View details` link until a real swimmability detail destination is
+    defined
   - remains read-only in the first slice
   - keeps detailed chemistry entry on `Water Test Log`
   - keeps telemetry and chart context on `History`

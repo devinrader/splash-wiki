@@ -744,6 +744,23 @@ Response:
     "status": "good",
     "score": 82,
     "summary": "Water is currently suitable for swimming.",
+    "headline": "Safe for Swimming",
+    "confidence": "high",
+    "last_chemistry_age_label": "3 days ago",
+    "highlights": [
+      {
+        "tone": "positive",
+        "label": "Chemistry in range"
+      },
+      {
+        "tone": "positive",
+        "label": "Recent test available"
+      },
+      {
+        "tone": "positive",
+        "label": "No active swim advisories"
+      }
+    ],
     "updated_at": "2026-06-04T19:20:00Z",
     "drivers": [
       {
@@ -782,6 +799,17 @@ Rules:
 - first slice is read-only
 - first slice should not block on all inputs being present
 - when required inputs are missing, return `status = unknown` with explanatory
+  drivers
+- first-slice `confidence` values:
+  - `high`
+  - `medium`
+  - `low`
+  - `unknown`
+- `headline` should be a short operator-facing interpretation derived from
+  `status`
+- `last_chemistry_age_label` should be a human-readable label derived from the
+  latest chemistry timestamp and may be `null` when no chemistry reading exists
+- `highlights` should be a curated summary list rather than a raw dump of all
   drivers
 - the first slice should evaluate:
   - latest manual chemistry reading
