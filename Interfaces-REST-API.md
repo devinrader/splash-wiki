@@ -828,6 +828,80 @@ Rules:
 - rainfall since the last chemistry reading should degrade confidence further
   because rain can disturb chemistry after the last test
 
+### `GET /notifications`
+
+Purpose:
+- return the current pool notification inbox
+
+Query parameters:
+- `status`
+  - `unread`
+  - `all`
+- `limit`
+- `type`
+
+Example response:
+
+```json
+{
+  "data": {
+    "status": "unread",
+    "limit": 50,
+    "notifications": [
+      {
+        "id": "notification-1",
+        "pool_id": "pool-1",
+        "type": "chemistry_test_due",
+        "severity": "warning",
+        "title": "Chemistry test is due",
+        "body": "The latest chemistry reading is older than the configured testing interval.",
+        "read": false,
+        "source": "system",
+        "related_entity_type": "chemistry_reading",
+        "related_entity_id": null,
+        "created_at": "2026-06-04T21:00:00Z",
+        "read_at": null
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+First-slice `type` values:
+- `chemistry_test_due`
+- `swimmability_caution`
+- `swimmability_poor`
+- `rain_since_test`
+
+First-slice `severity` values:
+- `info`
+- `warning`
+- `critical`
+
+Rules:
+- return newest-first notifications
+- default to `status=unread` when omitted
+- first slice should not invent notifications when required source data is missing
+
+### `POST /notifications/:id/read`
+
+Purpose:
+- mark one notification as read
+
+Rules:
+- idempotent
+- returns the updated notification record
+
+### `POST /notifications/read-all`
+
+Purpose:
+- mark all unread notifications as read for the active pool
+
+Rules:
+- first slice affects only the active pool inbox
+- returns the number of updated notifications
+
 ### `GET /settings`
 
 ```json

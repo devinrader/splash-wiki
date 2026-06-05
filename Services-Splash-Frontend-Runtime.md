@@ -345,6 +345,26 @@ Cross-origin local development rule:
     `Last 90 days`
   - keeps first-slice chemistry logging separate from later SLAM, cover, or
     swimmability overlays
+- on the `Alerts` destination, replace the placeholder with a real notification inbox that:
+  - loads `GET /notifications`
+  - defaults to unread notifications
+  - renders a chronological inbox list with:
+    - severity label
+    - title
+    - body
+    - created time
+    - read/unread state
+  - allows:
+    - mark one notification as read
+    - mark all notifications as read
+  - supports first-slice filtering by:
+    - unread vs all
+    - notification type
+  - shows explicit empty states for:
+    - no unread alerts
+    - no alerts at all
+  - surfaces load and save errors inline on the page
+  - remains notification-only in the first slice and does not yet expose full task workflow controls
 - when no weather forecast has been fetched yet, the weather widget should show
   an explicit empty state rather than inventing weather values
 - when the cached weather forecast is stale, the widget should continue showing

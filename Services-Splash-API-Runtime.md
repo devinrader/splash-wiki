@@ -349,6 +349,39 @@ For the first browser milestone, `splash-api` should:
     - keeping the first scoring model intentionally simple and explainable
     - deriving Home-card presentation fields from the same underlying drivers
       rather than creating a second independent scoring model
+29. expose a first notification inbox by:
+    - persisting notifications durably in SQLite in a dedicated
+      `notifications` table
+    - exposing:
+      - `GET /notifications`
+      - `POST /notifications/:id/read`
+      - `POST /notifications/read-all`
+    - allowing first-slice inbox filters for:
+      - unread vs all
+      - notification type
+      - result limit
+    - generating first-slice notifications from existing read models rather
+      than introducing a background rules engine
+    - deriving notifications from:
+      - latest chemistry reading
+      - configured `chemistry_prompt_interval_days`
+      - current swimmability assessment
+      - rainfall since the latest chemistry reading
+    - generating first-slice notification types:
+      - `chemistry_test_due`
+      - `swimmability_caution`
+      - `swimmability_poor`
+      - `rain_since_test`
+    - assigning first-slice severities:
+      - `info`
+      - `warning`
+      - `critical`
+    - deduplicating active notifications by type and related-entity context so
+      repeated reads do not create endless duplicate rows
+    - treating the first slice as notification-only:
+      - no automatic task creation yet
+      - no snooze flow yet
+      - no scheduler-owned background notification worker yet
 
 ## Platform health aggregation
 
