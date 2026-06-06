@@ -27,11 +27,13 @@ Splash determines swimmability by combining:
 - latest weather forecast
 - latest water-temperature telemetry when available
 - rainfall since the last chemistry reading
+- per-value chemistry freshness status from the water-testing schedule
 
 The first slice treats:
 
 - chemistry as the primary safety signal
 - chemistry age and post-test rainfall as confidence modifiers
+- schedule-driven value freshness as a confidence modifier
 - cover, UV, hot weather, and warmer water as confidence or comfort modifiers
 - water temperature as a comfort signal rather than a hard safety block
 
@@ -112,7 +114,38 @@ When both total chlorine and free chlorine are present:
 
 - `combined chlorine = total chlorine - free chlorine`
 
-If combined chlorine is above `0.5 ppm`, Splash adds a caution driver.
+Combined chlorine is derived. It is not a separate first-slice manually
+configured chemistry setting.
+
+If derived combined chlorine is above `0.5 ppm`, Splash adds a caution driver.
+
+### 6. Check configured chemistry freshness
+
+Splash also consumes per-value freshness status from the configured water
+testing schedule.
+
+Freshness states are:
+
+- `current`
+- `stale`
+- `unavailable`
+- `disabled`
+
+Freshness affects confidence, not the raw chemistry measurement itself.
+
+First-slice guidance:
+
+- stale or unavailable `free_chlorine` degrades confidence strongly
+- stale or unavailable `ph` degrades confidence strongly
+- stale or unavailable `total_alkalinity`, `calcium_hardness`,
+  `cyanuric_acid`, `salt`, and `combined_chlorine` degrade confidence more
+  lightly
+- unavailable `water_temperature` should degrade comfort/context confidence
+  without acting as a hard swim-safety blocker
+
+When `combined_chlorine` cannot be derived from a same-record pair of
+`total_chlorine` and `free_chlorine`, Splash should treat it as unavailable if
+its testing-schedule item is enabled.
 
 ## Chemistry recency and confidence
 

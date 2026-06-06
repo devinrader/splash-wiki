@@ -319,10 +319,75 @@ Cross-origin local development rule:
 - on the `Settings` destination, render a `Pool Chemistry` section that:
   - loads the configured chemistry bounds set from `GET /api/settings/pool-chemistry`
   - lets the operator edit supported built-in chemistry keys
+  - treats `Total Chlorine` as the configured chlorine-total setting and does
+    not expose `Combined Chlorine` as a separately editable first-slice row
   - preserves units, enabled flags, and min/target/max inputs
+  - renders a per-row `Source` control with first-slice options of:
+    - `Manual`
+    - hardware choices from that row's `available_sources`
+  - treats `Manual` as operator-entered values through manual workflows
+  - treats a hardware selection as the primary source for that chemistry key
+  - shows the selected hardware source label in the row when a hardware source
+    is chosen
+  - exposes the first obvious built-in hardware options:
+    - `salt` from chlorinator telemetry
+    - `water temperature` from controller telemetry
+  - allows `chemistry_prompt_interval_days` to be edited in the same section
   - saves changes through `PUT /api/settings/pool-chemistry`
   - surfaces validation and save status using the same page-level patterns as
     the weather-location settings section
+  - keeps source selection in the same table rather than moving it to a
+    separate screen
+- on the `Settings` destination, render a `Geocoding` section that:
+  - loads `GET /api/settings/geocoding`
+  - shows all registered geocoding providers
+  - shows for each provider:
+    - display name
+    - description
+    - available / unavailable state
+    - unavailable reason when not available
+    - provider-defined editable config fields
+  - allows the operator to select exactly one available active provider
+  - disables unavailable providers
+  - shows a warning when no active geocoding provider is configured
+  - saves the active provider through `PUT /api/settings/geocoding`
+  - saves provider-specific config through
+    `PUT /api/settings/geocoding/provider/:providerId`
+  - renders provider config inputs from API metadata rather than hard-coding
+    Geoapify/OpenStreetMap-specific form layouts
+  - masks secret fields and never shows full stored secret values
+  - allows unavailable providers to remain editable so the operator can fix
+    missing configuration
+  - uses the same settings-page validation and save-status patterns as the
+    other settings sections
+- on the `Settings` destination, render a `Water Testing Schedule` section
+  that:
+  - loads `GET /api/settings/water-testing-schedule`
+  - renders each tracked value with:
+    - display name
+    - enabled toggle
+    - expected interval number
+    - expected interval unit
+    - current freshness status
+    - last observed timestamp when available
+  - allows the operator to:
+    - save the full schedule
+    - reset the schedule to defaults
+  - explains that the schedule controls freshness alerts and swimmability
+    confidence rather than changing the raw chemistry values
+  - renders `Combined Chlorine` as a derived tracked freshness value, not as a
+    primary manually configured chemistry row in the Pool Chemistry settings
+    table
+- in the `Weather Location` section:
+  - when a physical street address is saved, the UI should expect Splash to
+    geocode it immediately through the active provider
+  - when save succeeds, show:
+    - resolved coordinates
+    - formatted address when available
+    - geocoding provider used
+    - last geocoded timestamp
+  - when no geocoding provider is configured, show the API validation error
+    inline on the same section
 - expose a real `Water Test Log` destination at `/water-test-log` that:
   - loads chemistry history from `GET /chemistry/history`
   - lets the operator submit manual readings through `POST /chemistry`
@@ -345,6 +410,8 @@ Cross-origin local development rule:
     `Last 90 days`
   - keeps first-slice chemistry logging separate from later SLAM, cover, or
     swimmability overlays
+  - does not yet dynamically hide manual-entry fields based on chemistry source
+    selection in the first slice
 - on the `Alerts` destination, replace the placeholder with a real notification inbox that:
   - loads `GET /notifications`
   - defaults to unread notifications
@@ -365,6 +432,8 @@ Cross-origin local development rule:
     - no alerts at all
   - surfaces load and save errors inline on the page
   - remains notification-only in the first slice and does not yet expose full task workflow controls
+  - renders schedule-driven chemistry freshness alerts using the same inbox
+    list patterns as other notification types
 - when no weather forecast has been fetched yet, the weather widget should show
   an explicit empty state rather than inventing weather values
 - when the cached weather forecast is stale, the widget should continue showing

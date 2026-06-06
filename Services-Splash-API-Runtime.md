@@ -268,9 +268,26 @@ For the first browser milestone, `splash-api` should:
       than InfluxDB
     - seeding one built-in default chemistry-bounds profile for a saltwater
       residential pool without overwriting later customizations
+    - treating `total_chlorine` as the first-slice configured chlorine-total
+      value rather than storing an independently configured combined-chlorine
+      setting
+    - deriving combined chlorine as `total_chlorine - free_chlorine` when both
+      readings are available
     - exposing read and update routes for pool-chemistry settings on the
       `Settings` page
     - validating supported chemistry keys and numeric min/target/max ordering
+    - persisting per-chemistry source-selection metadata together with those
+      bounds inside the existing serialized chemistry-settings structure
+    - supporting first-slice `source_mode` values of:
+      - `manual`
+      - `hardware`
+    - supporting first-slice hardware bindings for obvious built-in sources:
+      - `salt` from chlorinator telemetry
+      - `water_temperature` from controller telemetry
+    - returning per-setting `available_sources` lists derived from known
+      controller and chlorinator capabilities already exposed inside Splash
+    - validating that any saved `hardware` binding is compatible with the
+      chemistry key it is assigned to
     - providing one recommendation-facing helper that returns normalized
       chemistry bounds with safe fallback defaults when SQLite is
       unavailable
@@ -382,6 +399,61 @@ For the first browser milestone, `splash-api` should:
       - no automatic task creation yet
       - no snooze flow yet
       - no scheduler-owned background notification worker yet
+30. expose a configurable water-testing schedule by:
+    - persisting a pool-scoped `water_testing_schedule` configuration in SQLite
+      backed settings
+    - seeding defaults when no schedule has been saved yet
+    - exposing:
+      - `GET /api/settings/water-testing-schedule`
+      - `PUT /api/settings/water-testing-schedule`
+      - `PUT /api/settings/water-testing-schedule/:chemicalKey`
+      - `POST /api/settings/water-testing-schedule/reset`
+    - validating:
+      - known chemistry key only
+      - positive interval values only
+      - supported interval units only
+    - tracking first-slice schedule items:
+      - `free_chlorine`
+      - `ph`
+      - `total_alkalinity`
+      - `combined_chlorine`
+      - `calcium_hardness`
+      - `cyanuric_acid`
+      - `salt`
+      - `water_temperature`
+31. evaluate chemistry freshness through a reusable backend service by:
+    - centralizing freshness logic in a reusable service boundary such as
+      `ChemistryFreshnessService`
+    - returning per-value freshness states of:
+      - `current`
+      - `stale`
+      - `unavailable`
+      - `disabled`
+    - using chemistry history for manually logged values
+    - treating `combined_chlorine` as a derived freshness item only when
+      `total_chlorine` and `free_chlorine` exist on the same chemistry record
+    - treating `combined_chlorine` as unavailable when it cannot be derived
+      and its schedule item is enabled
+    - preferring telemetry for `water_temperature`
+    - treating `water_temperature` as unavailable when no recent telemetry
+      exists inside the configured threshold
+    - evaluating freshness on:
+      - chemistry log save
+      - testing-schedule save
+      - application startup
+      - alert read-model evaluation
+32. extend alerts and swimmability with freshness by:
+    - generating alerts when enabled tracked values become stale or unavailable
+    - avoiding duplicate active alerts for the same chemistry key and
+      freshness state
+    - clearing or resolving freshness alerts automatically when a value
+      becomes current again
+    - exposing freshness state to swimmability so:
+      - stale or unavailable `free_chlorine` and `ph` degrade confidence
+        strongly
+      - stale or unavailable secondary values degrade confidence more lightly
+    - treating schedule-driven freshness as a confidence input rather than a
+      mutation of the raw chemistry values themselves
 
 ## Platform health aggregation
 
@@ -541,14 +613,11 @@ First-slice ownership:
 Provider abstraction:
 - `WeatherForecastProvider`
 - `getForecast(location): Promise<NormalizedWeatherForecast>`
-- `geocodeAddress(address): Promise<GeoLocation>`
 
 Open-Meteo rules:
 - default provider id: `openmeteo`
 - base forecast URL default:
   `https://api.open-meteo.com/v1/forecast`
-- base geocoding URL default:
-  `https://geocoding-api.open-meteo.com/v1/search`
 - first slice should request `forecast_days=10`
 - request hourly variables:
   - `temperature_2m`
@@ -577,7 +646,6 @@ Configuration:
 - `WEATHER_REFRESH_MINUTES=15,45`
 - `WEATHER_REFRESH_INTERVAL_HOURS=6`
 - `OPEN_METEO_BASE_URL=https://api.open-meteo.com/v1`
-- `OPEN_METEO_GEOCODING_URL=https://geocoding-api.open-meteo.com/v1`
 - future customer API keys or paid endpoints belong in provider-specific
   configuration rather than the provider-agnostic contract
 
@@ -590,8 +658,6 @@ Refresh and stale rules:
   `WEATHER_REFRESH_INTERVAL_HOURS`
 - if `WEATHER_REFRESH_MINUTES` is unset, refresh at most once every configured
   `WEATHER_REFRESH_INTERVAL_HOURS`
-- geocode once and reuse cached coordinates until the pool address changes or a
-  manual coordinate override is saved
 - on provider error, continue serving the last known valid forecast with
   `stale: true`
 - manual refresh should not clear a valid cached forecast when the provider
@@ -609,7 +675,8 @@ Transition note for `#109`:
 Preferred ownership:
 - durable weather-location settings should live behind `splash-api`
 - SQLite should store operator-managed location mode, address fields,
-  coordinate overrides, timezone hints, and later geocoded results
+  coordinate overrides, timezone hints, resolved formatted address, active
+  geocoding provider selection, and later geocoded results
 - InfluxDB must not store weather-location settings because those values are not
   time-series telemetry
 
@@ -618,12 +685,89 @@ Read and write model:
   pool-scoped weather-location settings
 - `PUT /api/settings/weather-location` should validate and upsert the active
   pool-scoped weather-location settings
+- `GET /api/settings/geocoding` should return:
+  - registered geocoding providers
+  - availability for each provider
+  - unavailability reason when applicable
+  - the active geocoding provider id
+- providers should also return provider-defined configuration field metadata,
+  including secret/non-secret behavior and configured-state markers
+- `PUT /api/settings/geocoding` should update the active geocoding provider id
+- `PUT /api/settings/geocoding/provider/:providerId` should update the
+  persisted configuration for one provider and recalculate its availability
 - `getActiveWeatherCoordinates()` should:
   - return manual coordinates immediately when coordinate mode is active
   - return stored geocoded coordinates when address mode is active and a prior
     geocode result exists
   - return a clear `requires_geocoding` state when address mode is active and
     no resolved coordinates have been stored yet
+
+Geocoding provider boundary:
+- `GeocodingProvider`
+- `geocode(address): Promise<GeocodingResult>`
+- each provider should expose:
+  - `id`
+  - `display_name`
+  - `description`
+  - `configuration_requirements`
+  - `config_fields`
+  - `available`
+  - `unavailable_reason`
+- first implemented providers:
+  - `geoapify`
+  - `openstreetmap`
+
+Provider-defined config field metadata:
+- each field should expose:
+  - `key`
+  - `label`
+  - `description`
+  - `type`
+  - `required`
+  - `secret`
+  - `placeholder`
+  - `default_value` when appropriate and non-secret
+- providers should validate config using their own field definitions rather than
+  route-specific hard-coded rules
+
+Provider startup rules:
+- `splash-api` should discover and register all implemented geocoding providers
+  at startup
+- provider availability should be derived from persisted provider settings with
+  optional environment defaults used only for bootstrap
+- startup logs should report which providers are registered and whether each is
+  available
+- unavailable providers must not fail application startup by themselves
+- if no providers are available, Splash should still start and should return a
+  clear configuration error on attempted address geocoding
+- startup logs must not include secrets such as API keys
+
+Save-time geocoding rules:
+- when saving weather-location settings, Splash should detect whether the
+  submitted value appears to be a physical street address
+- when the saved value is a physical street address:
+  - use the active geocoding provider immediately
+  - persist:
+    - the original operator-entered location fields
+    - resolved latitude
+    - resolved longitude
+    - formatted address
+    - provider id used
+    - geocoded timestamp
+- when geocoding fails:
+  - do not persist invalid coordinates
+  - return a validation error
+- city-only names, ZIP-only inputs, and direct coordinates should continue to
+  work without forcing address geocoding in the first slice
+
+Address detection rules:
+- the first slice should detect a physical street address when the location
+  resembles:
+  - street number plus street name
+  - city/state/postal street-form submission
+  - multiline street-address input
+- address detection should live in a testable helper and should not be embedded
+  ad hoc in route handlers
 
 Validation rules:
 - `coordinates` mode requires valid latitude and longitude
@@ -635,15 +779,25 @@ Validation rules:
   - `country`
 - invalid payloads should return `400` with field-specific error details
 
+Persisted geocoding provider config rules:
+- provider configuration should be stored durably in SQLite-backed settings
+- persisted settings are the primary runtime source of truth for provider
+  config
+- environment variables may still seed defaults when no persisted value exists
+- secret values must never be returned in full through the API
+- when a client submits an empty secret field during provider-config save,
+  Splash should preserve the existing stored secret in the first slice
+
 Future compatibility rules:
-- later address geocoding should write:
+- address geocoding should write:
   - `weather_geocoded_latitude`
   - `weather_geocoded_longitude`
+  - `weather_geocoded_formatted_address`
   - `weather_location_timezone` when a provider returns or confirms it
   - `weather_geocode_provider`
   - `weather_geocoded_at`
-- saving a new address should invalidate previously stored geocoded coordinates
-  until a fresh geocode run resolves the updated address
+- saving a new street address should invalidate previously stored geocoded
+  coordinates until a fresh geocode run resolves the updated address
 
 ## Initial equipment catalog bridge
 

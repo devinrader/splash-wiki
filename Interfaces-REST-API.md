@@ -873,6 +873,8 @@ First-slice `type` values:
 - `swimmability_caution`
 - `swimmability_poor`
 - `rain_since_test`
+- `chemistry_value_stale`
+- `chemistry_value_unavailable`
 
 First-slice `severity` values:
 - `info`
@@ -902,6 +904,121 @@ Rules:
 - first slice affects only the active pool inbox
 - returns the number of updated notifications
 
+### `GET /api/settings/water-testing-schedule`
+
+Purpose:
+- return the configured water-testing schedule together with current freshness
+  status for each tracked value
+
+Response per item:
+- `chemicalKey`
+- `displayName`
+- `enabled`
+- `expectedIntervalValue`
+- `expectedIntervalUnit`
+- `staleThresholdValue`
+- `staleThresholdUnit`
+- `unavailableThresholdValue`
+- `unavailableThresholdUnit`
+- `status`
+- `lastObservedAt`
+- `updatedAt`
+
+Example response:
+
+```json
+{
+  "data": {
+    "items": [
+      {
+        "chemicalKey": "free_chlorine",
+        "displayName": "Free Chlorine",
+        "enabled": true,
+        "expectedIntervalValue": 3,
+        "expectedIntervalUnit": "days",
+        "staleThresholdValue": 3,
+        "staleThresholdUnit": "days",
+        "unavailableThresholdValue": 7,
+        "unavailableThresholdUnit": "days",
+        "status": "current",
+        "lastObservedAt": "2026-06-05T14:30:00Z",
+        "updatedAt": "2026-06-05T15:00:00Z"
+      },
+      {
+        "chemicalKey": "combined_chlorine",
+        "displayName": "Combined Chlorine",
+        "enabled": true,
+        "expectedIntervalValue": 7,
+        "expectedIntervalUnit": "days",
+        "staleThresholdValue": 7,
+        "staleThresholdUnit": "days",
+        "unavailableThresholdValue": 7,
+        "unavailableThresholdUnit": "days",
+        "status": "unavailable",
+        "lastObservedAt": null,
+        "updatedAt": "2026-06-05T15:00:00Z"
+      }
+    ],
+    "source": "sqlite"
+  },
+  "error": null
+}
+```
+
+Rules:
+- the first slice tracks:
+  - `free_chlorine`
+  - `ph`
+  - `total_alkalinity`
+  - `combined_chlorine`
+  - `calcium_hardness`
+  - `cyanuric_acid`
+  - `salt`
+  - `water_temperature`
+- supported `status` values are:
+  - `current`
+  - `stale`
+  - `unavailable`
+  - `disabled`
+- `combined_chlorine` is a derived freshness item rather than a primary stored
+  chemistry field
+- `water_temperature` should prefer telemetry-derived observations
+
+### `PUT /api/settings/water-testing-schedule`
+
+Purpose:
+- update the full water-testing schedule for the active pool
+
+Validation rules:
+- known chemistry key only
+- interval values must be positive
+- units are limited to supported values such as `hours` and `days`
+- disabled items must not generate stale or unavailable alerts
+
+### `PUT /api/settings/water-testing-schedule/:chemicalKey`
+
+Purpose:
+- update a single water-testing schedule item
+
+Rules:
+- the path chemistry key must match a known tracked value
+- applies the same validation rules as the full-schedule update route
+
+### `POST /api/settings/water-testing-schedule/reset`
+
+Purpose:
+- reset the water-testing schedule to Splash defaults
+
+First-slice defaults:
+- `free_chlorine`: every `3 days`
+- `ph`: every `3 days`
+- `total_alkalinity`: every `7 days`
+- `combined_chlorine`: every `7 days`
+- `calcium_hardness`: every `30 days`
+- `cyanuric_acid`: every `30 days`
+- `salt`: every `30 days`
+- `water_temperature`: unavailable after `1 hour` without recent telemetry
+
 ### `GET /settings`
 
 ```json
@@ -916,6 +1033,7 @@ Rules:
       "push": false
     },
     "weather_provider": "openmeteo",
+    "weather_active_geocoding_provider": "geoapify",
     "weather_refresh_interval_hours": 6,
     "weather_location": {
       "location_mode": "address",
@@ -930,13 +1048,13 @@ Rules:
       "timezone": null,
       "geocoded_latitude": null,
       "geocoded_longitude": null,
+      "geocoded_formatted_address": null,
       "geocode_provider": null,
       "geocoded_at": null
     },
     "weather_config": {
       "openmeteo": {
-        "base_url": "https://api.open-meteo.com/v1",
-        "geocoding_url": "https://geocoding-api.open-meteo.com/v1"
+        "base_url": "https://api.open-meteo.com/v1"
       }
     },
     "pool_chemistry": {
@@ -989,6 +1107,7 @@ Response:
     "latitude": 35.2621,
     "longitude": -81.1873,
     "timezone": "America/New_York",
+    "formattedAddress": "5056 Stone Ridge Drive, Gastonia, NC 28056, United States",
     "geocodedLatitude": null,
     "geocodedLongitude": null,
     "geocodeProvider": null,
@@ -998,6 +1117,218 @@ Response:
   "error": null
 }
 ```
+
+### `GET /api/settings/geocoding`
+
+Response:
+
+```json
+{
+  "data": {
+    "activeProviderId": "geoapify",
+    "providers": [
+      {
+        "id": "geoapify",
+        "displayName": "Geoapify",
+        "description": "Street-address geocoding via Geoapify.",
+        "configurationRequirements": ["api_key"],
+        "configFields": [
+          {
+            "key": "api_key",
+            "label": "API Key",
+            "description": "Geoapify API key used for geocoding requests.",
+            "type": "password",
+            "required": true,
+            "secret": true,
+            "placeholder": "Enter Geoapify API key",
+            "configured": true,
+            "value": null
+          },
+          {
+            "key": "base_url",
+            "label": "Base URL",
+            "description": "Override the Geoapify geocoding API base URL when needed.",
+            "type": "url",
+            "required": true,
+            "secret": false,
+            "placeholder": "https://api.geoapify.com/v1",
+            "configured": true,
+            "value": "https://api.geoapify.com/v1"
+          }
+        ],
+        "available": true,
+        "unavailableReason": null
+      },
+      {
+        "id": "openstreetmap",
+        "displayName": "OpenStreetMap / Nominatim",
+        "description": "Street-address geocoding via Nominatim. Public endpoints are low-volume only.",
+        "configurationRequirements": ["user_agent"],
+        "configFields": [
+          {
+            "key": "base_url",
+            "label": "Base URL",
+            "description": "Override the Nominatim base URL for self-hosted or alternate deployments.",
+            "type": "url",
+            "required": true,
+            "secret": false,
+            "placeholder": "https://nominatim.openstreetmap.org",
+            "configured": true,
+            "value": "https://nominatim.openstreetmap.org"
+          },
+          {
+            "key": "user_agent",
+            "label": "User-Agent",
+            "description": "Required user-agent string for Nominatim requests.",
+            "type": "text",
+            "required": true,
+            "secret": false,
+            "placeholder": "Splash/1.0 (ops@example.test)",
+            "configured": false,
+            "value": ""
+          },
+          {
+            "key": "email",
+            "label": "Contact Email",
+            "description": "Optional contact email appended to Nominatim requests.",
+            "type": "email",
+            "required": false,
+            "secret": false,
+            "placeholder": "ops@example.test",
+            "configured": false,
+            "value": ""
+          }
+        ],
+        "available": false,
+        "unavailableReason": "user_agent is required."
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+Rules:
+
+- all implemented providers should be listed even when unavailable
+- unavailable providers must include a human-readable reason
+- when no active provider is configured, `activeProviderId` should be `null`
+- secret config fields must report `configured: true|false` but must not return
+  the underlying saved value
+- provider config metadata should be sufficient for the UI to render
+  provider-specific forms without hard-coding per-provider fields
+
+### `PUT /api/settings/geocoding`
+
+Request:
+
+```json
+{
+  "activeProviderId": "geoapify"
+}
+```
+
+Rules:
+
+- only registered and available providers may be selected
+- selecting an unknown provider must return `400`
+- selecting an unavailable provider must return `400`
+
+### `PUT /api/settings/geocoding/provider/:providerId`
+
+Request:
+
+```json
+{
+  "config": {
+    "api_key": "geoapify-live-key",
+    "base_url": "https://api.geoapify.com/v1"
+  }
+}
+```
+
+Rules:
+
+- only registered providers may be updated
+- config validation should be driven by the provider-defined `configFields`
+- required fields must be enforced
+- secret fields must accept new input but must not be echoed back in full
+- sending an empty secret field should preserve the existing stored secret
+  unless an explicit clear action is supported later
+- provider availability should be recalculated after the save
+
+### `GET /api/settings/pool-chemistry`
+
+Purpose:
+- return the active pool chemistry bounds together with source-selection
+  metadata for each chemistry key
+
+Per-setting fields:
+- `source_mode`
+- `source_binding`
+- `available_sources`
+
+Example per-setting shape:
+
+```json
+{
+  "data": {
+    "settings": [
+      {
+        "chemicalKey": "salt",
+        "displayName": "Salt",
+        "unit": "ppm",
+        "minimum": 3000,
+        "target": 3400,
+        "maximum": 4000,
+        "enabled": true,
+        "sortOrder": 70,
+        "source_mode": "hardware",
+        "source_binding": {
+          "provider_type": "chlorinator",
+          "provider_id": "chlorinator-1",
+          "measurement_key": "salt"
+        },
+        "available_sources": [
+          {
+            "provider_type": "chlorinator",
+            "provider_id": "chlorinator-1",
+            "measurement_key": "salt",
+            "label": "EasyTouch Chlorinator Salt"
+          }
+        ]
+      }
+    ],
+    "chemistry_prompt_interval_days": 3,
+    "source": "sqlite"
+  },
+  "error": null
+}
+```
+
+Rules:
+- `manual` requires no source binding
+- `hardware` requires a valid binding from the `available_sources` list for
+  that chemistry key
+- the first slice exposes `total_chlorine` as the configured chlorine-total
+  setting and does not expose `combined_chlorine` as an independently editable
+  chemistry key
+- first slice may return an empty `available_sources` array when no compatible
+  hardware source is known
+- if a saved hardware binding is no longer available, it should still be
+  returned as the saved binding and the response should mark it unavailable in
+  the per-setting metadata
+
+### `PUT /api/settings/pool-chemistry`
+
+Additional update rules:
+- `chemistry_prompt_interval_days` may be saved alongside chemistry bounds
+- per-setting `source_mode` and `source_binding` may be updated with the same
+  request
+- `combined_chlorine` is not a supported first-slice update key; Splash derives
+  combined chlorine from `total_chlorine - free_chlorine`
+- `hardware` is allowed only when the selected binding is compatible with the
+  chemistry key being updated
 
 `locationStatus` rules:
 
@@ -1032,6 +1363,25 @@ Address request:
   "country": "US"
 }
 ```
+
+Address-save rules:
+
+- when the submitted location appears to be a physical street address, Splash
+  should geocode it immediately using the active geocoding provider
+- when geocoding succeeds, the response should include:
+  - `geocodedLatitude`
+  - `geocodedLongitude`
+  - `formattedAddress`
+  - `geocodeProvider`
+  - `geocodedAt`
+- when no active geocoding provider is configured, return a validation error:
+  - `No geocoding provider is configured. Select a provider in Settings.`
+- when a street address cannot be geocoded, return a validation error:
+  - `Unable to geocode this address. Please check the address or enter latitude/longitude.`
+- when coordinates are submitted directly, Splash should not invoke a geocoding
+  provider
+- city-only names, ZIP-only inputs, and direct coordinates should continue to
+  work without forced street-address geocoding in the first slice
 
 Validation rules:
 
@@ -1081,14 +1431,14 @@ Response:
         "sortOrder": 10
       },
       {
-        "chemicalKey": "ph",
-        "displayName": "pH",
-        "unit": null,
-        "minimum": 7.2,
-        "target": 7.6,
-        "maximum": 7.8,
+        "chemicalKey": "total_chlorine",
+        "displayName": "Total Chlorine",
+        "unit": "ppm",
+        "minimum": 3,
+        "target": 5,
+        "maximum": 10,
         "enabled": true,
-        "sortOrder": 30
+        "sortOrder": 20
       }
     ],
     "source": "sqlite"
@@ -1100,6 +1450,8 @@ Response:
 Rules:
 
 - the response returns the full known chemistry-bounds set in a stable order
+- the first slice includes `total_chlorine` and does not include
+  `combined_chlorine` as an independently configured chemistry setting
 - unknown custom chemistry keys are not part of the first slice
 - if SQLite is unavailable, the route may return a safe default-backed
   payload with an explicit non-`sqlite` source indicator
@@ -1119,10 +1471,10 @@ Request:
       "enabled": true
     },
     {
-      "chemicalKey": "ph",
-      "minimum": 7.2,
-      "target": 7.6,
-      "maximum": 7.8,
+      "chemicalKey": "total_chlorine",
+      "minimum": 3,
+      "target": 5,
+      "maximum": 10,
       "enabled": true
     }
   ]
@@ -1134,6 +1486,8 @@ Validation rules:
 - `settings` must be a non-empty array
 - each item requires `chemicalKey`
 - the first slice allows only the documented built-in chemistry keys
+- `combined_chlorine` is not a supported first-slice key; combined chlorine is
+  derived from `total_chlorine - free_chlorine`
 - numeric values must be valid numbers when present
 - `minimum` must not be greater than `target`
 - `target` must not be greater than `maximum`

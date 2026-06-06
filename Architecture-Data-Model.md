@@ -33,7 +33,7 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 | `tasks` | Actionable work items | `status`, `priority`, `source`, `automation_command`, `due_at`, `snooze_until` |
 | `notifications` | Notification inbox | `pool_id`, `type`, `severity`, `title`, `body`, `read`, `source`, `related_entity_type`, `related_entity_id`, `created_at`, `read_at` |
 | `protocol_annotations` | Saved protocol-discovery notes | `pool_id`, `bundle_id`, `frame_index`, `field_name`, `byte_start`, `byte_end`, `confidence`, `label`, `notes` |
-| `pool_settings` | Pool-scoped settings and integration configuration | `pool_id`, `chemistry_prompt_interval_days`, `maintenance_reminder_lead_days`, `notification_preferences`, `weather_provider`, `weather_refresh_interval_hours`, `weather_config`, `protocol_plugin`, `protocol_config`, `sensor_provider`, `sensor_config` |
+| `pool_settings` | Pool-scoped settings and integration configuration | `pool_id`, `chemistry_prompt_interval_days`, `maintenance_reminder_lead_days`, `notification_preferences`, `weather_provider`, `weather_refresh_interval_hours`, `weather_config`, `water_testing_schedule`, `protocol_plugin`, `protocol_config`, `sensor_provider`, `sensor_config` |
 | `pool_circuits` | Circuit label and display-name mapping | `pool_id`, `circuit_key`, `display_name`, `circuit_type`, `bus_address`, `action_code`, `sort_order`, `enabled` |
 | `hardware_descriptions` | Pool-scoped configured hardware inventory and model limits | `pool_id`, `hardware_profile_id`, `equipment_id`, `configuration`, `source`, `confirmed_at` |
 
@@ -46,6 +46,11 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 - `protocol_annotations` are pool-scoped so findings can differ by installation
 - `protocol_annotations` may be attached to saved Protocol Explorer frame bundles so one controlled experiment can carry its own byte-level notes
 - `pool_settings` is one-to-one with `pools`
+- `combined chlorine` is a derived interpretation value, not a first-slice
+  primary stored chemistry setting; Splash derives it as `total_chlorine -
+  free_chlorine` when both values exist
+- `water_testing_schedule` is pool-scoped configuration and stores freshness
+  expectations for manually logged and sensor-derived water values
 - `pool_circuits` is one-to-many from `pools`
 - `hardware_descriptions` is pool-scoped and may reference one installed
   `equipment` row when the description applies to a specific controller or
@@ -221,8 +226,11 @@ CREATE TABLE pool_settings (
   weather_location_latitude NUMERIC(9,6),
   weather_location_longitude NUMERIC(9,6),
   weather_location_timezone TEXT,
+  weather_active_geocoding_provider TEXT,
+  weather_geocoding_provider_configs JSONB NOT NULL DEFAULT '{}'::jsonb,
   weather_geocoded_latitude NUMERIC(9,6),
   weather_geocoded_longitude NUMERIC(9,6),
+  weather_geocoded_formatted_address TEXT,
   weather_geocode_provider TEXT,
   weather_geocoded_at TIMESTAMPTZ,
   chemistry_bounds JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -261,15 +269,27 @@ Notes:
 - `sensor_config` stores provider-specific sensor options without forcing schema churn
 - `weather_location_mode` defines whether Splash should resolve forecasts from a
   physical address or a manual coordinate override
+- `weather_active_geocoding_provider` stores the selected provider id used for
+  address resolution
+- `weather_geocoding_provider_configs` stores persisted provider-specific
+  configuration values keyed by provider id and config field key
 - `weather_location_latitude` and `weather_location_longitude` store the
   operator-managed coordinate override values when coordinate mode is active
 - `weather_geocoded_latitude` and `weather_geocoded_longitude` reserve durable
-  storage for a later address-geocoding workflow without forcing a table split
+  storage for resolved address-geocoding results
+- `weather_geocoded_formatted_address` stores the provider-normalized best
+  formatted address when a street address is successfully resolved
 - `weather_location_timezone` stores an operator-provided or later geocoded
   timezone hint when available
-- `weather_config` remains the extension point for provider-specific metadata,
-  future API keys, customer endpoints, or later geocoding cache details that do
-  not justify first-class columns yet
+- `weather_config` remains the extension point for weather-provider-specific
+  metadata that does not justify first-class columns
+- `weather_geocoding_provider_configs` should preserve provider-defined config
+  metadata such as:
+  - `key`
+  - `type`
+  - `value`
+  - `updated_at`
+  - secret markers when the provider field is sensitive
 - `chemistry_bounds` stores pool-specific chemistry target ranges keyed by
   stable chemical identifiers such as `free_chlorine`, `ph`, `salt`, and
   `water_temperature`
@@ -278,6 +298,27 @@ Notes:
   - `unit`
   - `minimum`
   - `target`
+  - `maximum`
+  - `enabled`
+  - `source_mode`
+  - `source_binding`
+- `source_mode` values are:
+  - `manual`
+  - `hardware`
+- `source_binding` is nullable and, in the first slice, should preserve:
+  - `provider_type`
+    - `controller`
+    - `chlorinator`
+  - `provider_id`
+  - `measurement_key`
+- `manual` means the operator supplies the value through manual workflows such
+  as `Water Test Log`
+- `hardware` means Splash derives the value from an available hardware source
+  and that manual entry should not be treated as the primary source for that
+  measurement
+- first slice only needs obvious built-in hardware bindings such as:
+  - `salt` from a chlorinator
+  - `water_temperature` from the controller
   - `maximum`
   - `enabled`
   - `sort_order`
@@ -444,6 +485,8 @@ Rules:
 - when latitude/longitude already exist, provider refreshes should use them
   directly without repeated geocoding
 - `weather_provider` remains pool-scoped configuration
+- `weather_active_geocoding_provider` remains separate from `weather_provider`
+  because address resolution and forecast retrieval may use different services
 - `weather_refresh_interval_hours` should default to `6`
 - the canonical durable weather-location settings should live on
   `pool_settings` rather than a disconnected per-feature table while Splash is

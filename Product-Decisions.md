@@ -71,6 +71,28 @@ deployment stance.
 - `WeatherProvider` is the abstraction boundary for external weather APIs.
 - The first weather-forecast provider implementation should be Open-Meteo behind
   the `WeatherProvider` abstraction.
+- `GeocodingProvider` is a separate abstraction boundary from
+  `WeatherProvider`.
+- Weather forecast providers and address-geocoding providers may differ.
+- The first geocoding providers should be:
+  - `geoapify`
+  - `openstreetmap`
+- the active geocoding provider is a persisted pool-scoped setting
+- geocoding provider configuration should be persisted in Splash settings rather
+  than remaining environment-only
+- geocoding providers should describe their editable configuration fields
+  programmatically so the Settings UI can render provider-specific forms
+- environment variables may remain as bootstrap defaults for provider
+  configuration, but persisted settings are the primary runtime source of truth
+- secret provider configuration values such as API keys must never be returned
+  in full through the API
+- when no active geocoding provider has been selected yet, Splash should prefer:
+  - `geoapify` if available
+  - otherwise `openstreetmap` if available
+  - otherwise leave the active provider unset
+- Splash must not silently switch away from a previously selected geocoding
+  provider when that provider becomes unavailable; the API and UI should report
+  the problem clearly
 - `SensorProvider` is the abstraction boundary for future chemistry hardware.
 - Protocol Explorer should reuse the same decode/encode engine used in production command and frame handling.
 - `splash-protocol` owns frame reconstruction buffers and command-response correlation.
