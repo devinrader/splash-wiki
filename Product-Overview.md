@@ -76,15 +76,13 @@ deployment stance.
 
 ## Primary screens
 
-- Dashboard
+- Home
 - Chemistry
-- Equipment
-- Tasks
-- Seasonal
-- Notifications
-- Cover
-- SLAM
-- Protocol Explorer
+- System
+- History
+- Routines
+- Automation
+- Diagnostics
 - Settings
 
 ## Navigation model
@@ -92,8 +90,19 @@ deployment stance.
 The application uses a persistent left sidebar on desktop and a collapsed or
 bottom-tab navigation model on smaller screens.
 
+The target top-level navigation model is:
+
+- Home
+- Chemistry
+- System
+- History
+- Routines
+- Automation
+- Diagnostics
+- Settings
+
 For the current frontend milestone shell, the implemented sidebar destinations
-are:
+are still:
 
 - Home
 - System
@@ -105,7 +114,34 @@ are:
 - Water Test Log
 - Settings
 
-Within that milestone shell:
+Target information-architecture rules:
+
+- `Chemistry` owns:
+  - Water Test Log
+  - chemistry status and manual readings
+  - future chemical-additions workflow
+  - future SLAM workflow entry
+- `Routines` owns:
+  - alerts inbox
+  - reminders
+  - maintenance and seasonal workflows
+  - multi-step routines and guided processes
+- `History` owns:
+  - trends and overlays
+  - not manual chemistry entry
+- `Diagnostics` owns:
+  - advanced tooling
+  - event-log and low-level troubleshooting surfaces
+  - not the primary user-facing trend history experience
+
+Transitional mapping from the current milestone shell to the target model:
+
+- `Water Test Log` becomes part of `Chemistry`
+- `Alerts` becomes part of `Routines`
+- `Diagnostics` should rename `Logs & History` style tooling labels so they do
+  not compete with the primary `History` destination
+
+Within the current milestone shell:
 
 - `System` is the default operational dashboard view
 - `Diagnostics` hosts the initial advanced tooling surface, including

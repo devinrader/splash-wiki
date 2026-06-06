@@ -22,7 +22,7 @@ The initial milestone runtime is intentionally narrow:
    - `Protocol Explorer`
    - `Live Data Monitor`
    - `Device Inspector`
-   - `Logs & History`
+   - `Event Log`
    - `Network`
 9. expose the first Diagnostics `Protocol Explorer` tab that:
    - streams `GET /protocol/frames`
@@ -86,6 +86,60 @@ Cross-origin local development rule:
 - `ready` SSE events are connection-level only and do not update equipment UI
 
 ## UI expectations
+
+## Information architecture
+
+The current frontend shell and the target product information architecture are
+not identical.
+
+The target top-level destinations are:
+
+- `Home`
+- `Chemistry`
+- `System`
+- `History`
+- `Routines`
+- `Automation`
+- `Diagnostics`
+- `Settings`
+
+Transitional mapping from the current implemented shell:
+
+- `Water Test Log` remains a real route and page in the first slice, but it is
+  a Chemistry-domain workflow and should migrate under `Chemistry`
+- `Routines` remains the top-level workflow/process category
+- `Alerts` is a temporary top-level destination and should converge into
+  `Routines`
+- `Diagnostics` should use `Event Log` naming for internal tooling surfaces so
+  it does not compete with the primary user-facing `History` destination
+
+Target ownership rules:
+
+- `Home` owns operational summary, swimmability, weather impact, cover state,
+  and urgent quick actions
+- `Chemistry` owns manual chemistry entry, chemistry status, future chemical
+  additions, and future SLAM workflow entry
+- `System` owns equipment, controller actions, sensors, connectivity, and
+  operator-facing platform status
+- `History` owns trends and overlays such as chemistry, weather, cover, and
+  later treatment/event context
+- `Routines` owns alerts, reminders, maintenance workflows, seasonal
+  checklists, and multi-step guided processes
+- `Automation` owns schedules, rules, triggers, scenes, and related logs
+- `Diagnostics` owns protocol tooling, live data inspection, event-log
+  inspection, and lower-level troubleshooting
+- `Settings` owns durable configuration and preferences
+
+Specific workflow placement rules:
+
+- `Water Test Log` records what the water measured
+- future `Chemical Additions` records what the operator added to the pool and
+  belongs under `Chemistry`, not under `History` or `Settings`
+- `History` may later overlay chemical-addition events on chemistry trends, but
+  it is not the primary event-entry surface
+- `Routines` may later surface follow-up reminders related to chemistry
+  readings or chemical additions, but it does not replace the underlying
+  Chemistry workflows
 
 - render a responsive milestone-1 dashboard for desktop and mobile
 - use the uploaded Splash design-system tokens as the styling baseline for the
@@ -309,7 +363,8 @@ Cross-origin local development rule:
   - omits a `View details` link until a real swimmability detail destination is
     defined
   - remains read-only in the first slice
-  - keeps detailed chemistry entry on `Water Test Log`
+  - keeps detailed chemistry entry in the Chemistry workflow, currently
+    surfaced through `Water Test Log`
   - keeps telemetry and chart context on `History`
   - treats chemistry as the primary safety signal
   - treats chemistry age and rainfall since the last test as confidence
@@ -412,6 +467,14 @@ Cross-origin local development rule:
     swimmability overlays
   - does not yet dynamically hide manual-entry fields based on chemistry source
     selection in the first slice
+- the current `Water Test Log` destination is a transitional shell surface and
+  belongs to the broader `Chemistry` information-architecture category rather
+  than standing alone as a long-term top-level destination
+- the future `Chemistry` destination may consolidate:
+  - `Water Test Log`
+  - chemistry status
+  - chemical additions
+  - SLAM entry and related workflows
 - on the `Alerts` destination, replace the placeholder with a real notification inbox that:
   - loads `GET /notifications`
   - defaults to unread notifications
@@ -434,6 +497,8 @@ Cross-origin local development rule:
   - remains notification-only in the first slice and does not yet expose full task workflow controls
   - renders schedule-driven chemistry freshness alerts using the same inbox
     list patterns as other notification types
+- the current `Alerts` destination is a transitional shell surface and belongs
+  to the broader future `Routines` information-architecture category
 - when no weather forecast has been fetched yet, the weather widget should show
   an explicit empty state rather than inventing weather values
 - when the cached weather forecast is stale, the widget should continue showing
