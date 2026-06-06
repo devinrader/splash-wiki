@@ -27,6 +27,7 @@
 | `/chemistry/latest` | `GET` | Latest chemistry reading |
 | `/chemistry/history` | `GET` | Chemistry history |
 | `/chemistry` | `POST` | Manual chemistry reading |
+| `/chemistry/additions` | `GET`, `POST` | Chemical-addition history and manual addition entry |
 | `/rainfall` | `POST` | Standalone rainfall event |
 | `/rainfall/history` | `GET` | Rainfall history |
 | `/tasks` | `GET` | Filterable task list |
@@ -130,6 +131,126 @@ Canonical health values are:
 
 `GET /platform/status` returns the browser-facing aggregated platform health
 defined in [Service Health Architecture](Architecture-Service-Health).
+
+### `GET /chemistry/observations`
+
+Purpose:
+- return recent operator-entered pool-condition observations
+
+First-slice response fields per observation:
+- `id`
+- `pool_id`
+- `clarity`
+- `algae_presence`
+- `debris_level`
+- `bather_load_estimate`
+- `notes`
+- `source`
+- `recorded_at`
+- `created_at`
+
+First-slice qualitative values:
+- `clarity`
+  - `clear`
+  - `slightly_hazy`
+  - `cloudy`
+  - `opaque`
+- `algae_presence`
+  - `absent`
+  - `suspected`
+  - `visible`
+- `debris_level`
+  - `none`
+  - `light`
+  - `moderate`
+  - `heavy`
+- `bather_load_estimate`
+  - `none`
+  - `light`
+  - `moderate`
+  - `heavy`
+
+### `POST /chemistry/observations`
+
+Purpose:
+- persist an operator-entered pool-condition observation
+
+Rules:
+- first slice is manual-only
+- at least one observational field should be present
+- observations must remain distinct from chemistry readings and chemical
+  additions
+- first slice should treat these inputs as qualitative operator assessments,
+  not sensor-derived observations
+
+### `GET /chemistry/additions`
+
+Purpose:
+- return durable chemical-addition history for the active pool
+
+Query parameters:
+- `start`
+- `end`
+- `limit`
+
+Rules:
+- return newest-first by default
+- additions are treatment actions, not chemistry measurements
+- support time-bounded review for the Chemistry workflow and later History
+  overlays
+
+Response fields per addition event:
+- `id`
+- `pool_id`
+- `chemical_type`
+- `amount`
+- `unit`
+- `notes`
+- `source`
+- `recorded_at`
+- `created_at`
+
+### `POST /chemistry/additions`
+
+Purpose:
+- record what the operator added to the pool
+
+First-slice request fields:
+- `chemical_type`
+- `amount`
+- `unit`
+- `notes` optional
+
+First-slice supported `chemical_type` values:
+- `liquid_chlorine`
+- `cal_hypo`
+- `trichlor`
+- `dichlor`
+- `muriatic_acid`
+- `soda_ash`
+- `baking_soda`
+- `calcium_chloride`
+- `stabilizer`
+- `salt`
+- `algaecide`
+- `other`
+
+First-slice supported operator-facing `unit` values:
+- `gal`
+- `qt`
+- `oz`
+- `lb`
+- `kg`
+- `g`
+- `L`
+
+Rules:
+- `amount` must be positive
+- `chemical_type` must be known
+- `unit` must be allowed
+- the API assigns `recorded_at` and `created_at` in the first slice
+- additions must not be stored in `chemistry_readings`
+- the response returns the saved addition event in the standard envelope
 
 ### `GET /controller/schedules`
 

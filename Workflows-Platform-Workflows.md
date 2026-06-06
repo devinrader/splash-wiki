@@ -87,6 +87,7 @@ Target direction:
 
 - Run a full chemistry test.
 - Check combined chlorine.
+- Record any meaningful chemical additions made during the week.
 - Inspect or clean filter.
 - Inspect the salt cell.
 
@@ -96,6 +97,18 @@ Target direction:
 - Adjust calcium hardness.
 - Check CYA.
 - Clean and inspect the salt cell.
+
+### Treatment logging guidance
+
+Testing and treatment are related but distinct actions.
+
+Expected operator flow:
+
+1. Test the water.
+2. Decide what should be added.
+3. Add the treatment.
+4. Record what was added as a chemical-addition event.
+5. Retest later as needed.
 
 ## Seasonal Workflows
 

@@ -46,6 +46,10 @@ A non-local service that supplies data to Splash, such as a weather API.
 
 Information manually entered by the user rather than captured from live protocols or sensors.
 
+In future swimmability work this includes chemistry readings, qualitative pool
+observations, estimates such as bather load, and manually logged maintenance
+or treatment events.
+
 ### `derived state`
 
 A platform-computed interpretation based on one or more inputs, such as stale weather status, chemistry warnings, or an automation suggestion.
@@ -216,6 +220,18 @@ Saved diagnostic knowledge about partially understood protocol bytes, fields, or
 ### `Protocol Explorer`
 
 The advanced diagnostics and reverse-engineering surface for live monitoring, decode, simulation, diffing, and annotation of pool-equipment protocol traffic.
+
+### `maintenance readiness`
+
+A forward-looking assessment of how much operational risk exists if no maintenance is performed soon.
+
+Maintenance readiness is independent from current swimmability. It expresses remaining intervention margin, not whether the pool is currently safe or comfortable to swim in.
+
+Maintenance readiness should be presented primarily as a risk or urgency band. A numeric index may exist internally or as secondary detail, but it should not be the primary user-facing concept in early generations.
+
+### `show-your-work`
+
+A UX and trust principle requiring Splash to expose the strongest drivers, key assumptions, stale or missing data warnings, and confidence limits behind predictions and recommendations.
 
 ## Sensor and environmental vocabulary
 

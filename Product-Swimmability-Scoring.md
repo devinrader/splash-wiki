@@ -17,6 +17,19 @@ The current implementation is:
 Source issue:
 - `#114 Feature: Build swimmability index model and operator-facing UI`
 
+This page describes the current score only. It does not yet define the future
+prediction or maintenance-recommendation engines.
+
+For the broader future-facing architecture guidance covering current
+swimmability, predicted swimmability, maintenance recommendations, and data
+confidence, see
+[Swimmability Design Guidance](Product-Swimmability-Design-Guidance).
+
+For the deeper long-term modeling architecture covering chemistry, prediction,
+maintenance readiness, chemical additions, confidence, and historical learning,
+see
+[Pool Chemistry, Swimmability, and Prediction Modeling Specification](Product-Pool-Chemistry-Swimmability-and-Prediction-Modeling).
+
 ## High-level approach
 
 Splash determines swimmability by combining:
@@ -36,6 +49,17 @@ The first slice treats:
 - schedule-driven value freshness as a confidence modifier
 - cover, UV, hot weather, and warmer water as confidence or comfort modifiers
 - water temperature as a comfort signal rather than a hard safety block
+
+Known first-slice omissions:
+
+- chemical-addition history is not yet consumed
+- observational condition inputs such as clarity, algae, or debris are not yet
+  modeled
+- pump runtime, circulation duration, filter pressure, flow, and chlorinator
+  output are not yet score inputs
+- cover duration is not yet derived beyond latest cover state
+- per-value provenance and confidence are not yet modeled beyond schedule
+  freshness and overall swimmability confidence
 
 ## Output
 
@@ -276,6 +300,29 @@ Later versions may extend the model with:
 - seasonal adjustments
 - SLAM-aware logic
 - notification and task generation
+- chemical additions as first-class prediction inputs
+- observational pool-condition inputs
+- maintenance-activity history
+- circulation-aware interpretation from pump runtime
+- chlorinator output and filter or flow context
+- per-value source and confidence explanations
+- contradiction-aware and low-confidence handling
+- forecast-based score prediction
+- explainable maintenance recommendations
+
+Follow-up issue tracks for those expansions:
+
+- `#133`
+- `#134`
+- `#135`
+- `#136`
+- `#137`
+- `#138`
+- `#139`
+- `#140`
+- `#141`
+- `#142`
+- `#143`
 
 ## Code reference
 

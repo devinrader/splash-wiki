@@ -454,6 +454,52 @@ For the first browser milestone, `splash-api` should:
       - stale or unavailable secondary values degrade confidence more lightly
     - treating schedule-driven freshness as a confidence input rather than a
       mutation of the raw chemistry values themselves
+33. expose first observational-condition persistence by:
+    - storing operator-entered qualitative pool-condition observations durably
+      in SQLite in a dedicated observational-history store
+    - exposing:
+      - `GET /chemistry/observations`
+      - `POST /chemistry/observations`
+    - validating supported qualitative values for:
+      - water clarity
+      - algae presence
+      - debris level
+      - bather-load estimate
+    - treating these observations as manual qualitative inputs rather than
+      inferred sensor data in the first slice
+    - exposing observational history as a future input source for:
+      - current swimmability
+      - confidence analysis
+      - predicted swimmability
+      - maintenance recommendations
+      - History overlays
+
+34. expose first chemical-additions persistence by:
+    - storing operator-entered chemical-addition events durably in SQLite in a
+      dedicated `chemical_additions` table
+    - exposing:
+      - `GET /chemistry/additions`
+      - `POST /chemistry/additions`
+    - validating:
+      - known `chemical_type` values only
+      - positive `amount` values only
+      - supported operator-facing units only
+    - treating addition events as treatment history rather than chemistry
+      measurements
+    - keeping `chemical_additions` separate from `chemistry_readings` and
+      from pool-chemistry settings
+    - emitting a normalized `chemistry.addition` event after persistence
+      succeeds
+    - exposing addition history as a future input source for:
+      - predicted swimmability
+      - maintenance readiness
+      - recommendation logic
+      - History overlays
+    - keeping the first slice intentionally narrow:
+      - manual-entry only
+      - no dose normalization by pool volume yet
+      - no automatic chemistry projection after save yet
+      - no recommendation feedback loop yet
 
 ## Platform health aggregation
 

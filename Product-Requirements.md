@@ -27,11 +27,25 @@ end-to-end vertical slice.
 ### Chemistry
 
 - Track manual chemistry values for pH, free chlorine, total chlorine, total alkalinity, calcium hardness, and cyanuric acid
+- Track manual chemical-addition events separately from chemistry readings
 - Allow partial chemistry entries
 - Warn when both pH and free chlorine are omitted from a manual reading
 - Track salt from chlorinator or controller telemetry and rainfall from weather history rather than manual chemistry entry
 - Show ideal ranges, alerts, SLAM shading, cover events, and rainfall markers on trend charts
 - Use CYA-adjusted free chlorine minimums instead of relying on a single FC target
+- Future chemistry workflow coverage should include:
+  - durable chemical-addition logging so dosing actions are not inferred only
+    from later test values
+  - operator-entered qualitative condition inputs such as water clarity, algae
+    presence, debris level, and bather-load estimate
+  - a dedicated observational history so current-condition scoring can reason
+    about visible water quality separately from measured chemistry
+  - durable maintenance-activity history for brushing, vacuuming, and skimmer
+    or filter cleaning
+- Future swimmability and recommendation work should consume:
+  - per-value source and confidence metadata
+  - contradiction or low-confidence status when inputs disagree
+  - user-managed freshness policy from the water-testing schedule
 
 ### Equipment
 
@@ -69,6 +83,13 @@ end-to-end vertical slice.
 - Support controller clock synchronization so Splash can set supported
   controller clocks, such as the EasyTouch clock, to the Splash system time
   when the operator chooses to keep controller-native schedules aligned
+- Future pool-health and swimmability inputs should include:
+  - derived pump runtime or circulation duration
+  - chlorinator state and output percentage
+  - filter pressure and flow rate where supported
+  - filter-condition or filter-cleaning status when direct telemetry is not
+    available
+  - cover-duration and uncovered-exposure intervals derived from cover history
 
 ### Automation
 
@@ -80,6 +101,8 @@ end-to-end vertical slice.
 - Expose an `Automation` frontend destination with tabbed `Overview`, `Schedules`, `Rules`, `Scenes`, `Triggers`, and `Logs` pages
 - Allow the first Automation frontend slice to use seeded UI data from the approved mockups while live automation APIs are still pending
 - Keep automation approval behavior aligned with tasks and normalized command workflows until richer automation-management contracts exist
+- Future prediction and recommendation work should remain explainable and use
+  persisted input history rather than opaque heuristics alone
 
 ### Seasonal and SLAM
 

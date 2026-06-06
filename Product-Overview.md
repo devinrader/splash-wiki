@@ -52,9 +52,20 @@ Longer-term platform direction:
 - Connectivity and control for pumps, heaters, lights, and related equipment
 - Environmental integration for weather, temperature, UV, and rainfall context
 - Water chemistry logging, interpretation, and alerts
+- Future chemistry-adjacent workflow tracking for:
+  - chemical additions
+  - observational water-condition inputs
+  - maintenance-activity history
 - Equipment maintenance reminders and service history
 - Seasonal opening and closing guidance
 - Predictive task generation and suggest-and-approve automation
+- Future swimmability improvements that depend on richer inputs, including:
+  - circulation-duration context
+  - cover-duration context
+  - per-value provenance and confidence
+  - contradiction-aware alerts
+  - forecast-based prediction
+  - explainable maintenance recommendations
 
 ### Out of scope
 
@@ -166,6 +177,18 @@ end-to-end vertical slice.
 2. Core platform expansion: chemistry screen, equipment screen, dashboard, notification delivery, and broader normalized equipment coverage
 3. Remaining v1 features: maintenance reminders, seasonal checklists, task list, predictive rules, cover tracking, SLAM workflow, Protocol Explorer, and rainfall tracking
 4. Future roadmap: scheduling-mode selection between controller-native and Splash-native scheduling, machine-readable equipment-parameter definitions and UI surfacing of equipment limits, controller clock sync from Splash system time, dosing recommendations, usage-based maintenance, autonomous automation, predictive fault detection, energy optimization, dark mode, and virtual or mock pool simulation for hardware-free testing and demos
+5. Swimmability input expansion roadmap:
+   - `#133` chemical additions logging
+   - `#134` observational pool-condition inputs
+   - `#135` maintenance activity history
+   - `#136` pump runtime and circulation-duration derivation
+   - `#137` chlorinator telemetry expansion
+   - `#138` filter and flow telemetry inputs
+   - `#139` cover-duration derivation
+   - `#140` per-value provenance and confidence
+   - `#141` contradiction and low-confidence alerts
+   - `#142` forecast-based swimmability prediction
+   - `#143` explainable maintenance recommendations
 
 Developer-note:
 

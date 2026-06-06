@@ -28,6 +28,7 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 | `checklist_steps` | Checklist steps | `definition_id`, `title`, `notes`, `sort_order` |
 | `checklist_completions` | Checklist runs | `definition_id`, `started_at`, `completed_at` |
 | `chemistry_readings` | User and sensor chemistry log | `pool_id`, `ph`, `free_chlorine`, `total_chlorine`, `total_alkalinity`, `calcium_hardness`, `cyanuric_acid`, `source`, `recorded_at`, `created_at` |
+| `chemical_additions` | Durable treatment-action history | `pool_id`, `chemical_type`, `amount`, `unit`, `notes`, `source`, `recorded_at`, `created_at` |
 | `pool_cover_events` | Cover state history | `pool_id`, `state`, `cover_type`, `source`, `recorded_at`, `created_at` |
 | `slam_sessions` | SLAM workflow state | `status`, `cya_at_start`, `slam_fc_target`, `criterion_cc`, `criterion_clear`, `criterion_oclt`, `oclt_fc_before`, `oclt_fc_after` |
 | `tasks` | Actionable work items | `status`, `priority`, `source`, `automation_command`, `due_at`, `snooze_until` |
@@ -37,9 +38,64 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 | `pool_circuits` | Circuit label and display-name mapping | `pool_id`, `circuit_key`, `display_name`, `circuit_type`, `bus_address`, `action_code`, `sort_order`, `enabled` |
 | `hardware_descriptions` | Pool-scoped configured hardware inventory and model limits | `pool_id`, `hardware_profile_id`, `equipment_id`, `configuration`, `source`, `confirmed_at` |
 
+## Planned swimmability-input expansions
+
+The current implementation can compute a first current-state swimmability
+assessment from chemistry readings, cover state, weather context, water
+temperature telemetry, and schedule-driven freshness. Future prediction and
+maintenance guidance require additional durable input domains that are not yet
+first-slice relational entities.
+
+Planned expansion tracks:
+
+- `#133` chemical-addition events:
+  - chemical type
+  - amount
+  - unit
+  - source
+  - recorded time
+- `#134` observational pool-condition inputs:
+  - water clarity
+  - algae presence
+  - debris level
+  - bather-load estimate
+  - first slice should store these as operator-entered qualitative
+    assessments rather than attempting immediate sensor-based detection
+- `#135` maintenance-activity history:
+  - brushing
+  - vacuuming or robot-cleaning
+  - skimmer-basket cleaning
+  - filter cleaning
+- `#136` circulation summaries derived from pump telemetry:
+  - runtime
+  - circulation duration
+- `#137` chlorinator telemetry expansion:
+  - SWG run state
+  - SWG output percentage
+  - related fault or availability context
+- `#138` filter and flow inputs:
+  - filter pressure
+  - flow rate
+  - filter-condition status
+- `#139` cover-derived exposure summaries:
+  - covered duration
+  - uncovered duration
+  - recent UV-exposure windows
+- `#140` normalized per-value provenance and confidence:
+  - value source
+  - confidence
+  - stale, missing, unavailable, or estimated state
+  - contradiction flags where inputs disagree
+
+ASSUMPTION: These tracks may first land as pool-scoped JSON-backed settings or
+read models where that keeps the implementation smaller, but the input domains
+themselves are part of the canonical future design.
+
 ## Entity relationships
 
 - One `pool` owns all other major records
+- `chemical_additions` are treatment actions and must remain separate from
+  `chemistry_readings`, which represent measured water values
 - `equipment` optionally links into `maintenance_schedules`
 - `checklist_definitions` own `checklist_steps` and `checklist_completions`
 - `slam_sessions`, `tasks`, and `notifications` may reference related entities for UX and audit context
@@ -49,12 +105,17 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 - `combined chlorine` is a derived interpretation value, not a first-slice
   primary stored chemistry setting; Splash derives it as `total_chlorine -
   free_chlorine` when both values exist
+- `chemical_additions` should preserve what the operator added to the pool even
+  when later chemistry readings make the treatment effect no longer visible
 - `water_testing_schedule` is pool-scoped configuration and stores freshness
   expectations for manually logged and sensor-derived water values
 - `pool_circuits` is one-to-many from `pools`
 - `hardware_descriptions` is pool-scoped and may reference one installed
   `equipment` row when the description applies to a specific controller or
   equipment instance
+- future swimmability and recommendation engines should consume both durable
+  user logs and derived telemetry summaries rather than relying only on the
+  latest point-in-time values
 
 ## Equipment capability model
 

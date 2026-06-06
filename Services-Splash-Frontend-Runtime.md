@@ -467,13 +467,51 @@ Specific workflow placement rules:
     swimmability overlays
   - does not yet dynamically hide manual-entry fields based on chemistry source
     selection in the first slice
+- under the broader `Chemistry` workflow, expose a first `Water Condition`
+  section that:
+  - loads `GET /chemistry/observations`
+  - lets the operator submit one observational entry through
+    `POST /chemistry/observations`
+  - accepts first-slice manual-entry inputs for:
+    - water clarity
+    - algae presence
+    - debris level
+    - bather-load estimate
+    - optional notes
+  - keeps the observational workflow visibly separate from both
+    `Water Test Log` and `Chemical Additions`
+  - shows recent observations in a simple history list or table
+  - disables submit while a save is pending
+  - refreshes observation history after save success
+  - surfaces load and save errors inline using the same page-level patterns as
+    other chemistry workflows
+  - records what the operator observed rather than what the water measured or
+    what was added
+- under the broader `Chemistry` workflow, expose a first `Chemical Additions`
+  section that:
+  - loads `GET /chemistry/additions`
+  - lets the operator submit one addition event through
+    `POST /chemistry/additions`
+  - accepts first-slice manual-entry inputs for:
+    - chemical type
+    - amount
+    - unit
+    - optional notes
+  - keeps the additions workflow visibly separate from `Water Test Log`
+  - shows recent additions in a simple history list or table
+  - disables submit while a save is pending
+  - refreshes addition history after save success
+  - surfaces load and save errors inline using the same page-level patterns as
+    other chemistry workflows
+  - records what the operator added to the pool rather than what the water
+    measured
 - the current `Water Test Log` destination is a transitional shell surface and
   belongs to the broader `Chemistry` information-architecture category rather
   than standing alone as a long-term top-level destination
 - the future `Chemistry` destination may consolidate:
   - `Water Test Log`
+  - `Chemical Additions`
   - chemistry status
-  - chemical additions
   - SLAM entry and related workflows
 - on the `Alerts` destination, replace the placeholder with a real notification inbox that:
   - loads `GET /notifications`

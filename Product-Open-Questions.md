@@ -51,6 +51,14 @@
 - QUESTION: When dosing math is introduced, what formulas and validation strategy will be used for each chemical type?
 - QUESTION: What calibration process will be used to move automation rule thresholds from seed values to installation-specific values?
 - QUESTION: How much historical data is required before predictive automation moves beyond rule-based suggestions?
+- QUESTION: What exact chemical-addition taxonomy, unit system, and amount-normalization rules should Splash use for operator-entered treatment history?
+- ASSUMPTION: Manual observational pool-condition inputs should begin with operator-entered qualitative assessments for clarity, algae presence, debris level, and bather-load estimate; future sensing may supplement but does not block the domain model.
+- QUESTION: What is the minimum useful representation for maintenance-activity history: generic event log, typed workflow log, or task-completion-derived events?
+- QUESTION: How should pump runtime and circulation-duration summaries be derived when telemetry is intermittent or controller-native schedules are incomplete?
+- QUESTION: Which chlorinator and filter telemetry inputs are required before prediction and recommendation logic can safely rely on them?
+- QUESTION: What is the canonical per-value provenance and confidence taxonomy for swimmability inputs, and how should contradictory inputs be represented?
+- QUESTION: What exact prediction horizon should future swimmability forecasts support: same day, 24 hours, 72 hours, or longer?
+- QUESTION: Which recommendation classes should remain advisory only versus later becoming automation-suggestion candidates?
 
 ## Build spikes explicitly called out by the source
 
