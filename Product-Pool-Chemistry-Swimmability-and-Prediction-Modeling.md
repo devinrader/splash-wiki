@@ -700,6 +700,8 @@ Splash should preserve:
 - pool conditions at time of addition when available
 - confidence level of the recorded event
 
+Maintenance activities should also be stored as immutable historical events. Actions such as brushing, vacuuming, robot cleaning, skimming, and filter cleaning are not chemistry corrections themselves, but they are important contextual inputs for maintenance readiness, clarity interpretation, recommendation logic, and later pool-specific learning.
+
 The platform should preserve the distinction between:
 
 - measured values

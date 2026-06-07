@@ -108,7 +108,9 @@ Expected operator flow:
 2. Decide what should be added.
 3. Add the treatment.
 4. Record what was added as a chemical-addition event.
-5. Retest later as needed.
+5. Record any meaningful maintenance performed, such as brushing, vacuuming,
+   skimming, or filter cleaning, as a maintenance-activity event.
+6. Retest later as needed.
 
 ## Seasonal Workflows
 

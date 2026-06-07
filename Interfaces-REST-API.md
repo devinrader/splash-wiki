@@ -183,6 +183,58 @@ Rules:
 - first slice should treat these inputs as qualitative operator assessments,
   not sensor-derived observations
 
+### `GET /chemistry/maintenance`
+
+Purpose:
+- return durable maintenance-activity history for the active pool
+
+Query parameters:
+- `start`
+- `end`
+- `limit`
+
+Rules:
+- return newest-first by default
+- maintenance activities are historical actions, not chemistry measurements
+- support time-bounded review for the Chemistry workflow and later History
+  overlays
+
+Response fields per maintenance event:
+- `id`
+- `pool_id`
+- `activity_type`
+- `notes`
+- `source`
+- `recorded_at`
+- `created_at`
+
+First-slice `activity_type` values:
+- `brushed`
+- `vacuumed`
+- `robot_cleaned`
+- `skimmed`
+- `skimmer_basket_cleaned`
+- `pump_basket_cleaned`
+- `filter_cleaned`
+- `filter_backwashed`
+- `other`
+
+### `POST /chemistry/maintenance`
+
+Purpose:
+- record a maintenance activity that affects pool condition or future
+  swimmability
+
+First-slice request fields:
+- `activity_type`
+- `notes` optional
+
+Rules:
+- first slice is manual-only
+- `activity_type` must be one of the supported maintenance values
+- maintenance activities must remain distinct from chemistry readings,
+  observations, chemical additions, and tasks
+
 ### `GET /chemistry/additions`
 
 Purpose:

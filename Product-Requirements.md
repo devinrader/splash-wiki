@@ -40,8 +40,8 @@ end-to-end vertical slice.
     presence, debris level, and bather-load estimate
   - a dedicated observational history so current-condition scoring can reason
     about visible water quality separately from measured chemistry
-  - durable maintenance-activity history for brushing, vacuuming, and skimmer
-    or filter cleaning
+  - durable maintenance-activity history for brushing, vacuuming, robot
+    cleaning, skimming, and skimmer, pump-basket, or filter cleaning
 - Future swimmability and recommendation work should consume:
   - per-value source and confidence metadata
   - contradiction or low-confidence status when inputs disagree

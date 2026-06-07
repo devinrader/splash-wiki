@@ -487,6 +487,23 @@ Specific workflow placement rules:
     other chemistry workflows
   - records what the operator observed rather than what the water measured or
     what was added
+- under the broader `Chemistry` workflow, expose a first `Maintenance Activity`
+  section that:
+  - loads `GET /chemistry/maintenance`
+  - lets the operator submit one maintenance event through
+    `POST /chemistry/maintenance`
+  - accepts first-slice manual-entry inputs for:
+    - activity type
+    - optional notes
+  - keeps the maintenance workflow visibly separate from `Water Test Log`,
+    `Water Condition`, and `Chemical Additions`
+  - shows recent maintenance events in a simple history list or table
+  - disables submit while a save is pending
+  - refreshes maintenance history after save success
+  - surfaces load and save errors inline using the same page-level patterns as
+    other chemistry workflows
+  - records what maintenance the operator performed rather than what the water
+    measured, what the operator observed, or what was added
 - under the broader `Chemistry` workflow, expose a first `Chemical Additions`
   section that:
   - loads `GET /chemistry/additions`

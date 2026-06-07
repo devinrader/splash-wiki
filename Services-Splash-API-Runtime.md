@@ -474,7 +474,31 @@ For the first browser milestone, `splash-api` should:
       - maintenance recommendations
       - History overlays
 
-34. expose first chemical-additions persistence by:
+34. expose first maintenance-activity persistence by:
+    - storing operator-entered maintenance activities durably in SQLite in a
+      dedicated `maintenance_activities` table
+    - exposing:
+      - `GET /chemistry/maintenance`
+      - `POST /chemistry/maintenance`
+    - validating known `activity_type` values only
+    - treating maintenance events as historical workflow inputs rather than
+      chemistry measurements or task completion state
+    - keeping `maintenance_activities` separate from `chemistry_readings`,
+      `chemistry_observations`, `chemical_additions`, and tasks
+    - emitting a normalized `chemistry.maintenance_activity` event after
+      persistence succeeds
+    - exposing maintenance history as a future input source for:
+      - maintenance readiness
+      - predicted swimmability
+      - maintenance recommendations
+      - History overlays
+    - keeping the first slice intentionally narrow:
+      - manual-entry only
+      - no duration tracking yet
+      - no checklist or task linkage yet
+      - no assumed effect modeling yet
+
+35. expose first chemical-additions persistence by:
     - storing operator-entered chemical-addition events durably in SQLite in a
       dedicated `chemical_additions` table
     - exposing:

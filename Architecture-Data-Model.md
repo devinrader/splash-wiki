@@ -63,9 +63,14 @@ Planned expansion tracks:
     assessments rather than attempting immediate sensor-based detection
 - `#135` maintenance-activity history:
   - brushing
-  - vacuuming or robot-cleaning
+  - vacuuming
+  - robot-cleaning
+  - skimming
   - skimmer-basket cleaning
-  - filter cleaning
+  - pump-basket cleaning
+  - filter cleaning or backwashing
+  - first slice should store these as immutable operator-entered
+    maintenance events rather than inferred routine completion
 - `#136` circulation summaries derived from pump telemetry:
   - runtime
   - circulation duration
