@@ -410,9 +410,11 @@ Every tracked value should support:
 
 - current value
 - timestamp
+- value kind
 - data source
 - freshness state
-- reliability indicator
+- reliability or confidence indicator
+- short explainable reason strings when confidence is reduced
 
 Recommended source types:
 

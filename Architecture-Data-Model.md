@@ -87,10 +87,12 @@ Planned expansion tracks:
   - uncovered duration
   - recent UV-exposure windows
 - `#140` normalized per-value provenance and confidence:
-  - value source
-  - confidence
-  - stale, missing, unavailable, or estimated state
-  - contradiction flags where inputs disagree
+  - `value_kind` such as measured, observed, derived, predicted, or estimated
+  - `source_type` and source detail
+  - confidence band
+  - freshness state such as fresh, aging, stale, missing, unavailable, or estimated
+  - contradiction flags or reasons where inputs disagree
+  - first slice should compute this metadata on read rather than introducing a giant universal provenance table immediately
 
 ASSUMPTION: These tracks may first land as pool-scoped JSON-backed settings or
 read models where that keeps the implementation smaller, but the input domains

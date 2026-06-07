@@ -44,19 +44,23 @@ The platform should maintain separate but related models for:
 - maintenance readiness
 - data confidence
 
-### Measured, derived, and predicted values must remain distinct
+### Measured, observed, derived, predicted, estimated, and learned values must remain distinct
 
 Splash should clearly distinguish among:
 
 - measured values
+- observed values
 - user-entered values
 - sensor-provided values
 - derived values
 - predicted values
+- estimated values
 - learned values
 
 These categories must never be conflated in storage, explanation, or user
-presentation.
+presentation. Future scoring, prediction, and recommendation systems should
+preserve explicit provenance metadata such as value kind, source type,
+freshness state, confidence band, and explainable reason strings.
 
 ### Recommendations must be explainable
 

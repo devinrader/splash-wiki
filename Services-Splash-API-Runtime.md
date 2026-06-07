@@ -525,6 +525,39 @@ For the first browser milestone, `splash-api` should:
       - no automatic chemistry projection after save yet
       - no recommendation feedback loop yet
 
+35. add a reusable provenance and confidence boundary by:
+    - normalizing per-value metadata across chemistry, observations, manual
+      logs, telemetry, weather, derived calculations, and future predictions
+    - defining canonical metadata fields such as:
+      - `value_kind`
+      - `source_type`
+      - `source_detail`
+      - `freshness_state`
+      - `confidence_band`
+      - `measured_at`
+      - `evaluated_at`
+      - `reasons`
+    - computing provenance and confidence on read in the first slice rather
+      than introducing a universal provenance table immediately
+    - keeping confidence separate from pool-quality scores and raw values
+    - treating stale, missing, unavailable, contradictory, or thinly supported
+      inputs as confidence degraders rather than silent value mutations
+    - ensuring:
+      - manual chemistry values are `measured`
+      - manual condition inputs are `observed`
+      - manual bather-load values are usually `estimated`
+      - combined chlorine is `derived`
+      - future predicted chemistry values are `predicted`
+
+36. apply the first provenance-aware slice to backend outputs by:
+    - using the normalized provenance model first in swimmability-oriented
+      read models and future prediction outputs
+    - exposing short explainable reasons for freshness or confidence status
+    - defining contradiction as a confidence input even before a full
+      contradiction-alert engine exists
+    - keeping the first slice incremental rather than retrofitting every API
+      route at once
+
 ## Platform health aggregation
 
 `splash-api` is the authoritative browser-facing health aggregator.

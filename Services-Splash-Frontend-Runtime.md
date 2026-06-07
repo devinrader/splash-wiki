@@ -530,6 +530,15 @@ Specific workflow placement rules:
   - `Chemical Additions`
   - chemistry status
   - SLAM entry and related workflows
+- provenance and confidence metadata should be consumed by the frontend as
+  explanatory context rather than invented heuristics
+- first provenance-aware UI slices should:
+  - distinguish poor pool condition from poor data confidence
+  - show source, freshness, confidence, and reason strings on detail surfaces
+  - keep high-volume provenance detail off simple summary cards unless needed
+  - ensure predicted or derived values are labeled as such
+  - explain when recommendations are limited by stale, missing, or
+    contradictory inputs
 - on the `Alerts` destination, replace the placeholder with a real notification inbox that:
   - loads `GET /notifications`
   - defaults to unread notifications

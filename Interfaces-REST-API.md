@@ -183,6 +183,76 @@ Rules:
 - first slice should treat these inputs as qualitative operator assessments,
   not sensor-derived observations
 
+## Canonical value provenance metadata
+
+Splash should expose a reusable provenance object for values that participate in
+scoring, prediction, readiness, recommendations, freshness, or alerts.
+
+Canonical fields:
+- `value_kind`
+  - `measured`
+  - `observed`
+  - `derived`
+  - `predicted`
+  - `estimated`
+- `source_type`
+  - `manual_test`
+  - `manual_observation`
+  - `manual_log`
+  - `sensor`
+  - `weather_provider`
+  - `controller`
+  - `direct_device`
+  - `derived_calculation`
+  - `prediction_model`
+  - `user_estimate`
+  - `default`
+- `source_detail`
+- `freshness_state`
+  - `fresh`
+  - `aging`
+  - `stale`
+  - `missing`
+  - `unavailable`
+  - `estimated`
+- `confidence_band`
+  - `high`
+  - `medium`
+  - `low`
+  - `unknown`
+- `measured_at`
+- `evaluated_at`
+- `reasons`
+
+Rules:
+- manual chemistry readings are `measured`
+- manual condition inputs such as clarity or algae presence are `observed`
+- manual bather-load estimates should usually be treated as `estimated`
+- combined chlorine is `derived`
+- predicted FC or predicted pH are `predicted` and must not be presented as
+  measured values
+- confidence and freshness metadata should not mutate the raw value itself
+
+Example shape:
+```json
+{
+  "value": 78,
+  "unit": "F",
+  "provenance": {
+    "value_kind": "measured",
+    "source_type": "controller",
+    "source_detail": "easytouch.water_temperature",
+    "freshness_state": "fresh",
+    "confidence_band": "high",
+    "measured_at": "2026-06-06T16:00:00.000Z",
+    "evaluated_at": "2026-06-06T16:05:00.000Z",
+    "reasons": [
+      "Controller telemetry is recent."
+    ]
+  }
+}
+```
+
 ### `GET /chemistry/maintenance`
 
 Purpose:
