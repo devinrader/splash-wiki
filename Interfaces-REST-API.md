@@ -49,6 +49,7 @@
 | `/telemetry/temperatures/history` | `GET` | Historical EasyTouch temperature telemetry series |
 | `/telemetry/pumps/latest` | `GET` | Latest EasyTouch pump telemetry snapshot |
 | `/telemetry/pumps/history` | `GET` | Historical EasyTouch pump telemetry series |
+| `/telemetry/pumps/circulation-summary` | `GET` | Derived recent pump runtime and circulation summary windows |
 | `/weather/forecast` | `GET` | Latest normalized weather forecast snapshot for the active pool |
 | `/weather/history` | `GET` | Historical normalized weather series for the active pool |
 | `/weather/forecast/refresh` | `POST` | Trigger a manual weather forecast refresh |
@@ -598,6 +599,40 @@ Rules:
 - history points should expose `timestamp`, `rpm`, `watts`, and `running`
 - the first slice may use simple bucketed reads aligned with the requested
   interval rather than analytics-specific rollups
+
+### `GET /telemetry/pumps/circulation-summary`
+
+Purpose:
+- return derived recent circulation summaries from persisted pump telemetry
+
+Query parameters:
+- `pumpId`: optional API-facing pump id such as `pump-main`
+- `window`: optional summary window such as `24h`, `72h`, or `7d`
+
+Response fields:
+- `generated_at`
+- `pump_id`
+- `summaries`
+  - `window`
+  - `runtime_minutes`
+  - `runtime_percent`
+  - `sample_coverage_percent`
+  - `last_running_at`
+  - `status`
+
+First-slice `status` values:
+- `available`
+- `partial`
+- `insufficient_data`
+
+Rules:
+- derive summaries from persisted pump telemetry history
+- use `running` as the primary circulation signal
+- allow `rpm > 0` only as fallback when `running` is ambiguous
+- do not imply exact runtime when telemetry gaps are large
+- expose `sample_coverage_percent` explicitly so downstream prediction and
+  recommendation flows can judge trustworthiness
+- do not expose turnover-count or gallons-circulated estimates in the first slice
 
 ### `GET /weather/forecast`
 

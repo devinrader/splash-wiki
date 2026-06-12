@@ -761,6 +761,18 @@ Specific workflow placement rules:
   pump id such as `pump-main`
 - if the API reports no persisted pump telemetry yet, the History page should
   render an explicit unavailable or empty state rather than a placeholder
+- when circulation summaries are available, the frontend should expose them as
+  operational context first in `History`, and optionally as secondary context
+  on pump-oriented `System` surfaces
+- first-slice circulation summary UI should:
+  - show windows such as `24h`, `72h`, and `7d`
+  - show `runtime_minutes`
+  - show `runtime_percent`
+  - show `sample_coverage_percent`
+  - show `last_running_at` when available
+  - label `partial` or `insufficient_data` explicitly
+- the frontend should present this as factual operational context, not as a
+  recommendation or score in the first slice
 - the first weather-history slice should render charted normalized weather
   series from `GET /weather/history`
 - the first weather-history chart set should support at least:

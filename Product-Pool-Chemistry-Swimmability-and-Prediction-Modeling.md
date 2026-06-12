@@ -675,6 +675,14 @@ Prediction and recommendation engines should be able to consider:
 - return configuration
 - cleaner state
 - turnover estimate
+- derived runtime summaries across recent windows
+- sample coverage and data sufficiency for those runtime summaries
+
+Circulation modeling guidance:
+- first derive runtime summaries from real telemetry
+- preserve uncertainty when telemetry coverage is sparse
+- avoid pretending that configured schedules equal actual circulation
+- defer turnover estimates until flow and pool-volume confidence are strong
 
 ### Environmental context
 

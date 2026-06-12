@@ -120,6 +120,12 @@ Example inputs:
 - Water Temperature Trend
 - Historical Consumption Patterns
 
+Pump runtime guidance:
+- use derived recent circulation summaries rather than assuming configured
+  schedules equal actual runtime
+- preserve explicit coverage and sufficiency metadata so prediction work can
+  distinguish strong runtime evidence from sparse telemetry
+
 Outputs should include:
 
 - future score

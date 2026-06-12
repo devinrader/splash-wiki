@@ -737,6 +737,35 @@ Read model rules:
 - if no telemetry exists yet, routes should return explicit empty data rather
   than a transport or parsing error
 
+Derived circulation summaries:
+- add a first `CirculationSummaryService`
+- responsibilities:
+  - load persisted pump telemetry history
+  - normalize per-sample running state
+  - estimate runtime across recent windows such as:
+    - `24h`
+    - `72h`
+    - `7d`
+  - report sample coverage and data sufficiency explicitly
+- first-slice rules:
+  - derive on read rather than creating a persisted summary table
+  - treat `running` as the primary circulation signal
+  - allow `rpm > 0` only as a fallback hint when `running` is missing or
+    ambiguous
+  - interpolate conservatively so long telemetry gaps do not silently become
+    assumed runtime
+  - expose:
+    - `runtime_minutes`
+    - `runtime_percent`
+    - `sample_coverage_percent`
+    - `last_running_at`
+    - `status`
+- first-slice non-goals:
+  - no turnover math
+  - no gallons-circulated estimates
+  - no recommendation engine behavior such as “run pump longer”
+  - no automatic prediction coupling yet, only an input source for future slices
+
 ## Weather forecast provider and cache
 
 First-slice ownership:

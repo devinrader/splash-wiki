@@ -74,6 +74,10 @@ Planned expansion tracks:
 - `#136` circulation summaries derived from pump telemetry:
   - runtime
   - circulation duration
+  - runtime percent by recent window
+  - sample coverage percent
+  - last running timestamp
+  - summary status such as `available`, `partial`, or `insufficient_data`
 - `#137` chlorinator telemetry expansion:
   - SWG run state
   - SWG output percentage
