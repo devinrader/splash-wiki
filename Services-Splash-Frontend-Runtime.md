@@ -366,6 +366,22 @@ Specific workflow placement rules:
     `GET /pool/cover/history`
   - keeps cover-event overlays out of the first slice; those belong to later
     `History` page work
+- on the `History` destination, expose first derived `Cover Exposure` context
+  that:
+  - loads `GET /pool/cover/exposure-summary`
+  - shows recent windows of:
+    - `24h`
+    - `72h`
+    - `7d`
+  - renders per-window factual context such as:
+    - covered duration
+    - uncovered duration
+    - daylight-uncovered duration
+    - last cover change time
+    - summary status
+  - makes partial or insufficient summaries explicit
+  - keeps the presentation descriptive rather than predictive in the first
+    slice
 - on the `Home` destination, add a read-only `Swimmability` card that:
   - loads `GET /swimmability`
   - shows:

@@ -720,6 +720,15 @@ Prediction and recommendation engines should be able to consider:
 - cloud cover
 - cover state
 - cover duration
+- derived covered and daylight-uncovered summaries across recent windows
+- explicit sufficiency metadata for those summaries when cover history is weak
+
+Cover-exposure modeling guidance:
+- derive cover-duration context from immutable cover-event history rather than
+  inferring it from the latest cover state alone
+- treat daylight-uncovered duration as the first conservative exposure proxy
+  before later UV-weighted models exist
+- do not present first-slice cover exposure summaries as exact UV dose
 
 ## Chemical event model
 

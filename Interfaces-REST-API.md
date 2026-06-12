@@ -1037,6 +1037,40 @@ Rules:
 - default limit: `100`
 - the first slice does not aggregate cover history
 
+### `GET /pool/cover/exposure-summary`
+
+Purpose:
+- return derived recent covered, uncovered, and daylight-uncovered summaries
+  from persisted cover events
+
+Query parameters:
+- `window` optional:
+  - `24h`
+  - `72h`
+  - `7d`
+  - default: return all supported windows
+
+Response shape:
+- `generated_at`
+- `summaries`
+  - `window`
+  - `covered_minutes`
+  - `uncovered_minutes`
+  - `covered_percent`
+  - `uncovered_percent`
+  - `daylight_uncovered_minutes`
+  - `last_cover_change_at`
+  - `status`
+
+Rules:
+- derive summaries from `pool_cover_events` on read
+- `status` values are:
+  - `available`
+  - `partial`
+  - `insufficient_data`
+- keep the endpoint read-only
+- do not imply exact UV dose in the first slice
+
 ### `GET /swimmability`
 
 Purpose:

@@ -334,7 +334,33 @@ For the first browser milestone, `splash-api` should:
       succeeds
     - keeping cover-event history in SQLite even though later chart overlays
       may project those events into History surfaces
-28. expose a first read-only swimmability assessment by:
+28. expose derived cover exposure summaries by:
+    - exposing `GET /pool/cover/exposure-summary` for the active pool
+    - deriving the summary on read from persisted `pool_cover_events` rather
+      than introducing a second persisted cover-state store
+    - returning fixed recent windows of:
+      - `24h`
+      - `72h`
+      - `7d`
+    - returning per-window fields of:
+      - `covered_minutes`
+      - `uncovered_minutes`
+      - `covered_percent`
+      - `uncovered_percent`
+      - `daylight_uncovered_minutes`
+      - `last_cover_change_at`
+      - `status`
+    - using first-slice `status` values of:
+      - `available`
+      - `partial`
+      - `insufficient_data`
+    - estimating daylight exposure conservatively from local day/night overlap
+      rather than claiming exact UV dose in the first slice
+    - preserving incomplete history as explicit partial or insufficient data
+      rather than inventing precision
+    - keeping this boundary read-only and separate from prediction or
+      recommendation engines that may consume it later
+29. expose a first read-only swimmability assessment by:
     - exposing `GET /swimmability` for the active pool
     - computing the assessment inside `splash-api` as a read model rather than
       storing a durable swimmability table in the first slice
@@ -372,7 +398,7 @@ For the first browser milestone, `splash-api` should:
     - keeping the first scoring model intentionally simple and explainable
     - deriving Home-card presentation fields from the same underlying drivers
       rather than creating a second independent scoring model
-29. expose a first notification inbox by:
+30. expose a first notification inbox by:
     - persisting notifications durably in SQLite in a dedicated
       `notifications` table
     - exposing:
@@ -405,7 +431,7 @@ For the first browser milestone, `splash-api` should:
       - no automatic task creation yet
       - no snooze flow yet
       - no scheduler-owned background notification worker yet
-30. expose a configurable water-testing schedule by:
+31. expose a configurable water-testing schedule by:
     - persisting a pool-scoped `water_testing_schedule` configuration in SQLite
       backed settings
     - seeding defaults when no schedule has been saved yet

@@ -100,7 +100,17 @@ Planned expansion tracks:
 - `#139` cover-derived exposure summaries:
   - covered duration
   - uncovered duration
-  - recent UV-exposure windows
+  - daylight-uncovered duration
+  - first-slice summary outputs such as:
+    - `covered_minutes`
+    - `uncovered_minutes`
+    - `covered_percent`
+    - `uncovered_percent`
+    - `daylight_uncovered_minutes`
+    - `last_cover_change_at`
+    - `status` as `available`, `partial`, or `insufficient_data`
+  - first slice should derive these on read from `pool_cover_events` rather
+    than introducing a second persisted cover-state store
 - `#140` normalized per-value provenance and confidence:
   - `value_kind` such as measured, observed, derived, predicted, or estimated
   - `source_type` and source detail

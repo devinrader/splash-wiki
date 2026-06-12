@@ -126,6 +126,14 @@ Pump runtime guidance:
 - preserve explicit coverage and sufficiency metadata so prediction work can
   distinguish strong runtime evidence from sparse telemetry
 
+Cover exposure guidance:
+- use derived cover-exposure summaries from persisted cover events rather than
+  assuming the current cover state describes the whole recent window
+- preserve explicit `partial` or `insufficient_data` exposure states when
+  history is sparse
+- treat daylight-uncovered time as a first proxy for exposure before later UV
+  weighting models exist
+
 Outputs should include:
 
 - future score
