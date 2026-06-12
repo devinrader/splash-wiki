@@ -39,13 +39,28 @@ First-slice equipment latest-state guidance:
 - the chlorinator equipment record should expose expanded latest-state fields
   through the existing `/equipment` surface rather than a separate telemetry
   route
+- pump and future filter-capable equipment records should expose flow and
+  filter context through the existing `/equipment` surface rather than a
+  separate telemetry route
 - first-slice chlorinator `latest_state` fields should include:
   - `salt_ppm`
   - `output_percent`
   - `run_state`
   - `status`
   - `updated_at`
+- first-slice flow and filter `latest_state` fields should include, where
+  available:
+  - `flow_gpm`
+  - `filter_pressure_psi`
+  - `filter_condition`
+  - `updated_at`
 - first-slice chlorinator telemetry is read-only in this contract
+- first-slice flow and filter telemetry are read-only in this contract
+- `flow_gpm` should attach first to the pump equipment record in the current
+  latest-state model
+- `filter_pressure_psi` and `filter_condition` may attach to the same
+  equipment latest-state record or a future filter-capable equipment record,
+  depending on the upstream telemetry source
 | `/tasks/:id/snooze` | `POST` | Snooze task |
 | `/schedules` | `GET`, `POST` | Maintenance schedules |
 | `/schedules/:id` | `PUT`, `DELETE` | Schedule mutation |

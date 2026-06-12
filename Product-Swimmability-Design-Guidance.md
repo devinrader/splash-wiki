@@ -413,6 +413,13 @@ For the first telemetry-backed SWG slice:
 - `SWG State` should remain distinct from output percentage so prediction work
   can distinguish configured intent from active production
 
+For the first telemetry-backed filter and flow slice:
+- `Pump Runtime` remains separate from instantaneous `Flow Rate`
+- `Flow Rate` should come from equipment latest-state telemetry, not be
+  invented from RPM alone
+- `Filter Pressure` and `Filter Condition` should remain operational context
+  inputs rather than direct chemistry values
+
 ### Tier 3: Optimization inputs
 
 These inputs refine the model but should not block early implementation.

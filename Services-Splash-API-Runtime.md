@@ -33,6 +33,9 @@ For the first browser milestone, `splash-api` should:
    - chlorinator output percentage
    - chlorinator run state
    - chlorinator status
+   - flow rate
+   - filter pressure
+   - filter condition
    - pump RPM
 3. expose those values through REST
 4. fan them out through SSE
@@ -619,6 +622,36 @@ For the first browser milestone, `splash-api` should:
     - treating chlorinator telemetry as an operational input for future
       predicted swimmability, maintenance readiness, and recommendation work
       rather than as a direct chemistry reading
+
+39. expand first-slice flow and filter telemetry by:
+    - extending the existing equipment latest-state projection rather than
+      introducing a separate telemetry API surface
+    - normalizing first-slice flow and filter fields where upstream telemetry
+      provides them:
+      - `flow_gpm`
+      - `filter_pressure_psi`
+      - `filter_condition`
+      - `updated_at`
+    - attaching `flow_gpm` first to the pump latest-state boundary because it
+      is closest to the current circulation telemetry contract
+    - exposing `filter_pressure_psi` and `filter_condition` on the equipment
+      latest-state boundary when the upstream payload provides enough support
+    - treating `flow_gpm` and `filter_pressure_psi` as operational telemetry
+      values rather than chemistry measurements
+    - using conservative first-slice `filter_condition` values such as:
+      - `clean`
+      - `watch`
+      - `dirty`
+      - `unknown`
+    - preferring raw upstream values when available
+    - not inventing flow from RPM alone in the first slice
+    - not inventing pressure or condition from undocumented heuristics
+    - exposing unknown explicitly when telemetry is incomplete
+    - keeping the first slice read-only and separate from future
+      recommendation or turnover-calculation work
+    - treating flow and filter telemetry as operational inputs for future
+      predicted swimmability, maintenance readiness, circulation confidence,
+      and recommendation work
 
 ## Platform health aggregation
 

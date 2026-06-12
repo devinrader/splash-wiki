@@ -92,6 +92,11 @@ Planned expansion tracks:
   - filter pressure
   - flow rate
   - filter-condition status
+  - first-slice latest-state fields:
+    - `flow_gpm`
+    - `filter_pressure_psi`
+    - `filter_condition`
+    - `updated_at`
 - `#139` cover-derived exposure summaries:
   - covered duration
   - uncovered duration
@@ -475,7 +480,7 @@ Notes:
 | Measurement | Source | Key fields |
 | --- | --- | --- |
 | `equipment_state` | controller 0x02 broadcast every 2s | controller time, water temp, air temp, solar temp, heater state, circuit states, freeze protection, mode |
-| `pump_state` | pump 0x07 poll response | `running`, `watts`, `rpm` |
+| `pump_state` | pump 0x07 poll response | `running`, `watts`, `rpm`, `flow_gpm`, `filter_pressure_psi`, `filter_condition` |
 | `chlorinator_state` | chlorinator broadcast | `salt_ppm`, `output_percent`, `run_state`, `status`, `updated_at` |
 | `weather` | scheduler weather fetch | `temp_f`, `uv_index`, `humidity`, `condition`, `forecast_high_f`, `forecast_low_f`, `precip_chance_pct`, `actual_precip_in` |
 | `weather_forecast_daily` | provider-normalized daily forecast snapshot | `weather_code`, `high_temp_f`, `high_temp_c`, `low_temp_f`, `low_temp_c`, `precipitation_probability_max`, `precipitation_amount`, `uv_index_max`, `sunrise`, `sunset`, `provider`, `fetched_at`, `forecast_generated_at` |

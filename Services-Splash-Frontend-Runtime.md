@@ -289,7 +289,7 @@ Specific workflow placement rules:
   has a chance to populate without a manual button press
 - show the latest known air temperature, water temperature, heater state,
   salt level, chlorinator output percentage, chlorinator run state, controller
-  system time, and pump RPM
+  system time, pump RPM, flow rate, and filter context
 - on the `Home` destination, show a `Weather Impact` summary card when
   `splash-api` exposes a normalized site forecast
 - replace the current Home `Weather Forecast` and `Weather Detail` cards with a
@@ -308,6 +308,17 @@ Specific workflow placement rules:
     telemetry yet
   - surfacing unknown or unavailable chlorinator fields explicitly rather than
     pretending the cell is off or producing when telemetry is incomplete
+- expand the existing equipment and sensor readouts by:
+  - rendering `flow_gpm`, `filter_pressure_psi`, and `filter_condition` from
+    the equipment latest-state snapshot when available
+  - presenting flow and filter telemetry first in `System`
+  - keeping the first slice factual and operational, for example:
+    - `Flow 48 GPM`
+    - `Filter Pressure 18 psi`
+    - `Filter Condition: Watch`
+  - showing unavailable or unknown explicitly when telemetry is incomplete
+  - not presenting recommendation or turnover conclusions from this telemetry
+    yet
   rather than a generic long-form forecast table
 - the first `Weather Impact` card should show:
   - one larger `today` tile with:
