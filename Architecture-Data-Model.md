@@ -82,6 +82,12 @@ Planned expansion tracks:
   - SWG run state
   - SWG output percentage
   - related fault or availability context
+  - first-slice latest-state fields:
+    - `salt_ppm`
+    - `output_percent`
+    - `run_state`
+    - `status`
+    - `updated_at`
 - `#138` filter and flow inputs:
   - filter pressure
   - flow rate
@@ -470,7 +476,7 @@ Notes:
 | --- | --- | --- |
 | `equipment_state` | controller 0x02 broadcast every 2s | controller time, water temp, air temp, solar temp, heater state, circuit states, freeze protection, mode |
 | `pump_state` | pump 0x07 poll response | `running`, `watts`, `rpm` |
-| `chlorinator_state` | chlorinator broadcast | `salt_ppm`, `output_percent`, `status` |
+| `chlorinator_state` | chlorinator broadcast | `salt_ppm`, `output_percent`, `run_state`, `status`, `updated_at` |
 | `weather` | scheduler weather fetch | `temp_f`, `uv_index`, `humidity`, `condition`, `forecast_high_f`, `forecast_low_f`, `precip_chance_pct`, `actual_precip_in` |
 | `weather_forecast_daily` | provider-normalized daily forecast snapshot | `weather_code`, `high_temp_f`, `high_temp_c`, `low_temp_f`, `low_temp_c`, `precipitation_probability_max`, `precipitation_amount`, `uv_index_max`, `sunrise`, `sunset`, `provider`, `fetched_at`, `forecast_generated_at` |
 | `weather_forecast_hourly` | provider-normalized hourly forecast snapshot | `temperature_f`, `temperature_c`, `relative_humidity`, `dew_point_f`, `dew_point_c`, `precipitation_probability`, `precipitation_amount`, `cloud_cover`, `wind_speed`, `wind_gusts`, `uv_index`, `provider`, `fetched_at`, `forecast_generated_at` |

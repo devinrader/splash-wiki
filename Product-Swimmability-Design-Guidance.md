@@ -407,6 +407,12 @@ These inputs materially improve future-score quality.
 
 These should be treated as required for advanced predictive modeling.
 
+For the first telemetry-backed SWG slice:
+- `Salt Level` remains the direct chemistry-adjacent measurement
+- `SWG Output` should come from chlorinator latest-state telemetry
+- `SWG State` should remain distinct from output percentage so prediction work
+  can distinguish configured intent from active production
+
 ### Tier 3: Optimization inputs
 
 These inputs refine the model but should not block early implementation.

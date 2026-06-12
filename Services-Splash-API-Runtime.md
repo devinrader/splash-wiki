@@ -30,6 +30,9 @@ For the first browser milestone, `splash-api` should:
    - air temperature
    - water temperature
    - salt level
+   - chlorinator output percentage
+   - chlorinator run state
+   - chlorinator status
    - pump RPM
 3. expose those values through REST
 4. fan them out through SSE
@@ -588,6 +591,34 @@ For the first browser milestone, `splash-api` should:
     - deduplicating active alerts by notification type and affected input or
       related context
     - auto-clearing them when the underlying provenance issue clears
+
+38. expand chlorinator latest-state telemetry by:
+    - extending the existing in-memory chlorinator snapshot rather than adding
+      a separate telemetry service boundary
+    - normalizing first-slice chlorinator latest-state fields:
+      - `salt_ppm`
+      - `output_percent`
+      - `run_state`
+      - `status`
+      - `updated_at`
+    - treating `salt_ppm` as direct telemetry rather than a manual chemistry
+      reading
+    - treating `output_percent` as the configured or reported SWG output level
+    - treating `run_state` as distinct from `status` so active production can
+      be separated from broader health or availability context
+    - using conservative first-slice enumerations such as:
+      - `run_state`: `producing`, `idle`, `off`, `unknown`
+      - `status`: `ok`, `low_salt`, `high_salt`, `fault`, `offline`,
+        `unknown`
+    - preferring raw upstream values when available and using `unknown` rather
+      than inventing production state from salt level alone
+    - exposing the expanded chlorinator latest-state through the existing
+      equipment snapshot routes and SSE payloads
+    - keeping the first slice read-only and separate from future chlorinator
+      output-control work
+    - treating chlorinator telemetry as an operational input for future
+      predicted swimmability, maintenance readiness, and recommendation work
+      rather than as a direct chemistry reading
 
 ## Platform health aggregation
 

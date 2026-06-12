@@ -34,6 +34,18 @@
 | `/tasks/:id/complete` | `POST` | Complete task |
 | `/tasks/:id/dismiss` | `POST` | Dismiss task |
 | `/tasks/:id/approve` | `POST` | Approve automation task |
+
+First-slice equipment latest-state guidance:
+- the chlorinator equipment record should expose expanded latest-state fields
+  through the existing `/equipment` surface rather than a separate telemetry
+  route
+- first-slice chlorinator `latest_state` fields should include:
+  - `salt_ppm`
+  - `output_percent`
+  - `run_state`
+  - `status`
+  - `updated_at`
+- first-slice chlorinator telemetry is read-only in this contract
 | `/tasks/:id/snooze` | `POST` | Snooze task |
 | `/schedules` | `GET`, `POST` | Maintenance schedules |
 | `/schedules/:id` | `PUT`, `DELETE` | Schedule mutation |
@@ -724,7 +736,8 @@ Rules:
   transport
 - The initial implementation should expose enough latest-state and control
   surface to support a browser view of air temperature, water temperature, salt
-  level, and pump RPM plus a controller-managed pump-circuit RPM control action
+  level, chlorinator output percentage, chlorinator run state, and pump RPM
+  plus a controller-managed pump-circuit RPM control action
 - the first Protocol Explorer implementation slice may expose `/protocol/frames`
   before broader protocol decode, annotation, and simulator endpoints are fully
   implemented

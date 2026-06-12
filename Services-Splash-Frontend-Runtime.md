@@ -288,12 +288,26 @@ Specific workflow placement rules:
   diagnostic controller date/time request so the separate `0x05` metric card
   has a chance to populate without a manual button press
 - show the latest known air temperature, water temperature, heater state,
-  salt level, controller system time, and pump RPM
+  salt level, chlorinator output percentage, chlorinator run state, controller
+  system time, and pump RPM
 - on the `Home` destination, show a `Weather Impact` summary card when
   `splash-api` exposes a normalized site forecast
 - replace the current Home `Weather Forecast` and `Weather Detail` cards with a
   single `Weather Impact` card
 - keep the Home weather slice focused on operator-facing pool-impact context
+- expand the existing chlorinator readouts by:
+  - rendering `salt_ppm`, `output_percent`, `run_state`, and `status` from the
+    equipment latest-state snapshot
+  - presenting chlorinator state first in `System` and in summary surfaces
+    that already show equipment context
+  - keeping the first slice factual and operational, for example:
+    - `Salt 3200 ppm`
+    - `Output 40%`
+    - `Producing`
+  - not presenting recommendation or prediction conclusions from SWG
+    telemetry yet
+  - surfacing unknown or unavailable chlorinator fields explicitly rather than
+    pretending the cell is off or producing when telemetry is incomplete
   rather than a generic long-form forecast table
 - the first `Weather Impact` card should show:
   - one larger `today` tile with:

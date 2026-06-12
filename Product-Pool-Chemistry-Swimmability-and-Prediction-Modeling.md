@@ -332,6 +332,12 @@ These strongly improve prediction quality.
 
 Tier 2 inputs should be treated as highly valuable for future predictive work.
 
+For the first telemetry-backed SWG slice:
+- `Salt Level` remains the direct chemistry-adjacent measurement
+- `SWG Output` should come from chlorinator latest-state telemetry
+- `SWG State` should remain distinct from output percentage so prediction work
+  can distinguish configured intent from active production
+
 ### Tier 3
 
 These are optimization and refinement inputs.
@@ -483,6 +489,15 @@ questions that Splash should model for them.
 - Response curve: delayed until fully dissolved and circulated
 - Persistence: long
 - Prediction value: high for SWG-enabled pools
+
+For first-slice SWG telemetry modeling:
+- `Salt Level` should remain a direct telemetry-backed measurement when the
+  active chemistry source is chlorinator hardware
+- `SWG Output` should be modeled as an operational telemetry input, not a
+  chemistry value
+- `SWG State` should be modeled separately from output percentage so prediction
+  and readiness logic can distinguish active production from configured output
+  level
 
 ### Borates
 
