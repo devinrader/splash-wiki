@@ -789,6 +789,23 @@ A pool can have:
 
 These are separate concepts and should be presented separately.
 
+### Contradiction and low-confidence alerting
+
+The platform should emit alerts when trust in a conclusion is reduced by
+provenance problems or explicit contradictions.
+
+Examples:
+- a current swimmability result appears positive, but chemistry freshness is
+  stale
+- water temperature is shown as part of the current context, but telemetry is
+  unavailable
+- a derived metric depends on incomplete upstream values
+
+These alerts should be treated as:
+- trust and explainability outputs
+- separate from raw water-quality scoring
+- inputs to operator action, retesting, and future recommendation flows
+
 ## Historical learning architecture
 
 Splash should eventually support pool-specific learning.

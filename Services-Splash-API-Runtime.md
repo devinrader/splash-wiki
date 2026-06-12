@@ -558,6 +558,37 @@ For the first browser milestone, `splash-api` should:
     - keeping the first slice incremental rather than retrofitting every API
       route at once
 
+37. add a first contradiction-aware and low-confidence alert slice by:
+    - extending notifications with:
+      - `swimmability_low_confidence`
+      - `critical_input_missing`
+      - `critical_input_stale`
+      - `provenance_contradiction`
+    - consuming the normalized provenance model from the provenance and
+      confidence boundary rather than duplicating a second freshness heuristic
+    - limiting first-slice critical inputs to the inputs already closest to the
+      current swimmability result:
+      - chemistry freshness and critical chemistry values
+      - water temperature telemetry
+      - cover state context
+      - weather provenance when weather materially influenced confidence
+    - keeping first-slice contradiction rules narrow and explicit, such as:
+      - swimmability marked `good` while chemistry provenance is stale,
+        missing, or unavailable
+      - water temperature used as current context while telemetry provenance is
+        stale or unavailable
+      - rainfall context used to degrade confidence without usable weather
+        provenance
+      - derived-value context being used while its dependency chain is too
+        incomplete to trust
+    - treating these alerts as trust and explainability outputs:
+      - they do not mutate raw values
+      - they do not silently rewrite the score
+      - they explain what is missing, stale, unavailable, or contradictory
+    - deduplicating active alerts by notification type and affected input or
+      related context
+    - auto-clearing them when the underlying provenance issue clears
+
 ## Platform health aggregation
 
 `splash-api` is the authoritative browser-facing health aggregator.

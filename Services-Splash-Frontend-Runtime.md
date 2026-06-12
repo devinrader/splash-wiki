@@ -561,6 +561,17 @@ Specific workflow placement rules:
   - remains notification-only in the first slice and does not yet expose full task workflow controls
   - renders schedule-driven chemistry freshness alerts using the same inbox
     list patterns as other notification types
+  - renders contradiction-aware and low-confidence alerts in the same inbox by:
+    - distinguishing poor pool condition from poor data confidence
+    - using explicit titles such as:
+      - `Swimmability confidence is low`
+      - `Free chlorine input is stale`
+      - `Water temperature telemetry is unavailable`
+      - `Swimmability is marked good, but chemistry data is stale`
+    - keeping contradiction and trust alerts in the shared inbox rather than a
+      separate contradiction dashboard in the first slice
+    - preserving provenance detail as secondary explanation text rather than
+      turning the inbox into a full provenance inspector
 - the current `Alerts` destination is a transitional shell surface and belongs
   to the broader future `Routines` information-architecture category
 - when no weather forecast has been fetched yet, the weather widget should show

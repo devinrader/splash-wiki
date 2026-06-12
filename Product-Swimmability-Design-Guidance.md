@@ -288,6 +288,16 @@ Recommendation systems should:
   than collapsing them into one score
 - distinguish urgent safety actions from lower-priority optimization actions
 - avoid hiding uncertainty when input quality is weak
+- generate trust-focused alerts when:
+  - critical inputs are missing or stale
+  - confidence is low
+  - important provenance conditions contradict a positive-looking conclusion
+
+Contradiction and low-confidence alerts should:
+- explain what input is missing, stale, unavailable, or contradictory
+- explain why that limitation matters
+- distinguish uncertain conclusions from poor pool conditions
+- favor explicit, show-your-work warning semantics over silent score mutation
 
 ## Input impact matrix
 

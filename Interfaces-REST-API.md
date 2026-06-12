@@ -1118,6 +1118,10 @@ First-slice `type` values:
 - `rain_since_test`
 - `chemistry_value_stale`
 - `chemistry_value_unavailable`
+- `swimmability_low_confidence`
+- `critical_input_missing`
+- `critical_input_stale`
+- `provenance_contradiction`
 
 First-slice `severity` values:
 - `info`
@@ -1128,6 +1132,10 @@ Rules:
 - return newest-first notifications
 - default to `status=unread` when omitted
 - first slice should not invent notifications when required source data is missing
+- low-confidence and contradiction alerts should:
+  - include provenance-oriented explanation text
+  - deduplicate active alerts by type plus affected input or related context
+  - clear automatically when the underlying provenance problem no longer applies
 
 ### `POST /notifications/:id/read`
 
