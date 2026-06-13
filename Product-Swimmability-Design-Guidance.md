@@ -317,8 +317,16 @@ Recommendation systems should:
 
 - use the current, predicted, readiness, and confidence models together rather
   than collapsing them into one score
+- remain a separate read model rather than being folded into current or
+  predicted swimmability responses
 - distinguish urgent safety actions from lower-priority optimization actions
 - avoid hiding uncertainty when input quality is weak
+- prioritize `retest` guidance ahead of chemistry-adjustment guidance when
+  chemistry freshness or trust is weak
+- distinguish:
+  - corrective recommendations
+  - preventive recommendations
+  - investigative recommendations
 - generate trust-focused alerts when:
   - critical inputs are missing or stale
   - confidence is low
@@ -329,6 +337,25 @@ Contradiction and low-confidence alerts should:
 - explain why that limitation matters
 - distinguish uncertain conclusions from poor pool conditions
 - favor explicit, show-your-work warning semantics over silent score mutation
+
+First-slice maintenance recommendations should focus on explainable rule-based
+operator guidance such as:
+
+- retest free chlorine and pH
+- add chlorine
+- adjust pH
+- run pump longer or check circulation
+- use or remove the cover based on current context
+- brush or vacuum the pool
+- clean or inspect the filter
+- investigate missing telemetry or stale inputs
+- wait and monitor
+
+First-slice maintenance recommendations should not yet:
+
+- calculate exact chemical doses
+- send direct control commands
+- hide missing-data limitations behind confident-sounding advice
 
 ## Input impact matrix
 

@@ -1109,6 +1109,45 @@ Rules:
   too incomplete for a credible forecast
 - expose show-your-work fields from the first slice
 
+### `GET /maintenance/recommendations`
+
+Purpose:
+- return a first explainable maintenance-recommendation read model for the
+  active pool
+
+Query parameters:
+- `limit` optional
+- `category` optional
+- `priority` optional
+
+Response shape:
+- `generated_at`
+- `current`
+  - summary references to:
+    - current swimmability
+    - predicted swimmability
+    - maintenance readiness when available later
+- `recommendations`
+  - `id`
+  - `category`
+  - `priority`
+  - `title`
+  - `summary`
+  - `recommended_action`
+  - `why`
+  - `confidence`
+  - `blocking_factors`
+  - `supporting_inputs`
+  - `related_alert_types`
+
+Rules:
+- return recommendations ordered by priority first, then confidence
+- include explicit empty-state guidance when no action is currently recommended
+- keep recommendations separate from swimmability and predicted-swimmability
+  endpoints
+- prefer `retest` guidance before chemistry-adjustment guidance when chemistry
+  trust is weak
+
 ### `GET /swimmability`
 
 Purpose:

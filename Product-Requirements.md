@@ -46,6 +46,8 @@ end-to-end vertical slice.
   - per-value source and confidence metadata
   - contradiction or low-confidence status when inputs disagree
   - user-managed freshness policy from the water-testing schedule
+  - recent chemical additions, observations, and maintenance history as
+    explainable operator-context inputs
 
 ### Equipment
 
@@ -103,6 +105,11 @@ end-to-end vertical slice.
 - Keep automation approval behavior aligned with tasks and normalized command workflows until richer automation-management contracts exist
 - Future prediction and recommendation work should remain explainable and use
   persisted input history rather than opaque heuristics alone
+- Future maintenance-recommendation work should:
+  - present recommendations as separate operator guidance, not hidden score
+    side effects
+  - prioritize `retest` guidance when chemistry trust is weak
+  - separate corrective, preventive, and investigative recommendations
 
 ### Seasonal and SLAM
 

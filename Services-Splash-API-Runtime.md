@@ -464,6 +464,43 @@ For the first browser milestone, `splash-api` should:
     - requiring show-your-work explanation fields from the first slice
     - keeping this boundary read-only and separate from maintenance
       recommendation logic
+33. expose a first explainable maintenance-recommendation read model by:
+    - exposing `GET /maintenance/recommendations`
+    - keeping recommendation logic separate from:
+      - current swimmability
+      - predicted swimmability
+      - notification generation
+    - assembling first-slice recommendation inputs from:
+      - current swimmability
+      - predicted swimmability
+      - water-testing freshness
+      - provenance and confidence metadata
+      - recent chemical additions
+      - recent chemistry observations
+      - recent maintenance activities
+      - cover exposure summaries
+      - circulation summaries
+      - latest chlorinator, flow, and filter context where available
+    - returning recommendation items with fields such as:
+      - `id`
+      - `category`
+      - `priority`
+      - `title`
+      - `summary`
+      - `recommended_action`
+      - `why`
+      - `confidence`
+      - `blocking_factors`
+      - `supporting_inputs`
+      - `related_alert_types`
+    - treating the first slice as an explainable rule-based read model:
+      - no direct control commands
+      - no exact dosing calculator yet
+      - no task persistence requirement yet
+    - prioritizing `retest` guidance ahead of chemistry-adjustment guidance
+      when chemistry freshness or trust is weak
+    - allowing low-confidence recommendations only when the confidence
+      limitation is made explicit in the response
 31. expose a configurable water-testing schedule by:
     - persisting a pool-scoped `water_testing_schedule` configuration in SQLite
       backed settings

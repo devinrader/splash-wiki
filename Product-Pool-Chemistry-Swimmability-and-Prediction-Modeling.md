@@ -81,6 +81,21 @@ contract. They should visibly expose:
 - stale or missing input warnings
 - confidence limits that reduce trust in the output
 
+First-slice recommendation architecture guidance:
+
+- recommendations should be exposed as a separate read model rather than being
+  embedded inside current or predicted swimmability endpoints
+- recommendations should be prioritized by action urgency first and confidence
+  second
+- when chemistry trust is weak, `retest` guidance should outrank chemistry
+  adjustment guidance
+- recommendation responses should distinguish:
+  - corrective actions
+  - preventive actions
+  - investigative actions
+- low-confidence recommendations may still be shown, but they must explicitly
+  describe the confidence limitation
+
 ### Confidence is independent of pool quality
 
 Confidence is not a synonym for score.
@@ -763,6 +778,39 @@ The platform should preserve the distinction between:
 - derived values
 
 These should never be collapsed into one undifferentiated chemistry record.
+
+## First-slice maintenance recommendation outputs
+
+The first maintenance-recommendation slice should support explainable
+recommendation items with fields such as:
+
+- `id`
+- `category`
+- `priority`
+- `title`
+- `summary`
+- `recommended_action`
+- `why`
+- `confidence`
+- `blocking_factors`
+- `supporting_inputs`
+- `related_alert_types`
+
+Suggested first-slice categories:
+
+- `retest`
+- `chemistry_adjustment`
+- `circulation`
+- `cover_usage`
+- `cleaning`
+- `inspection`
+- `wait`
+
+Suggested first-slice priorities:
+
+- `now`
+- `soon`
+- `monitor`
 
 ## Derived metrics
 

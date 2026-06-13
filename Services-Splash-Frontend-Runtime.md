@@ -425,6 +425,25 @@ Specific workflow placement rules:
   - show prediction confidence, major drivers, and missing-input assumptions
   - avoid presenting prediction as a replacement for the Home current-state
     swimmability card
+- when explainable maintenance recommendations are added, the frontend should:
+  - load `GET /maintenance/recommendations` from a dedicated recommendation
+    surface
+  - treat `Routines` as the primary detailed recommendation destination
+  - optionally reuse the top recommendation as compact Home context
+  - show for each recommendation:
+    - title
+    - action summary
+    - priority
+    - confidence
+    - why
+    - blocking or missing-data factors
+  - distinguish:
+    - `Do this now`
+    - `Do this soon`
+    - `Monitor`
+  - avoid burying recommendations only inside alerts
+  - explain clearly when recommendation confidence is reduced by stale, missing,
+    or contradictory inputs
 - on the `Settings` destination, render a `Pool Chemistry` section that:
   - loads the configured chemistry bounds set from `GET /api/settings/pool-chemistry`
   - lets the operator edit supported built-in chemistry keys
