@@ -129,6 +129,9 @@ Target information-architecture rules:
 
 - `Chemistry` owns:
   - Water Test Log
+  - Water Condition
+  - Chemical Additions
+  - Maintenance Activity
   - chemistry status and manual readings
   - future chemical-additions workflow
   - future SLAM workflow entry
@@ -151,6 +154,8 @@ Transitional mapping from the current milestone shell to the target model:
 - `Alerts` becomes part of `Routines`
 - `Diagnostics` should rename `Logs & History` style tooling labels so they do
   not compete with the primary `History` destination
+- the first `Chemistry` page should organize its workflows under internal tabs
+  instead of a single long stacked page
 
 Within the current milestone shell:
 

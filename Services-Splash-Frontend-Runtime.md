@@ -597,6 +597,22 @@ Specific workflow placement rules:
     other chemistry workflows
   - records what the operator added to the pool rather than what the water
     measured
+- under the broader `Chemistry` workflow, group the first manual chemistry
+  workflows into controlled internal page tabs rather than one long stacked
+  page
+- the first Chemistry tab set should be:
+  - `Water Test Log`
+  - `Water Condition`
+  - `Chemical Additions`
+  - `Maintenance Activity`
+- `Water Test Log` should be the default selected tab in the first slice
+- Chemistry tab changes should not change the URL in the first slice
+- each tab should preserve its current form, recent-history view, and inline
+  load/save messaging
+- the first Chemistry tab slice should reorganize existing workflows, not
+  introduce new APIs or data models
+- if practical, inactive Chemistry tabs may defer mounting or data refresh work
+  until first activation
 - the current `Water Test Log` destination is a transitional shell surface and
   belongs to the broader `Chemistry` information-architecture category rather
   than standing alone as a long-term top-level destination
