@@ -141,7 +141,7 @@ Specific workflow placement rules:
   readings or chemical additions, but it does not replace the underlying
   Chemistry workflows
 
-- render a responsive milestone-1 dashboard for desktop and mobile
+- render the primary milestone dashboard shell for desktop and tablet
 - use the uploaded Splash design-system tokens as the styling baseline for the
   current milestone dashboard shell, including the documented light surfaces,
   dark navigation shell, semantic status colors, tokenized spacing, and card
@@ -168,6 +168,21 @@ Specific workflow placement rules:
   horizontal overflow
 - use approximately `32px` horizontal padding for desktop and `24px`
   horizontal padding for tablet around the centered application shell
+- do not force the full desktop and tablet admin shell to become the first
+  phone experience
+- expose a separate mobile-first `/mobile` shell for pool-side workflows
+- keep the first `/mobile` shell focused on:
+  - current swimmability
+  - manual chemistry entry
+  - cover control using the current documented cover-event model
+  - alerts
+  - compact status summaries
+- keep the `/mobile` shell on the same frontend codebase and backend APIs, but
+  allow it to use a separate layout, navigation model, and mobile-scoped
+  components
+- if a first PWA slice is added, keep it minimal:
+  - allow `/mobile` to work cleanly as the installed start surface
+  - avoid full offline-first behavior in the initial slice
 - follow the proportions shown in the current frontend mockup images:
   fixed-width dark sidebar, lighter content field, and a centered readable
   application frame

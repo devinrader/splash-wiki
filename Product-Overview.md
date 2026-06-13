@@ -81,7 +81,9 @@ deployment stance.
 
 - Calm, clear, and trustworthy
 - Light mode only in v1
-- Responsive by default across desktop, tablet, and mobile
+- Responsive by default across desktop and tablet for the primary admin shell
+- Use a separate mobile-first shell for phone-sized pool-side workflows rather
+  than forcing the full admin shell to become the mobile experience
 - Minimal friction for common actions like logging chemistry or approving automation
 - Status communicated consistently with green, amber, and red indicators
 
@@ -110,6 +112,17 @@ The target top-level navigation model is:
 - Routines
 - Automation
 - Diagnostics
+
+For mobile-first pool-side usage:
+
+- expose a dedicated `/mobile` shell
+- keep mobile navigation and layout separate from the desktop and tablet admin
+  shell
+- focus the first mobile slice on:
+  - current swimmability
+  - chemistry entry
+  - cover control
+  - alerts
 - Settings
 
 For the current frontend milestone shell, the implemented sidebar destinations

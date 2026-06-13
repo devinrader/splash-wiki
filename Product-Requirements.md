@@ -49,6 +49,22 @@ end-to-end vertical slice.
   - recent chemical additions, observations, and maintenance history as
     explainable operator-context inputs
 
+### Mobile shell
+
+- Provide a separate mobile-first `/mobile` shell for pool-side workflows
+- Reuse existing backend APIs and shared frontend business logic where possible
+- Keep the desktop and tablet admin shell intact rather than redesigning it as
+  the phone experience
+- The first mobile slice should prioritize:
+  - current swimmability display
+  - manual chemistry entry
+  - cover control using the existing documented cover model
+  - alerts overview
+  - compact status summaries when useful
+- The first mobile slice may add a minimal PWA foundation if it fits the
+  current frontend build without introducing offline-first complexity
+
+
 ### Equipment
 
 - Support inventory records for pump, filter, heater, lights, cleaner, and chlorinator
