@@ -172,6 +172,16 @@ Expected outputs:
 - confidence score
 - horizon label
 - explainable drivers
+- explicit assumptions and missing-input constraints
+
+First-slice prediction guidance:
+- expose prediction through a dedicated API surface separate from the current
+  swimmability endpoint
+- start from current swimmability as the present-state anchor
+- combine forecast context, recent cover exposure, circulation summaries, SWG
+  telemetry, and recent chemical-addition history conservatively
+- return `unknown` when core chemistry or forecast support is too incomplete to
+  justify a credible future score
 
 ### Maintenance readiness score
 

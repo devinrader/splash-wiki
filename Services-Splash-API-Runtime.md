@@ -431,6 +431,39 @@ For the first browser milestone, `splash-api` should:
       - no automatic task creation yet
       - no snooze flow yet
       - no scheduler-owned background notification worker yet
+32. expose a first forecast-based predicted swimmability read model by:
+    - exposing `GET /swimmability/predicted` for the active pool
+    - keeping prediction separate from the current `GET /swimmability` read
+      model
+    - supporting first-slice horizons of:
+      - `24h`
+      - `48h`
+      - `72h`
+      - `7d`
+    - assembling prediction inputs from:
+      - current swimmability
+      - latest chemistry and freshness state
+      - weather forecast
+      - cover exposure summaries
+      - pump circulation summaries
+      - chlorinator latest state
+      - recent chemical additions when available
+    - returning per-horizon fields of:
+      - `status`
+      - `score`
+      - `trend`
+      - `confidence`
+      - `headline`
+      - `summary`
+      - `drivers`
+      - `assumptions`
+      - `predicted_inputs`
+      - `provenance`
+    - allowing first-slice predictions to return `unknown` when core chemistry
+      or forecast support is too incomplete for a credible forecast
+    - requiring show-your-work explanation fields from the first slice
+    - keeping this boundary read-only and separate from maintenance
+      recommendation logic
 31. expose a configurable water-testing schedule by:
     - persisting a pool-scoped `water_testing_schedule` configuration in SQLite
       backed settings

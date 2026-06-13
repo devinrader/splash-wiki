@@ -406,12 +406,25 @@ Specific workflow placement rules:
   - remains read-only in the first slice
   - keeps detailed chemistry entry in the Chemistry workflow, currently
     surfaced through `Water Test Log`
+  - does not replace current-state messaging with predicted-swimmability output
+    in the first prediction slice
+  - may later show a compact future-readiness teaser, but prediction detail
+    should live on a dedicated surface or panel
   - keeps telemetry and chart context on `History`
   - treats chemistry as the primary safety signal
   - treats chemistry age and rainfall since the last test as confidence
     modifiers
   - treats cover, UV, hot weather, and warmer water as modifiers that can make
     chemistry confidence age faster when the pool is uncovered
+- when forecast-based predicted swimmability is added, the frontend should:
+  - load `GET /swimmability/predicted` from a dedicated prediction surface or
+    panel
+  - present horizon rows for `24h`, `48h`, `72h`, and `7d` when available
+  - distinguish clearly between current measured conditions and future
+    predicted conditions
+  - show prediction confidence, major drivers, and missing-input assumptions
+  - avoid presenting prediction as a replacement for the Home current-state
+    swimmability card
 - on the `Settings` destination, render a `Pool Chemistry` section that:
   - loads the configured chemistry bounds set from `GET /api/settings/pool-chemistry`
   - lets the operator edit supported built-in chemistry keys

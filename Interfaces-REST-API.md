@@ -89,6 +89,7 @@ First-slice equipment latest-state guidance:
 | `/pool/cover` | `GET`, `POST` | Current cover state and update |
 | `/pool/cover/history` | `GET` | Cover event history |
 | `/swimmability` | `GET` | Current swimmability assessment for the active pool |
+| `/swimmability/predicted` | `GET` | Forecast-based predicted swimmability read model |
 | `/slam` | `GET` | SLAM sessions |
 | `/slam/start` | `POST` | Start SLAM |
 | `/slam/:id/criterion` | `POST` | Mark a SLAM criterion |
@@ -1070,6 +1071,43 @@ Rules:
   - `insufficient_data`
 - keep the endpoint read-only
 - do not imply exact UV dose in the first slice
+
+### `GET /swimmability/predicted`
+
+Purpose:
+- return forecast-based predicted swimmability for the active pool
+
+Query parameters:
+- `horizon` optional:
+  - `24h`
+  - `48h`
+  - `72h`
+  - `7d`
+  - default: return all supported horizons
+
+Response shape:
+- `generated_at`
+- `current`
+  - current swimmability summary reference
+- `predictions`
+  - `horizon`
+  - `status`
+  - `score`
+  - `trend`
+  - `confidence`
+  - `headline`
+  - `summary`
+  - `drivers`
+  - `assumptions`
+  - `predicted_inputs`
+  - `provenance`
+
+Rules:
+- prediction must remain separate from the current swimmability endpoint
+- support first-slice horizons of `24h`, `48h`, `72h`, and `7d`
+- return `unknown` or low-confidence predictions when the available input set is
+  too incomplete for a credible forecast
+- expose show-your-work fields from the first slice
 
 ### `GET /swimmability`
 

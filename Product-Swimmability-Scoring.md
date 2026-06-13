@@ -18,7 +18,9 @@ Source issue:
 - `#114 Feature: Build swimmability index model and operator-facing UI`
 
 This page describes the current score only. It does not yet define the future
-prediction or maintenance-recommendation engines.
+prediction or maintenance-recommendation engines. Predicted swimmability should
+remain a separate read model rather than being folded into the current score
+contract.
 
 For the broader future-facing architecture guidance covering current
 swimmability, predicted swimmability, maintenance recommendations, and data

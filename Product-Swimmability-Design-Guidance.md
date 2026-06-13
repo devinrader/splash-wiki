@@ -141,6 +141,23 @@ Outputs should include:
 - confidence score
 - time horizon
 - explanation of the strongest drivers
+- explicit assumptions and missing-input constraints
+
+First-slice prediction contract guidance:
+- expose predicted swimmability through a dedicated read model rather than
+  folding it into the current swimmability endpoint
+- support first horizons of `24h`, `48h`, `72h`, and `7d`
+- allow `unknown` or low-confidence prediction outputs when the available data
+  is too thin to support a credible forecast
+- require show-your-work driver and provenance fields from the first slice
+
+First-slice prediction contract guidance:
+- expose predicted swimmability through a dedicated read model rather than
+  folding it into the current swimmability endpoint
+- support first horizons of `24h`, `48h`, `72h`, and `7d`
+- allow `unknown` or low-confidence prediction outputs when the available data
+  is too thin to support a credible forecast
+- require show-your-work driver and provenance fields from the first slice
 
 ### 3. Maintenance readiness score
 
