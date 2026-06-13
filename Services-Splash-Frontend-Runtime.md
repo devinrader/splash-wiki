@@ -349,10 +349,12 @@ Specific workflow placement rules:
   - shows current state, cover type, and last updated timestamp when a cover
     event exists
   - shows an explicit empty state when no cover event has been recorded
-  - allows the operator to record:
+  - allows the operator to record real-time cover events:
     - `Cover On`
     - `Cover Off`
   - requires cover-type selection before submitting `Cover On`
+  - also provides a retroactive entry flow with explicit timestamp input for
+    backfilled cover events
   - uses first-slice cover-type choices of:
     - `Solar`
     - `Winter`

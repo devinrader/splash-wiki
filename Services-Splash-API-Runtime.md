@@ -322,12 +322,17 @@ For the first browser milestone, `splash-api` should:
       `GET /pool/cover/history` for the active pool
     - treating cover state as an append-only event log rather than a separate
       mutable current-state row
-    - deriving current cover state from the newest persisted cover event
+    - deriving current cover state from the newest persisted cover event by
+      `recorded_at`
     - accepting first-slice manual `state` values of `on` and `off`
     - accepting first-slice `cover_type` values of `unknown`, `solar`,
       `winter`, `safety`, and `automatic`
     - requiring `cover_type` when recording `state = on`
-    - assigning `recorded_at` at API save time in the first slice
+    - accepting optional client-supplied `recorded_at` for retroactive manual
+      backfill
+    - assigning `recorded_at` at API save time only when the request omits it
+    - rejecting invalid or ambiguous backfilled event sequences rather than
+      silently rewriting history
     - returning newest-first cover-event history with optional start/end
       filtering and limit control
     - emitting a normalized `pool.cover.event` event after persistence
@@ -338,6 +343,8 @@ For the first browser milestone, `splash-api` should:
     - exposing `GET /pool/cover/exposure-summary` for the active pool
     - deriving the summary on read from persisted `pool_cover_events` rather
       than introducing a second persisted cover-state store
+    - ordering the event stream by `recorded_at` when deriving exposure
+      summaries
     - returning fixed recent windows of:
       - `24h`
       - `72h`

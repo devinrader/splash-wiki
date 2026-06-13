@@ -1001,23 +1001,33 @@ Rules:
 ### `POST /pool/cover`
 
 Purpose:
-- record a new manual cover event and make it the current cover state
+- record a new manual cover event and update the current cover state based on
+  effective event time
 
 Request:
 
 ```json
 {
   "state": "on",
-  "cover_type": "solar"
+  "cover_type": "solar",
+  "recorded_at": "2026-06-12T18:30:00Z"
 }
 ```
 
 Rules:
 - the first slice is manual-entry only
-- the API assigns `recorded_at` at save time
+- the request may omit `recorded_at` for real-time entry
+- when `recorded_at` is omitted, the API assigns it at save time
+- when `recorded_at` is provided, treat the event as a retroactive backfill
 - `cover_type` is required when `state = "on"`
 - `cover_type` may be omitted when `state = "off"` and should be stored as
   `unknown`
+- current cover state is derived from the newest event by `recorded_at`, not
+  by insertion order
+- the API should reject invalid or ambiguous backfilled events rather than
+  silently rewriting cover history
+- the first slice should support discrete retroactive event entry, not
+  arbitrary interval editing
 - after persistence succeeds, the API emits a `pool.cover.event` event
 
 Response:
@@ -1037,6 +1047,8 @@ Rules:
 - return newest-first events
 - default limit: `100`
 - the first slice does not aggregate cover history
+- current cover state and later exposure summaries should be derived from
+  events ordered by `recorded_at`
 
 ### `GET /pool/cover/exposure-summary`
 
