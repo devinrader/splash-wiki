@@ -46,8 +46,8 @@ end-to-end vertical slice.
   - per-value source and confidence metadata
   - contradiction or low-confidence status when inputs disagree
   - user-managed freshness policy from the water-testing schedule
-  - recent chemical additions, observations, and maintenance history as
-    explainable operator-context inputs
+  - recent chemical additions, water additions/refills, observations, and
+    maintenance history as explainable operator-context inputs
 
 ### Mobile shell
 

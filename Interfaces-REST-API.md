@@ -403,6 +403,67 @@ Rules:
 - additions must not be stored in `chemistry_readings`
 - the response returns the saved addition event in the standard envelope
 
+### `GET /chemistry/water-additions`
+
+Purpose:
+- return durable water-addition and refill history for the active pool
+
+Query parameters:
+- `start`
+- `end`
+- `limit`
+
+Rules:
+- return newest-first by default
+- water additions are source-water events, not chemistry measurements or
+  ordinary treatment additions
+- support time-bounded review for future Chemistry and History workflows
+
+Response fields per water-addition event:
+- `id`
+- `pool_id`
+- `water_source`
+- `amount`
+- `unit`
+- `reason`
+- `notes`
+- `source`
+- `recorded_at`
+- `created_at`
+
+### `POST /chemistry/water-additions`
+
+Purpose:
+- record that water was added to the pool
+
+First-slice request fields:
+- `water_source`
+- `amount`
+- `unit`
+- `reason`
+- `notes` optional
+
+First-slice supported `water_source` values:
+- `well`
+- `municipal`
+- `truck`
+- `unknown`
+
+First-slice supported `reason` values:
+- `top_up`
+- `post_backwash_refill`
+- `partial_refill`
+- `full_refill`
+- `other`
+
+Rules:
+- first slice is manual-only
+- water additions must remain distinct from chemistry readings and
+  `chemical_additions`
+- `amount` must be positive
+- the API assigns `recorded_at` and `created_at` in the first slice
+- the response returns the saved water-addition event in the standard envelope
+
 ### `GET /controller/schedules`
 
 ### `PUT /controller/schedules/:schedule_id`

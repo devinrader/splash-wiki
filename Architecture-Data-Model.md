@@ -29,6 +29,7 @@ The design is single-pool in v1, but child records carry `pool_id` to keep futur
 | `checklist_completions` | Checklist runs | `definition_id`, `started_at`, `completed_at` |
 | `chemistry_readings` | User and sensor chemistry log | `pool_id`, `ph`, `free_chlorine`, `total_chlorine`, `total_alkalinity`, `calcium_hardness`, `cyanuric_acid`, `source`, `recorded_at`, `created_at` |
 | `chemical_additions` | Durable treatment-action history | `pool_id`, `chemical_type`, `amount`, `unit`, `notes`, `source`, `recorded_at`, `created_at` |
+| `water_additions` | Durable refill and top-up history | `pool_id`, `water_source`, `amount`, `unit`, `reason`, `notes`, `source`, `recorded_at`, `created_at` |
 | `pool_cover_events` | Append-only cover state history, including retroactive manual backfill events | `pool_id`, `state`, `cover_type`, `source`, `recorded_at`, `created_at` |
 | `slam_sessions` | SLAM workflow state | `status`, `cya_at_start`, `slam_fc_target`, `criterion_cc`, `criterion_clear`, `criterion_oclt`, `oclt_fc_before`, `oclt_fc_after` |
 | `tasks` | Actionable work items | `status`, `priority`, `source`, `automation_command`, `due_at`, `snooze_until` |
@@ -52,6 +53,13 @@ Planned expansion tracks:
   - chemical type
   - amount
   - unit
+  - source
+  - recorded time
+- `#149` water-addition and refill events:
+  - water source
+  - amount
+  - unit
+  - reason
   - source
   - recorded time
 - `#134` observational pool-condition inputs:
@@ -128,6 +136,8 @@ themselves are part of the canonical future design.
 - One `pool` owns all other major records
 - `chemical_additions` are treatment actions and must remain separate from
   `chemistry_readings`, which represent measured water values
+- `water_additions` are source-water events and must remain separate from both
+  `chemistry_readings` and `chemical_additions`
 - `equipment` optionally links into `maintenance_schedules`
 - `checklist_definitions` own `checklist_steps` and `checklist_completions`
 - `slam_sessions`, `tasks`, and `notifications` may reference related entities for UX and audit context
@@ -139,6 +149,8 @@ themselves are part of the canonical future design.
   free_chlorine` when both values exist
 - `chemical_additions` should preserve what the operator added to the pool even
   when later chemistry readings make the treatment effect no longer visible
+- `water_additions` should preserve what source water entered the pool, how
+  much was added, and why the refill happened
 - `water_testing_schedule` is pool-scoped configuration and stores freshness
   expectations for manually logged and sensor-derived water values
 - `pool_circuits` is one-to-many from `pools`

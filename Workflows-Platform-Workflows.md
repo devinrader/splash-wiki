@@ -88,6 +88,7 @@ Target direction:
 - Run a full chemistry test.
 - Check combined chlorine.
 - Record any meaningful chemical additions made during the week.
+- Record any meaningful water top-ups or refill events made during the week.
 - Inspect or clean filter.
 - Inspect the salt cell.
 
@@ -108,6 +109,19 @@ Expected operator flow:
 2. Decide what should be added.
 3. Add the treatment.
 4. Record what was added as a chemical-addition event.
+
+### Water-addition logging guidance
+
+Water top-ups and refill events should be recorded separately from chemical
+additions.
+
+Expected operator flow:
+
+1. Add water to the pool.
+2. Record the refill or top-up event.
+3. Capture the water source when known, especially for well water.
+4. Retest chemistry later if the refill volume was material or the source water
+   may affect minerals, pH, alkalinity, or sanitizer behavior.
 5. Record any meaningful maintenance performed, such as brushing, vacuuming,
    skimming, or filter cleaning, as a maintenance-activity event.
 6. Retest later as needed.

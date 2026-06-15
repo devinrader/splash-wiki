@@ -411,9 +411,50 @@ Splash should keep these separate:
 
 - chemistry readings describe what the water measured
 - chemical additions describe what the operator or equipment added
+- water additions describe what source water entered the pool
 
 A future prediction or recommendation engine should consume both types of
 history, but they must remain stored and explained separately.
+
+### Water additions and refill events
+
+Water top-ups and refill events should not be treated as ordinary chemical
+additions.
+
+Splash should therefore model water additions as:
+
+- first-class historical events
+- source-water events whose effect depends on the water source, refill amount,
+  and current pool chemistry
+- future inputs to chemistry interpretation, predicted swimmability,
+  recommendations, and confidence
+
+Suggested first-slice attributes:
+
+- `water_source`
+  - `well`
+  - `municipal`
+  - `truck`
+  - `unknown`
+- `amount`
+- `unit`
+- `reason`
+  - `top_up`
+  - `post_backwash_refill`
+  - `partial_refill`
+  - `full_refill`
+  - `other`
+- `notes`
+- `source`
+- `recorded_at`
+- `created_at`
+
+This distinction matters because water-source events may imply:
+
+- dilution of existing chemistry
+- mineral or metal introduction
+- calcium, alkalinity, or pH drift
+- reduced prediction confidence when the source-water profile is not known
 
 ## Chemical impact matrix
 
