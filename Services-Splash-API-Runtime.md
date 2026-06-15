@@ -397,11 +397,16 @@ For the first browser milestone, `splash-api` should:
       blocker in the first slice
     - evaluating chemistry-recency confidence as a context-aware heuristic:
       - start from elapsed time since the latest chemistry reading
-      - accelerate degradation for uncovered pools, higher UV, hotter air, and
-        warmer water
-      - slow degradation for covered pools
+      - accelerate degradation for higher UV, hotter air, and warmer water
       - further degrade confidence when meaningful rainfall has occurred since
         the last chemistry reading
+    - keeping the latest cover state as explanatory current-context only:
+      - do not materially degrade current swimmability just because the latest
+        cover log is aging
+      - reserve cover-state confidence as a stronger input for:
+        - predicted swimmability
+        - cover exposure summaries
+        - recommendation confidence
     - keeping the first scoring model intentionally simple and explainable
     - deriving Home-card presentation fields from the same underlying drivers
       rather than creating a second independent scoring model

@@ -431,8 +431,10 @@ Specific workflow placement rules:
   - treats chemistry as the primary safety signal
   - treats chemistry age and rainfall since the last test as confidence
     modifiers
-  - treats cover, UV, hot weather, and warmer water as modifiers that can make
-    chemistry confidence age faster when the pool is uncovered
+  - treats UV, hot weather, and warmer water as modifiers that can weaken
+    confidence in older chemistry
+  - may show cover provenance as secondary context, but should not frame an
+    aging cover log as a major current-swimmability confidence problem
 - when forecast-based predicted swimmability is added, the frontend should:
   - load `GET /swimmability/predicted` from a dedicated prediction surface or
     panel
@@ -442,6 +444,8 @@ Specific workflow placement rules:
   - show prediction confidence, major drivers, and missing-input assumptions
   - avoid presenting prediction as a replacement for the Home current-state
     swimmability card
+  - prefer cover-confidence messaging on prediction and exposure-oriented
+    surfaces rather than on the main current-swimmability headline
 - when explainable maintenance recommendations are added, the frontend should:
   - load `GET /maintenance/recommendations` from a dedicated recommendation
     surface

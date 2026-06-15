@@ -38,7 +38,7 @@ Splash determines swimmability by combining:
 
 - the latest chemistry reading
 - configured chemistry bounds
-- current cover state
+- current cover state as minor contextual input only
 - latest weather forecast
 - latest water-temperature telemetry when available
 - rainfall since the last chemistry reading
@@ -49,7 +49,9 @@ The first slice treats:
 - chemistry as the primary safety signal
 - chemistry age and post-test rainfall as confidence modifiers
 - schedule-driven value freshness as a confidence modifier
-- cover, UV, hot weather, and warmer water as confidence or comfort modifiers
+- UV, hot weather, and warmer water as confidence or comfort modifiers
+- cover state as explanatory context for the current Home card, not as a major
+  current-swimmability confidence penalty
 - water temperature as a comfort signal rather than a hard safety block
 
 Known first-slice omissions:
@@ -233,13 +235,18 @@ even when the last logged chemistry values were acceptable.
 
 ## Cover effect
 
-Cover state influences how quickly chemistry confidence ages.
+Cover state remains useful contextual information on current swimmability
+surfaces, but the age or confidence of the latest cover log should not
+materially degrade current swimmability on its own.
 
-- `cover on` helps preserve confidence
-- `cover off` accelerates chemistry staleness
+Cover-confidence concerns belong primarily to:
 
-The first slice uses cover as a context modifier, not as an independent safety
-blocker.
+- predicted swimmability
+- cover exposure summaries
+- recommendation confidence
+
+The first slice should not require the operator to re-affirm cover state just
+to preserve a credible current swimmability result.
 
 ## Water temperature effect
 

@@ -107,6 +107,15 @@ A pool can have:
 - poor current chemistry with high confidence because multiple fresh inputs
   agree
 
+Cover-state confidence guidance:
+
+- uncertainty about the latest cover log should primarily affect:
+  - predicted swimmability
+  - cover exposure summaries
+  - recommendation confidence
+- it should have little or no direct effect on current swimmability unless a
+  future documented safety rule explicitly depends on cover state
+
 ### Chemical additions are predictive events
 
 Chemical additions are not merely corrections to current chemistry state.
