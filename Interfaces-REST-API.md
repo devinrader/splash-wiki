@@ -1323,6 +1323,23 @@ Rules:
 Purpose:
 - return the current pool notification inbox
 
+Lifecycle guidance:
+- first slice remains a notification-inbox model with `read` / `read_at`
+- `#151` first implementation slice should also classify each inbox item with:
+  - `category`
+    - `informational`
+    - `alert`
+    - `action_item`
+- future slices should distinguish among:
+  - informational notifications
+  - attention alerts
+  - action-oriented items
+  - resolved history
+- future lifecycle expansion should allow fields such as:
+  - `acknowledged_at`
+  - `resolved_at`
+  - `resolution_source`
+
 Query parameters:
 - `status`
   - `unread`
@@ -1342,6 +1359,7 @@ Example response:
         "id": "notification-1",
         "pool_id": "pool-1",
         "type": "chemistry_test_due",
+        "category": "alert",
         "severity": "warning",
         "title": "Chemistry test is due",
         "body": "The latest chemistry reading is older than the configured testing interval.",
@@ -1350,7 +1368,10 @@ Example response:
         "related_entity_type": "chemistry_reading",
         "related_entity_id": null,
         "created_at": "2026-06-04T21:00:00Z",
-        "read_at": null
+        "read_at": null,
+        "acknowledged_at": null,
+        "resolved_at": null,
+        "resolution_source": null
       }
     ]
   },
@@ -1375,10 +1396,19 @@ First-slice `severity` values:
 - `warning`
 - `critical`
 
+`#151` first-slice `category` values:
+- `informational`
+- `alert`
+- `action_item`
+
 Rules:
 - return newest-first notifications
 - default to `status=unread` when omitted
 - first slice should not invent notifications when required source data is missing
+- first-slice `read` means the operator saw the item, not that they acted on
+  it or resolved it
+- `#151` first slice may return lifecycle fields for future use, but only
+  `read` / `read_at` are writable
 - low-confidence and contradiction alerts should:
   - include provenance-oriented explanation text
   - deduplicate active alerts by type plus affected input or related context
@@ -1391,6 +1421,7 @@ Purpose:
 
 Rules:
 - idempotent
+- first slice affects only seen-state, not action-confirmation or resolution
 - returns the updated notification record
 
 ### `POST /notifications/read-all`
@@ -1400,6 +1431,7 @@ Purpose:
 
 Rules:
 - first slice affects only the active pool inbox
+- first slice marks items as seen, not completed or resolved
 - returns the number of updated notifications
 
 ### `GET /api/settings/water-testing-schedule`

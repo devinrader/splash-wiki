@@ -944,6 +944,19 @@ These alerts should be treated as:
 - separate from raw water-quality scoring
 - inputs to operator action, retesting, and future recommendation flows
 
+Splash should also distinguish between:
+
+- notifications that only require reading
+- alerts that require operator review
+- action-oriented items that require real-world operator work
+- resolved items that explain how the condition closed
+
+`read` should not be treated as equivalent to:
+
+- action taken
+- corrective maintenance completed
+- underlying condition resolved
+
 ## Historical learning architecture
 
 Splash should eventually support pool-specific learning.

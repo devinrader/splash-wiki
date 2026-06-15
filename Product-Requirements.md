@@ -22,6 +22,12 @@ end-to-end vertical slice.
 | Notifications | Persist and display maintenance, chemistry, seasonal, automation, and equipment-fault notifications |
 | MagicMirror | Expose a read-only integration surface over REST and SSE for a future `MMM-Splash` module |
 
+Notification and alert behavior should eventually distinguish among:
+- informational notifications that only require reading
+- alerts that require review or attention
+- action-oriented items that imply real-world operator work
+- resolved history that explains how a condition closed
+
 ## Functional detail
 
 ### Chemistry

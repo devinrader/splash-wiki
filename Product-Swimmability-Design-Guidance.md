@@ -39,6 +39,24 @@ Splash should be able to explain:
 - how trustworthy those inputs are
 - which missing or stale inputs limit the result
 
+Splash should also distinguish between:
+
+- informational notifications:
+  - meant to be read
+- attention alerts:
+  - meant to be reviewed
+- action-oriented items:
+  - meant to drive real-world operator work
+- resolved history:
+  - meant to show how a condition closed
+
+Future lifecycle modeling should distinguish:
+
+- `read_at`
+- `acknowledged_at`
+- `resolved_at`
+- `resolution_source`
+
 ## Guiding principle
 
 Splash should ultimately answer four questions:

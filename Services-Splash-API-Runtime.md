@@ -408,6 +408,10 @@ For the first browser milestone, `splash-api` should:
 30. expose a first notification inbox by:
     - persisting notifications durably in SQLite in a dedicated
       `notifications` table
+    - classifying first-slice inbox items with:
+      - `informational`
+      - `alert`
+      - `action_item`
     - exposing:
       - `GET /notifications`
       - `POST /notifications/:id/read`
@@ -438,6 +442,23 @@ For the first browser milestone, `splash-api` should:
       - no automatic task creation yet
       - no snooze flow yet
       - no scheduler-owned background notification worker yet
+    - treating first-slice `read` semantics as:
+      - seen by the operator
+      - not the same as action taken
+      - not the same as resolution
+    - returning lifecycle metadata for future growth:
+      - `read_at`
+      - `acknowledged_at`
+      - `resolved_at`
+      - `resolution_source`
+    - keeping the first implementation slice conservative:
+      - no acknowledge endpoint yet
+      - no resolve endpoint yet
+      - no task persistence requirement yet
+    - reserving future lifecycle expansion for:
+      - `acknowledged_at`
+      - `resolved_at`
+      - `resolution_source`
 32. expose a first forecast-based predicted swimmability read model by:
     - exposing `GET /swimmability/predicted` for the active pool
     - keeping prediction separate from the current `GET /swimmability` read
@@ -694,6 +715,7 @@ For the first browser milestone, `splash-api` should:
       - they do not mutate raw values
       - they do not silently rewrite the score
       - they explain what is missing, stale, unavailable, or contradictory
+      - they remain distinct from future action-confirmation state
     - deduplicating active alerts by notification type and affected input or
       related context
     - auto-clearing them when the underlying provenance issue clears

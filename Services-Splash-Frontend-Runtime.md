@@ -649,11 +649,16 @@ Specific workflow placement rules:
   - loads `GET /notifications`
   - defaults to unread notifications
   - renders a chronological inbox list with:
+    - category label
     - severity label
     - title
     - body
     - created time
     - read/unread state
+  - interprets first-slice read-state as:
+    - seen by the operator
+    - not proof of action taken
+    - not proof of resolution
   - allows:
     - mark one notification as read
     - mark all notifications as read
@@ -665,6 +670,10 @@ Specific workflow placement rules:
     - no alerts at all
   - surfaces load and save errors inline on the page
   - remains notification-only in the first slice and does not yet expose full task workflow controls
+  - `#151` first implementation slice should:
+    - visually distinguish `informational`, `alert`, and `action_item`
+    - continue using `Mark read` as the only lifecycle write action
+    - avoid implying that read-state equals action completion
   - renders schedule-driven chemistry freshness alerts using the same inbox
     list patterns as other notification types
   - renders contradiction-aware and low-confidence alerts in the same inbox by:
@@ -678,6 +687,11 @@ Specific workflow placement rules:
       separate contradiction dashboard in the first slice
     - preserving provenance detail as secondary explanation text rather than
       turning the inbox into a full provenance inspector
+  - future frontend slices should distinguish visually among:
+    - informational notifications
+    - attention alerts
+    - action-oriented items
+    - resolved history
 - the current `Alerts` destination is a transitional shell surface and belongs
   to the broader future `Routines` information-architecture category
 - when no weather forecast has been fetched yet, the weather widget should show
