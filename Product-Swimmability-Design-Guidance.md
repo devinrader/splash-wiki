@@ -160,6 +160,7 @@ Outputs should include:
 - time horizon
 - explanation of the strongest drivers
 - explicit assumptions and missing-input constraints
+- plain-language confidence blockers when confidence is low or unknown
 
 First-slice prediction contract guidance:
 - expose predicted swimmability through a dedicated read model rather than
@@ -168,6 +169,9 @@ First-slice prediction contract guidance:
 - allow `unknown` or low-confidence prediction outputs when the available data
   is too thin to support a credible forecast
 - require show-your-work driver and provenance fields from the first slice
+- require prediction summary and headline text to name the strongest
+  confidence blockers in operator-friendly language when confidence is low or
+  unknown
 
 First-slice prediction contract guidance:
 - expose predicted swimmability through a dedicated read model rather than

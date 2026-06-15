@@ -442,6 +442,12 @@ Specific workflow placement rules:
   - distinguish clearly between current measured conditions and future
     predicted conditions
   - show prediction confidence, major drivers, and missing-input assumptions
+  - show explicit confidence blockers when prediction confidence is `low` or
+    `unknown`, for example:
+    - `No weather forecast has been captured yet`
+    - `Chlorinator telemetry is unavailable`
+    - `Cover history is too sparse for a strong exposure estimate`
+    - `Circulation telemetry coverage is too sparse`
   - avoid presenting prediction as a replacement for the Home current-state
     swimmability card
   - prefer cover-confidence messaging on prediction and exposure-oriented

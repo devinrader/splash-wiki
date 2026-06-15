@@ -490,11 +490,19 @@ For the first browser milestone, `splash-api` should:
       - `summary`
       - `drivers`
       - `assumptions`
+      - `confidence_blockers`
       - `predicted_inputs`
       - `provenance`
     - allowing first-slice predictions to return `unknown` when core chemistry
       or forecast support is too incomplete for a credible forecast
     - requiring show-your-work explanation fields from the first slice
+    - requiring low-confidence and unknown-confidence predictions to name the
+      strongest blockers directly, such as:
+      - missing weather forecast
+      - sparse cover exposure history
+      - sparse circulation telemetry
+      - missing chlorinator telemetry
+      - stale or incomplete chemistry anchor
     - keeping this boundary read-only and separate from maintenance
       recommendation logic
 33. expose a first explainable maintenance-recommendation read model by:

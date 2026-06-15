@@ -1172,6 +1172,7 @@ Response shape:
   - `summary`
   - `drivers`
   - `assumptions`
+  - `confidence_blockers`
   - `predicted_inputs`
   - `provenance`
 
@@ -1181,6 +1182,9 @@ Rules:
 - return `unknown` or low-confidence predictions when the available input set is
   too incomplete for a credible forecast
 - expose show-your-work fields from the first slice
+- when `confidence` is `low` or `unknown`, `headline`, `summary`, and
+  `confidence_blockers` should identify the strongest missing or weak inputs in
+  plain language rather than only returning generic uncertainty text
 
 ### `GET /maintenance/recommendations`
 
