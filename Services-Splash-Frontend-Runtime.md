@@ -39,6 +39,8 @@ The initial milestone runtime is intentionally narrow:
    - submits manual raw frame sends
    - shows outbound diagnostic request events such as `protocol.command.encoded`
      and `serial.tx.raw` when present
+   - bounds retained in-browser diagnostics request state so unmatched requests
+     do not accumulate indefinitely during long-lived sessions
 10. allow the remaining milestone Diagnostics tabs and most non-System sidebar
     destinations to remain placeholder surfaces until their deeper product
     workflows are implemented
@@ -84,6 +86,9 @@ Cross-origin local development rule:
 - on SSE disconnect or reconnect, the frontend should refetch `GET /equipment`
   to resynchronize with the latest server state
 - `ready` SSE events are connection-level only and do not update equipment UI
+- app-level SSE subscriptions should be driven by route shell lifetime rather
+  than by incidental local UI state changes, to avoid avoidable subscription
+  churn and retained listener closures during development or long sessions
 
 ## UI expectations
 
