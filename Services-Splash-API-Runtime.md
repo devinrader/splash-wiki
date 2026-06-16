@@ -345,6 +345,8 @@ For the first browser milestone, `splash-api` should:
       than introducing a second persisted cover-state store
     - ordering the event stream by `recorded_at` when deriving exposure
       summaries
+    - carrying forward the most recent known cover state at or before each
+      summary window start when later cover-change events are absent
     - returning fixed recent windows of:
       - `24h`
       - `72h`

@@ -801,6 +801,9 @@ Prediction and recommendation engines should be able to consider:
 Cover-exposure modeling guidance:
 - derive cover-duration context from immutable cover-event history rather than
   inferring it from the latest cover state alone
+- when estimating a recent window, carry forward the most recent known cover
+  state at or before that window start until a later cover-change event
+  overrides it
 - treat daylight-uncovered duration as the first conservative exposure proxy
   before later UV-weighted models exist
 - do not present first-slice cover exposure summaries as exact UV dose
