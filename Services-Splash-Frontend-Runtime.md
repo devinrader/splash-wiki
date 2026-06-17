@@ -89,6 +89,9 @@ Cross-origin local development rule:
 - app-level SSE subscriptions should be driven by route shell lifetime rather
   than by incidental local UI state changes, to avoid avoidable subscription
   churn and retained listener closures during development or long sessions
+- frontend store writes driven by SSE or health polling should avoid creating
+  new state objects when the normalized incoming data is materially unchanged,
+  so long-lived sessions do not pay unnecessary external-store rerender churn
 
 ## UI expectations
 
