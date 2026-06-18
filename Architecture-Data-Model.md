@@ -503,7 +503,17 @@ Notes:
 | --- | --- | --- |
 | `equipment_state` | controller 0x02 broadcast every 2s | controller time, water temp, air temp, solar temp, heater state, circuit states, freeze protection, mode |
 | `pump_state` | pump 0x07 poll response | `running`, `watts`, `rpm`, `flow_gpm`, `filter_pressure_psi`, `filter_condition` |
-| `chlorinator_state` | chlorinator broadcast | `salt_ppm`, `output_percent`, `run_state`, `status`, `updated_at` |
+| `chlorinator_state` | chlorinator broadcast or direct IntelliChlor reply | `salt_ppm`, `output_percent`, `current_output_percent`, `target_output_percent`, `run_state`, `status`, `status_code`, `water_temp_f`, `model`, `connected`, `comms_lost`, `last_comm`, `updated_at` |
+
+IntelliChlor direct-control modeling rules:
+
+- Splash should support one IntelliChlor per RS-485 port in direct-control mode
+- direct control should remain opt-in and distinct from observed-only mode
+- IntelliChlor production metadata should store:
+  - `production_lb_per_day`
+  - `production_lb_per_second`
+- model metadata may be known even when controller-owned configuration remains
+  partial
 | `weather` | scheduler weather fetch | `temp_f`, `uv_index`, `humidity`, `condition`, `forecast_high_f`, `forecast_low_f`, `precip_chance_pct`, `actual_precip_in` |
 | `weather_forecast_daily` | provider-normalized daily forecast snapshot | `weather_code`, `high_temp_f`, `high_temp_c`, `low_temp_f`, `low_temp_c`, `precipitation_probability_max`, `precipitation_amount`, `uv_index_max`, `sunrise`, `sunset`, `provider`, `fetched_at`, `forecast_generated_at` |
 | `weather_forecast_hourly` | provider-normalized hourly forecast snapshot | `temperature_f`, `temperature_c`, `relative_humidity`, `dew_point_f`, `dew_point_c`, `precipitation_probability`, `precipitation_amount`, `cloud_cover`, `wind_speed`, `wind_gusts`, `uv_index`, `provider`, `fetched_at`, `forecast_generated_at` |

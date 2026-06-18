@@ -321,16 +321,28 @@ Specific workflow placement rules:
 - expand the existing chlorinator readouts by:
   - rendering `salt_ppm`, `output_percent`, `run_state`, and `status` from the
     equipment latest-state snapshot
+  - rendering richer IntelliChlor fields when available:
+    - `current_output_percent`
+    - `target_output_percent`
+    - `model`
+    - `water_temp_f`
+    - `connected`
+    - `comms_lost`
+    - `last_comm`
   - presenting chlorinator state first in `System` and in summary surfaces
     that already show equipment context
   - keeping the first slice factual and operational, for example:
     - `Salt 3200 ppm`
     - `Output 40%`
     - `Producing`
+    - `Model IC40`
+    - `Last Comm 10s ago`
   - not presenting recommendation or prediction conclusions from SWG
     telemetry yet
   - surfacing unknown or unavailable chlorinator fields explicitly rather than
     pretending the cell is off or producing when telemetry is incomplete
+  - surfacing direct-control state only when the backend explicitly exposes
+    that the chlorinator is in opt-in direct-control mode
 - expand the existing equipment and sensor readouts by:
   - rendering `flow_gpm`, `filter_pressure_psi`, and `filter_condition` from
     the equipment latest-state snapshot when available

@@ -192,6 +192,16 @@ Minimum normalized outputs in the initial service design:
 - pump state
 - chlorinator state
 
+IntelliChlor-specific runtime rules:
+
+- Splash should support two chlorinator runtime modes:
+  - `observed`
+  - `direct_control`
+- `observed` is the default
+- `direct_control` must be explicitly enabled per configured RS-485 port
+- controller-observed Intellichlor traffic and direct-control replies should
+  normalize into the same chlorinator state boundary
+
 Partial normalized publication rule:
 
 - when a recognized protocol message maps to a normalized event but only a
@@ -217,6 +227,29 @@ Live command flow:
 
 ASSUMPTION: the default command-correlation timeout is `5000ms` unless a plugin
 defines a stricter command family expectation.
+
+IntelliChlor direct-control requirements:
+
+- direct IntelliChlor control belongs in `splash-protocol`, not `splash-api`
+- a direct-control loop may run only when explicitly enabled for the target
+  port
+- no duplicate control loops should be created on config reload
+- loops must stop cleanly on shutdown
+- default polling cadence should be about `3000ms`
+- recommended sequence:
+  - send take-control action `0`
+  - wait about `300ms`
+  - compute effective target output
+  - send set-output action `17`
+  - wait about `300ms`
+  - send get-model action `20` only when model is unknown
+- effective target output must be forced to `0` when:
+  - the chlorinator is disabled
+  - the assigned body / pump / flow context is off
+- effective target output must be forced to `100` while super chlorinate is
+  active and not expired
+- if no valid Intellichlor communication is observed for about `30s`, runtime
+  state should mark communications lost
 
 ## Configuration-provider boundary
 

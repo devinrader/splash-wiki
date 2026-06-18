@@ -447,6 +447,8 @@ Rules:
   "equipment_type": "chlorinator",
   "salt_ppm": 3100,
   "output_percent": 40,
+  "current_output_percent": 40,
+  "target_output_percent": 40,
   "status": "ok"
 }
 ```
@@ -458,6 +460,24 @@ Partial normalized event rule:
 - omitted fields should not be synthesized from uncertain byte interpretations
 - protocol-level diagnostics remain the source for incomplete or still
   reverse-engineered payload areas
+
+Expanded first-slice IntelliChlor-compatible fields may also include:
+
+- `status_code`
+- `water_temp_f`
+- `model`
+- `connected`
+- `comms_lost`
+- `last_comm`
+- `updated_at`
+
+Rules:
+
+- controller-observed chlorinator data and direct-control replies should both
+  publish through this same normalized event family
+- normalized chlorinator events may include only the trusted subset of fields
+  available from the active action type
+- unknown fields should be omitted rather than guessed
 
 ## Normalized command vocabulary
 

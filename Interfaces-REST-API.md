@@ -48,13 +48,24 @@ First-slice equipment latest-state guidance:
   - `run_state`
   - `status`
   - `updated_at`
+- richer IntelliChlor-capable chlorinator `latest_state` payloads may also
+  include, when normalized data is available:
+  - `current_output_percent`
+  - `target_output_percent`
+  - `status_code`
+  - `water_temp_f`
+  - `model`
+  - `connected`
+  - `comms_lost`
+  - `last_comm`
 - first-slice flow and filter `latest_state` fields should include, where
   available:
   - `flow_gpm`
   - `filter_pressure_psi`
   - `filter_condition`
   - `updated_at`
-- first-slice chlorinator telemetry is read-only in this contract
+- first-slice chlorinator telemetry is read-only in this contract unless a
+  later explicit direct-control contract is enabled for IntelliChlor mode
 - first-slice flow and filter telemetry are read-only in this contract
 - `flow_gpm` should attach first to the pump equipment record in the current
   latest-state model

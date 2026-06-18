@@ -762,6 +762,21 @@ For the first browser milestone, `splash-api` should:
     - treating chlorinator telemetry as an operational input for future
       predicted swimmability, maintenance readiness, and recommendation work
       rather than as a direct chemistry reading
+    - preparing the existing latest-state projection to accept richer
+      IntelliChlor-compatible fields when `splash-protocol` confidently
+      normalizes them, including:
+      - `current_output_percent`
+      - `target_output_percent`
+      - `status_code`
+      - `water_temp_f`
+      - `model`
+      - `connected`
+      - `comms_lost`
+      - `last_comm`
+    - keeping direct chlorinator control opt-in and protocol-owned rather than
+      inventing an API-owned polling loop
+    - rejecting direct-control writes when the active chlorinator mode remains
+      observed-only
 
 39. expand first-slice flow and filter telemetry by:
     - extending the existing equipment latest-state projection rather than
