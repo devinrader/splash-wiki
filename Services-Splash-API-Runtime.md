@@ -741,20 +741,20 @@ For the first browser milestone, `splash-api` should:
     - normalizing first-slice chlorinator latest-state fields:
       - `salt_ppm`
       - `output_percent`
-      - `run_state`
       - `status`
       - `updated_at`
     - treating `salt_ppm` as direct telemetry rather than a manual chemistry
       reading
-    - treating `output_percent` as the configured or reported SWG output level
-    - treating `run_state` as distinct from `status` so active production can
-      be separated from broader health or availability context
-    - using conservative first-slice enumerations such as:
-      - `run_state`: `producing`, `idle`, `off`, `unknown`
+    - treating `output_percent` as the configured or reported SWG duty-cycle
+      target level, not proof of instantaneous chlorine generation
+    - avoiding invented real-time production-state claims when protocol
+      semantics are not validated by local captures
+    - using conservative first-slice status enumerations such as:
       - `status`: `ok`, `low_salt`, `high_salt`, `fault`, `offline`,
         `unknown`
-    - preferring raw upstream values when available and using `unknown` rather
-      than inventing production state from salt level alone
+    - preferring raw upstream values when available and omitting unsupported
+      real-time production fields rather than guessing them from salt level or
+      uncertain chlorinator payload semantics
     - exposing the expanded chlorinator latest-state through the existing
       equipment snapshot routes and SSE payloads
     - keeping the first slice read-only and separate from future chlorinator
@@ -765,7 +765,6 @@ For the first browser milestone, `splash-api` should:
     - preparing the existing latest-state projection to accept richer
       IntelliChlor-compatible fields when `splash-protocol` confidently
       normalizes them, including:
-      - `current_output_percent`
       - `target_output_percent`
       - `status_code`
       - `water_temp_f`
@@ -773,6 +772,9 @@ For the first browser milestone, `splash-api` should:
       - `connected`
       - `comms_lost`
       - `last_comm`
+    - treating model production metadata plus circulation/runtime evidence as
+      the basis for future estimated SWG chlorine-generation support over time
+      instead of pretending to know instantaneous active production
     - keeping direct chlorinator control opt-in and protocol-owned rather than
       inventing an API-owned polling loop
     - rejecting direct-control writes when the active chlorinator mode remains

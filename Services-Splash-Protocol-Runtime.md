@@ -201,6 +201,12 @@ IntelliChlor-specific runtime rules:
 - `direct_control` must be explicitly enabled per configured RS-485 port
 - controller-observed Intellichlor traffic and direct-control replies should
   normalize into the same chlorinator state boundary
+- when local captures do not validate a real-time active-production signal,
+  chlorinator normalization should prefer:
+  - duty-cycle target output
+  - salt/status/connectivity
+  - model production metadata
+  over invented instantaneous production-state fields
 
 Partial normalized publication rule:
 

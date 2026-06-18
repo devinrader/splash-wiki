@@ -447,7 +447,6 @@ Rules:
   "equipment_type": "chlorinator",
   "salt_ppm": 3100,
   "output_percent": 40,
-  "current_output_percent": 40,
   "target_output_percent": 40,
   "status": "ok"
 }
@@ -468,6 +467,14 @@ Expanded first-slice IntelliChlor-compatible fields may also include:
 - `model`
 - `connected`
 - `comms_lost`
+
+Duty-cycle rule:
+
+- `output_percent` and `target_output_percent` should be interpreted as
+  configured or observed SWG duty-cycle support, not as proof of instantaneous
+  active chlorine generation
+- `current_output_percent` should not be normalized unless local captures
+  validate that field for the active chlorinator installation
 - `last_comm`
 - `updated_at`
 

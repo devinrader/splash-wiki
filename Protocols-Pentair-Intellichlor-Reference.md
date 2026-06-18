@@ -85,6 +85,33 @@ Intellichlor-originating status bytes provide the chlorinator status code:
 | `7` | low_water_temp |
 | `8` | communication_lost |
 
+## Duty-cycle generation model
+
+Splash should treat IntelliChlor-family support as a duty-cycle generation
+system, not as a guaranteed real-time production-state feed.
+
+Documented behavior for IntelliChlor IC-family cells:
+
+- one duty cycle is `300 seconds`
+- `265 seconds` of that cycle are available for chlorine generation
+- configured output percent represents the fraction of that available
+  generation window used within each cycle
+
+Modeling rules:
+
+- `target_output_percent` may be treated as a configured duty-cycle target when
+  confidently observed or commanded
+- Splash should not claim an instantaneous `run_state = producing` or
+  `current_output_percent` unless later captures independently validate those
+  semantics for the active installation
+- prediction and recommendation work should prefer estimated chlorine
+  generation over time using:
+  - production rate metadata
+  - target output percent
+  - circulation/runtime evidence
+  - pool volume
+  - weather and cover context
+
 ## Canonical model production metadata
 
 Splash should treat these values as verified `lb/day at 100% output over 24h`
@@ -110,6 +137,8 @@ Rules:
 - do not invent outputs for unknown future models
 - if a model is unknown, runtime state may still be exposed without a
   production-rate estimate
+- these production values are the canonical basis for estimated SWG chlorine
+  generation modeling over time
 
 ## Notes
 
@@ -121,5 +150,8 @@ Rules:
   replies should not be treated as fatal
 - action `19` appears to behave like keepalive / liveness evidence, especially
   for iChlor-family traffic
+- action `22` payload semantics should remain partial and should not be used as
+  proof of real-time active chlorine generation until Splash captures validate
+  that interpretation locally
 - IntelliCenter v3 chlorinator config-slot offsets should remain marked partial
   until validated by Splash captures

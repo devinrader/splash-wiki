@@ -207,6 +207,24 @@ First-slice prediction guidance:
 - return `unknown` when core chemistry or forecast support is too incomplete to
   justify a credible future score
 
+SWG modeling guidance:
+
+- for salt-water generators such as IntelliChlor-family cells, prediction
+  should prefer estimated chlorine generation over time rather than invented
+  instantaneous production state
+- estimate SWG support from:
+  - documented model production rate at `100%` over `24h`
+  - configured or observed target output percent
+  - effective circulation/runtime evidence
+  - pool volume
+  - weather and cover context
+- when the protocol does not provide a validated real-time active-production
+  signal, do not claim:
+  - `currently producing`
+  - real-time `current_output_percent`
+- instead, expose that prediction is using estimated duty-cycle generation
+  support with explicit confidence limits
+
 ### Maintenance readiness score
 
 Question answered:

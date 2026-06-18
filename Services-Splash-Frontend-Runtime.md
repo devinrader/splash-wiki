@@ -319,22 +319,24 @@ Specific workflow placement rules:
   single `Weather Impact` card
 - keep the Home weather slice focused on operator-facing pool-impact context
 - expand the existing chlorinator readouts by:
-  - rendering `salt_ppm`, `output_percent`, `run_state`, and `status` from the
+  - rendering `salt_ppm`, `output_percent`, and `status` from the
     equipment latest-state snapshot
   - rendering richer IntelliChlor fields when available:
-    - `current_output_percent`
     - `target_output_percent`
     - `model`
     - `water_temp_f`
     - `connected`
     - `comms_lost`
     - `last_comm`
+  - presenting SWG output as configured or observed duty-cycle support unless a
+    validated real-time production-state signal is available for the active
+    installation
   - presenting chlorinator state first in `System` and in summary surfaces
     that already show equipment context
   - keeping the first slice factual and operational, for example:
     - `Salt 3200 ppm`
     - `Output 40%`
-    - `Producing`
+    - `Status: Low Flow`
     - `Model IC40`
     - `Last Comm 10s ago`
   - not presenting recommendation or prediction conclusions from SWG
