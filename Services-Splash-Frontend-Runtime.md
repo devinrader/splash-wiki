@@ -535,6 +535,8 @@ Specific workflow placement rules:
   - treats `Total Chlorine` as the configured chlorine-total setting and does
     not expose `Combined Chlorine` as a separately editable first-slice row
   - preserves units, enabled flags, and min/target/max inputs
+  - may expose optional unsafe min/max inputs for documented swimmability
+    hard-stop keys without forcing every chemistry row to define them
   - renders a per-row `Source` control with first-slice options of:
     - `Manual`
     - hardware choices from that row's `available_sources`

@@ -533,6 +533,12 @@ IntelliChlor direct-control modeling rules:
 Configuration-model guidance:
 - the root pool configuration should continue to own the pool-wide
   swimmability policy for swimmer-facing chemistry thresholds
+- swimmability-policy chemistry rows should support:
+  - minimum
+  - target
+  - maximum
+  - optional unsafe_min
+  - optional unsafe_max
 - IntelliChlor should own a separate chlorinator operating profile for
   equipment-safe ideal and allowed chemistry thresholds
 - overlapping chemistry keys should remain distinct records or documents so the

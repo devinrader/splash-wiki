@@ -102,6 +102,11 @@ Example inputs:
 Policy guidance:
 - the swimmer-facing configuration used by this score should be modeled as a
   pool-wide swimmability policy
+- the swimmability policy should support both preferred target bounds and
+  explicit optional unsafe bounds for parameters that can force an immediate
+  poor or unsafe assessment
+- current swimmability should use those documented unsafe bounds rather than
+  hidden hard-coded chemistry thresholds
 - equipment-specific profiles such as IntelliChlor operating thresholds may
   inform separate equipment warnings or recommendations but should not silently
   replace the swimmability policy

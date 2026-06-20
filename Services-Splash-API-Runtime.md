@@ -297,6 +297,8 @@ For the first browser milestone, `splash-api` should:
     - providing one recommendation-facing helper that returns normalized
       swimmability-policy thresholds with safe fallback defaults when SQLite is
       unavailable
+    - allowing normalized policy rows to carry optional unsafe_min / unsafe_max
+      values for current-swimmability hard-stop semantics
     - keeping the swimmability-policy configuration boundary separate from
       future recommendation or swimmability engines so those engines read
       settings rather than own them

@@ -1878,6 +1878,8 @@ Example per-setting shape:
         "minimum": 3000,
         "target": 3400,
         "maximum": 4000,
+        "unsafe_min": 2500,
+        "unsafe_max": 4500,
         "enabled": true,
         "sortOrder": 70,
         "source_mode": "hardware",
@@ -1913,8 +1915,11 @@ Rules:
 - the first slice should treat these settings as swimmer-facing swimmability
   policy fields
 - preferred semantics should distinguish:
-  - `target` range guidance
-  - optional future `unsafe` thresholds where documented
+  - `target` range guidance through `minimum` / `target` / `maximum`
+  - optional current-swimmability hard-stop guidance through
+    `unsafe_min` / `unsafe_max` where documented
+- when unsafe bounds are absent for a chemistry key, the scorer should not
+  invent hidden hard-stop thresholds for that key
 - first slice may return an empty `available_sources` array when no compatible
   hardware source is known
 - if a saved hardware binding is no longer available, it should still be
@@ -1926,6 +1931,8 @@ Rules:
 Additional update rules:
 - the first slice may continue using the existing route name while persisting
   swimmability-policy settings
+- request items may include optional `unsafe_min` and `unsafe_max` fields
+  for chemistry keys where swimmer-facing hard-stop semantics are desired
 - future equipment-specific profiles such as an IntelliChlor operating profile
   must remain separate from this pool-wide swimmability-policy surface
 

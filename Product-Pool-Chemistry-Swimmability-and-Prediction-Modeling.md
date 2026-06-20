@@ -40,6 +40,12 @@ monolithic score.
 Configuration guidance:
 - the pool-wide swimmer-facing chemistry configuration should be modeled as a
   swimmability policy
+- the swimmability policy should support:
+  - preferred target bounds via minimum / target / maximum
+  - optional unsafe bounds via unsafe_min / unsafe_max for parameters where a
+    current-swimmability hard stop is product-policy relevant
+- current swimmability should read its hard-stop chemistry behavior from the
+  swimmability policy rather than from hidden constants in code
 - equipment-specific chemistry guidance such as IntelliChlor ideal and allowed
   thresholds should live in a separate chlorinator operating profile
 - the two profiles may overlap in chemistry keys, but they should not be forced
