@@ -47,6 +47,8 @@ The initial milestone runtime is intentionally narrow:
 11. expose the first real `Settings` destination for:
     - weather-location configuration backed by `splash-api`
     - pool-chemistry bounds configuration backed by `splash-api`
+    - while allowing a focused `System` workflow to edit durable pool volume
+      through the same backend settings boundary
 
 ## Data flow
 
@@ -129,10 +131,19 @@ Target ownership rules:
   additions, and future SLAM workflow entry
 - `System` owns equipment, controller actions, sensors, connectivity, and
   operator-facing platform status
+- `System` may also host a narrow operator setup field for
+  `pool_volume_gallons` when that value is immediately needed by
+  equipment-facing SWG-support estimates
 - `History` owns trends and overlays such as chemistry, weather, cover, and
   later treatment/event context
 - `Routines` owns alerts, reminders, maintenance workflows, seasonal
   checklists, and multi-step guided processes
+- `Routines` may expose a `Current Swimmability Inputs` detail section
+  that uses the existing current swimmability read model to show the current
+  values, freshness, and helpful notes for the parameters that actually drive
+  the present-tense swimmability score
+- that detail section should stay separate from predicted-swimmability
+  assumptions and horizon-specific forecast inputs
 - `Automation` owns schedules, rules, triggers, scenes, and related logs
 - `Diagnostics` owns protocol tooling, live data inspection, event-log
   inspection, and lower-level troubleshooting
@@ -213,6 +224,10 @@ Specific workflow placement rules:
   intent rather than duplicating the same content block across all tabs
 - internal page grids should remain flexible and reflow cleanly within the
   constrained content container instead of relying on hard-coded fixed widths
+- on the IntelliChlor hardware detail surface, Splash may expose a durable
+  `Pool Volume (gallons)` input backed by the pool-profile settings route so
+  the operator can unlock ppm-normalized SWG support estimates without leaving
+  the `System` workflow
 - on the EasyTouch hardware detail surface, the `Circuit Configuration` table
   should render the columns:
   - `ID`
@@ -340,7 +355,15 @@ Specific workflow placement rules:
     - `Model IC40`
     - `Last Comm 10s ago`
   - not presenting recommendation or prediction conclusions from SWG
-    telemetry yet
+    telemetry yet, except that the IntelliChlor hardware detail page may show
+    a simple `24h` estimated chlorine-support hint when model metadata, target
+    output, and configured pool volume are available
+  - that hardware-page estimate should:
+    - remain labeled as estimated support rather than a measured or guaranteed
+      FC change
+    - use current cover state and latest water temperature only as simple
+      contextual modifiers or confidence inputs
+    - stay separate from the broader predicted-swimmability surface
   - surfacing unknown or unavailable chlorinator fields explicitly rather than
     pretending the cell is off or producing when telemetry is incomplete
   - surfacing direct-control state only when the backend explicitly exposes
@@ -478,6 +501,13 @@ Specific workflow placement rules:
   - load `GET /maintenance/recommendations` from a dedicated recommendation
     surface
   - treat `Routines` as the primary detailed recommendation destination
+- when a current-swimmability detail table is added to `Routines`, it should:
+  - be sourced from the existing `GET /swimmability` response rather than a new
+    frontend-only calculation
+  - show only the current-score inputs and derived current-score context that
+    the backend actually uses
+  - label unavailable values explicitly instead of inventing defaults
+  - keep future-prediction inputs on separate UI surfaces
   - optionally reuse the top recommendation as compact Home context
   - show for each recommendation:
     - title

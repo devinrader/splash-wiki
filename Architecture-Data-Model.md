@@ -144,6 +144,9 @@ themselves are part of the canonical future design.
 - `protocol_annotations` are pool-scoped so findings can differ by installation
 - `protocol_annotations` may be attached to saved Protocol Explorer frame bundles so one controlled experiment can carry its own byte-level notes
 - `pool_settings` is one-to-one with `pools`
+- `pools.volume_gallons` is durable root-profile configuration, not transient
+  telemetry; it should feed later chemistry, dosing, and SWG-support
+  calculations when present
 - `combined chlorine` is a derived interpretation value, not a first-slice
   primary stored chemistry setting; Splash derives it as `total_chlorine -
   free_chlorine` when both values exist
@@ -160,6 +163,18 @@ themselves are part of the canonical future design.
 - future swimmability and recommendation engines should consume both durable
   user logs and derived telemetry summaries rather than relying only on the
   latest point-in-time values
+
+## Pool profile settings
+
+`#159` pool-volume guidance:
+
+- `volume_gallons` belongs to the root `pools` profile rather than to the
+  serialized `pool_settings` blob
+- Splash may expose pool-profile editing through a `System` operator workflow,
+  but the stored source of truth remains the durable pool profile record
+- when `volume_gallons` is missing, ppm-normalized SWG support estimates and
+  other volume-aware calculations should remain unavailable rather than being
+  fabricated
 
 ## Equipment capability model
 

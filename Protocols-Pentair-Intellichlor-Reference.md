@@ -111,6 +111,14 @@ Modeling rules:
   - circulation/runtime evidence
   - pool volume
   - weather and cover context
+- the IntelliChlor hardware detail surface may also show a simple `24h`
+  estimated chlorine-support hint derived from:
+  - model production rate
+  - current target output percent
+  - latest water temperature when available
+  - current cover state as a conservative retention context
+- that hardware-page hint should remain clearly labeled as an estimate and must
+  not replace the broader predicted-swimmability model
 
 ## Canonical model production metadata
 

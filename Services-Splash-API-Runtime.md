@@ -300,6 +300,19 @@ For the first browser milestone, `splash-api` should:
     - keeping the configuration boundary separate from future recommendation
       or swimmability engines so those engines read settings rather than own
       them
+25a. expose durable pool-profile volume configuration by:
+    - treating `volume_gallons` as a root pool-profile field rather than as a
+      chemistry-bounds setting or transient telemetry value
+    - exposing `GET /api/settings/pool-profile` and
+      `PUT /api/settings/pool-profile` for the active pool
+    - validating `volume_gallons` as a positive numeric operator-managed value
+    - returning `null` when pool volume has not been configured yet rather than
+      inventing a default
+    - allowing System-facing setup workflows to edit this durable setting while
+      keeping `splash-api` as the persistence boundary
+    - making pool volume available to prediction and SWG-support helpers when
+      present, while keeping ppm-normalized estimates unavailable when it is
+      missing
 26. expose manual chemistry-reading persistence and trend reads by:
     - storing manual chemistry readings durably in SQLite in a dedicated
       `chemistry_readings` table

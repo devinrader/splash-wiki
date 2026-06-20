@@ -123,6 +123,7 @@ First-slice equipment latest-state guidance:
 | `/protocol/raw-frame/send` | `POST` | Manual raw protocol frame send for Explorer diagnostics |
 | `/protocol/simulate` | `POST` | Dry-run or live-send protocol command |
 | `/settings` | `GET`, `PUT` | Pool-scoped operator settings |
+| `/api/settings/pool-profile` | `GET`, `PUT` | Pool profile settings such as volume |
 | `/api/settings/weather-location` | `GET`, `PUT` | Weather location settings |
 | `/api/settings/pool-chemistry` | `GET`, `PUT` | Pool chemistry bounds and targets |
 | `/events` | `GET` as SSE | Main frontend event stream |
@@ -1801,6 +1802,51 @@ Rules:
 - sending an empty secret field should preserve the existing stored secret
   unless an explicit clear action is supported later
 - provider availability should be recalculated after the save
+
+### `GET /api/settings/pool-profile`
+
+Purpose:
+- return durable root pool-profile settings needed by runtime and prediction
+  workflows
+
+First-slice response fields:
+- `volume_gallons`
+
+Example shape:
+
+```json
+{
+  "data": {
+    "volume_gallons": 18000,
+    "source": "sqlite"
+  },
+  "error": null
+}
+```
+
+Rules:
+- `volume_gallons` may be `null` when the operator has not configured pool
+  volume yet
+- this route returns durable profile configuration, not telemetry
+- the first slice should stay narrow and avoid bundling unrelated profile
+  fields until they are explicitly documented
+
+### `PUT /api/settings/pool-profile`
+
+Purpose:
+- update durable root pool-profile settings needed by operator workflows
+
+First-slice request fields:
+- `volume_gallons`
+
+Rules:
+- `volume_gallons` must be a positive numeric value
+- the first slice may support only `volume_gallons` even if later profile
+  fields are added
+- successful saves should return the normalized saved profile payload in the
+  standard response envelope
+- when pool volume is missing, SWG ppm estimates and other volume-aware helpers
+  should remain unavailable instead of fabricating a default
 
 ### `GET /api/settings/pool-chemistry`
 
