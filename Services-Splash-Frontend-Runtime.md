@@ -46,7 +46,10 @@ The initial milestone runtime is intentionally narrow:
     workflows are implemented
 11. expose the first real `Settings` destination for:
     - weather-location configuration backed by `splash-api`
-    - pool-chemistry bounds configuration backed by `splash-api`
+    - swimmer-facing swimmability-policy chemistry configuration backed by
+      `splash-api`
+    - separate chlorinator operating-profile configuration owned by IntelliChlor
+      hardware workflows
     - while allowing a focused `System` workflow to edit durable pool volume
       through the same backend settings boundary
 
@@ -228,6 +231,9 @@ Specific workflow placement rules:
   `Pool Volume (gallons)` input backed by the pool-profile settings route so
   the operator can unlock ppm-normalized SWG support estimates without leaving
   the `System` workflow
+- the IntelliChlor hardware/settings workflow should own the chlorinator
+  operating-profile configuration, distinct from the pool-wide swimmability
+  policy owned by `Settings`
 - on the EasyTouch hardware detail surface, the `Circuit Configuration` table
   should render the columns:
   - `ID`

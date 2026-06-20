@@ -529,6 +529,14 @@ IntelliChlor direct-control modeling rules:
   - `production_lb_per_second`
 - model metadata may be known even when controller-owned configuration remains
   partial
+
+Configuration-model guidance:
+- the root pool configuration should continue to own the pool-wide
+  swimmability policy for swimmer-facing chemistry thresholds
+- IntelliChlor should own a separate chlorinator operating profile for
+  equipment-safe ideal and allowed chemistry thresholds
+- overlapping chemistry keys should remain distinct records or documents so the
+  UI and runtime can explain swimmer-safe versus equipment-safe differences
 | `weather` | scheduler weather fetch | `temp_f`, `uv_index`, `humidity`, `condition`, `forecast_high_f`, `forecast_low_f`, `precip_chance_pct`, `actual_precip_in` |
 | `weather_forecast_daily` | provider-normalized daily forecast snapshot | `weather_code`, `high_temp_f`, `high_temp_c`, `low_temp_f`, `low_temp_c`, `precipitation_probability_max`, `precipitation_amount`, `uv_index_max`, `sunrise`, `sunset`, `provider`, `fetched_at`, `forecast_generated_at` |
 | `weather_forecast_hourly` | provider-normalized hourly forecast snapshot | `temperature_f`, `temperature_c`, `relative_humidity`, `dew_point_f`, `dew_point_c`, `precipitation_probability`, `precipitation_amount`, `cloud_cover`, `wind_speed`, `wind_gusts`, `uv_index`, `provider`, `fetched_at`, `forecast_generated_at` |

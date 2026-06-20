@@ -37,6 +37,14 @@ capabilities should align with these four questions.
 Splash should not treat all pool quality and maintenance concepts as one
 monolithic score.
 
+Configuration guidance:
+- the pool-wide swimmer-facing chemistry configuration should be modeled as a
+  swimmability policy
+- equipment-specific chemistry guidance such as IntelliChlor ideal and allowed
+  thresholds should live in a separate chlorinator operating profile
+- the two profiles may overlap in chemistry keys, but they should not be forced
+  to mirror one another
+
 The platform should maintain separate but related models for:
 
 - current swimmability

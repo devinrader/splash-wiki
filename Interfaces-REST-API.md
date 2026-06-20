@@ -1851,8 +1851,14 @@ Rules:
 ### `GET /api/settings/pool-chemistry`
 
 Purpose:
-- return the active pool chemistry bounds together with source-selection
-  metadata for each chemistry key
+- return the active swimmability-policy chemistry thresholds together with
+  source-selection metadata for each chemistry key
+
+Alias guidance:
+- the first slice may keep the existing `pool-chemistry` route name for
+  compatibility
+- this route should be treated as the read surface for the pool-wide
+  swimmability policy rather than as a generic equipment-chemistry profile
 
 Per-setting fields:
 - `source_mode`
@@ -1904,6 +1910,11 @@ Rules:
 - the first slice exposes `total_chlorine` as the configured chlorine-total
   setting and does not expose `combined_chlorine` as an independently editable
   chemistry key
+- the first slice should treat these settings as swimmer-facing swimmability
+  policy fields
+- preferred semantics should distinguish:
+  - `target` range guidance
+  - optional future `unsafe` thresholds where documented
 - first slice may return an empty `available_sources` array when no compatible
   hardware source is known
 - if a saved hardware binding is no longer available, it should still be
@@ -1913,6 +1924,53 @@ Rules:
 ### `PUT /api/settings/pool-chemistry`
 
 Additional update rules:
+- the first slice may continue using the existing route name while persisting
+  swimmability-policy settings
+- future equipment-specific profiles such as an IntelliChlor operating profile
+  must remain separate from this pool-wide swimmability-policy surface
+
+### `GET /api/settings/chlorinator-profile`
+
+Purpose:
+- return the active chlorinator operating-profile chemistry guidance for the
+  active chlorinator installation
+
+First-slice fields:
+- per-parameter `ideal_min`
+- per-parameter `ideal_max`
+- optional `ideal_target`
+- per-parameter `allowed_min`
+- per-parameter `allowed_max`
+
+Suggested first-slice keys:
+- `free_chlorine`
+- `combined_chlorine`
+- `ph`
+- `cyanuric_acid`
+- `total_alkalinity`
+- `calcium_hardness`
+- `tds`
+- `salinity`
+- `phosphates`
+
+Rules:
+- this profile is equipment-oriented guidance, not the pool-wide swimmability
+  policy
+- it may overlap with swimmability-policy chemistry keys without implying the
+  thresholds must match
+- the first slice may expose this profile only for IntelliChlor-backed
+  hardware workflows
+
+### `PUT /api/settings/chlorinator-profile`
+
+Purpose:
+- update the active chlorinator operating profile
+
+Rules:
+- chlorinator operating thresholds should remain separate from the pool-wide
+  swimmability policy
+- first slice may scope the profile to one active chlorinator installation
+  instead of a multi-device abstraction
 - `chemistry_prompt_interval_days` may be saved alongside chemistry bounds
 - per-setting `source_mode` and `source_binding` may be updated with the same
   request

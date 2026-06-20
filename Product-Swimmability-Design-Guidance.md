@@ -91,12 +91,20 @@ Characteristics:
 
 Example inputs:
 
+- Swimmability-policy chemistry thresholds
 - Free Chlorine
 - pH
 - Water Clarity
 - Algae Presence
 - Water Temperature
 - Test Freshness
+
+Policy guidance:
+- the swimmer-facing configuration used by this score should be modeled as a
+  pool-wide swimmability policy
+- equipment-specific profiles such as IntelliChlor operating thresholds may
+  inform separate equipment warnings or recommendations but should not silently
+  replace the swimmability policy
 
 Outputs should include:
 

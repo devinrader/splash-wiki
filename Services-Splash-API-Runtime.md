@@ -269,18 +269,18 @@ For the first browser milestone, `splash-api` should:
       InfluxDB when that integration is configured
     - reporting configured weather-provider availability through the aggregated
       platform-status surface
-25. expose configurable pool-chemistry bounds by:
-    - storing durable operator-managed chemistry targets in SQLite rather
-      than InfluxDB
-    - seeding one built-in default chemistry-bounds profile for a saltwater
+25. expose configurable swimmability-policy chemistry thresholds by:
+    - storing durable operator-managed swimmer-facing chemistry policy in SQLite
+      rather than InfluxDB
+    - seeding one built-in default swimmability-policy profile for a saltwater
       residential pool without overwriting later customizations
     - treating `total_chlorine` as the first-slice configured chlorine-total
       value rather than storing an independently configured combined-chlorine
       setting
     - deriving combined chlorine as `total_chlorine - free_chlorine` when both
       readings are available
-    - exposing read and update routes for pool-chemistry settings on the
-      `Settings` page
+    - exposing read and update routes for swimmability-policy chemistry
+      settings on the `Settings` page
     - validating supported chemistry keys and numeric min/target/max ordering
     - persisting per-chemistry source-selection metadata together with those
       bounds inside the existing serialized chemistry-settings structure
@@ -295,11 +295,22 @@ For the first browser milestone, `splash-api` should:
     - validating that any saved `hardware` binding is compatible with the
       chemistry key it is assigned to
     - providing one recommendation-facing helper that returns normalized
-      chemistry bounds with safe fallback defaults when SQLite is
+      swimmability-policy thresholds with safe fallback defaults when SQLite is
       unavailable
-    - keeping the configuration boundary separate from future recommendation
-      or swimmability engines so those engines read settings rather than own
-      them
+    - keeping the swimmability-policy configuration boundary separate from
+      future recommendation or swimmability engines so those engines read
+      settings rather than own them
+25b. expose chlorinator operating-profile chemistry guidance by:
+    - storing a separate equipment-oriented chemistry profile for the active
+      chlorinator installation
+    - exposing dedicated read and update routes for that profile rather than
+      overloading the pool-wide swimmability-policy settings
+    - supporting first-slice ideal and allowed threshold fields per chemistry
+      key
+    - allowing overlapping chemistry keys without requiring the chlorinator
+      profile to mirror the swimmability policy
+    - making this profile available to System and IntelliChlor hardware
+      workflows for equipment-safe explanations and warnings
 25a. expose durable pool-profile volume configuration by:
     - treating `volume_gallons` as a root pool-profile field rather than as a
       chemistry-bounds setting or transient telemetry value
@@ -326,8 +337,9 @@ For the first browser milestone, `splash-api` should:
       succeeds
     - supporting first-slice history intervals of `raw` and `1d` with
       aggregation performed inside `splash-api`
-    - keeping chemistry-reading history separate from chemistry-bounds settings
-      so future recommendation and swimmability engines read both as inputs
+    - keeping chemistry-reading history separate from swimmability-policy
+      settings so future recommendation and swimmability engines read both as
+      inputs
 27. expose manual pool-cover event persistence and current-state reads by:
     - storing manual cover events durably in SQLite in a dedicated
       `pool_cover_events` table
@@ -388,7 +400,9 @@ For the first browser milestone, `splash-api` should:
       storing a durable swimmability table in the first slice
     - reading existing inputs from:
       - latest chemistry reading
-      - pool-chemistry bounds
+      - swimmability-policy chemistry thresholds
+      - chlorinator operating-profile thresholds when equipment-safe guidance is
+        needed
       - current cover state
       - latest normalized weather forecast snapshot
       - latest normalized water-temperature telemetry when available
@@ -669,7 +683,7 @@ For the first browser milestone, `splash-api` should:
     - treating addition events as treatment history rather than chemistry
       measurements
     - keeping `chemical_additions` separate from `chemistry_readings` and
-      from pool-chemistry settings
+      from the pool-wide swimmability policy
     - emitting a normalized `chemistry.addition` event after persistence
       succeeds
     - exposing addition history as a future input source for:
