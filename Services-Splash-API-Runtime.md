@@ -299,6 +299,10 @@ For the first browser milestone, `splash-api` should:
       unavailable
     - allowing normalized policy rows to carry optional unsafe_min / unsafe_max
       values for current-swimmability hard-stop semantics
+    - using the enabled water_temperature policy row for current
+      temperature-comfort scoring when available
+    - documenting the first-slice derived combined-chlorine caution threshold as
+      0.5 ppm until a dedicated policy field exists
     - keeping the swimmability-policy configuration boundary separate from
       future recommendation or swimmability engines so those engines read
       settings rather than own them

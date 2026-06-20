@@ -107,6 +107,12 @@ Policy guidance:
   poor or unsafe assessment
 - current swimmability should use those documented unsafe bounds rather than
   hidden hard-coded chemistry thresholds
+- current water-temperature comfort guidance should use the swimmability-policy
+  water-temperature row when that row is enabled rather than hidden fixed
+  comfort limits
+- derived combined chlorine may remain a documented first-slice fixed caution
+  threshold until a dedicated policy field is added, but it should not remain
+  an undocumented hidden rule
 - equipment-specific profiles such as IntelliChlor operating thresholds may
   inform separate equipment warnings or recommendations but should not silently
   replace the swimmability policy

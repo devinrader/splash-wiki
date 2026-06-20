@@ -1529,6 +1529,9 @@ Rules:
 - `combined_chlorine` is a derived freshness item rather than a primary stored
   chemistry field
 - `water_temperature` should prefer telemetry-derived observations
+- when the enabled swimmability-policy `water_temperature` row includes
+  minimum and/or maximum bounds, current-swimmability comfort messaging should
+  use those configured bounds instead of hidden defaults
 
 ### `PUT /api/settings/water-testing-schedule`
 
@@ -1912,6 +1915,9 @@ Rules:
 - the first slice exposes `total_chlorine` as the configured chlorine-total
   setting and does not expose `combined_chlorine` as an independently editable
   chemistry key
+- combined chlorine remains a derived current-swimmability input and the first
+  slice may continue using a documented fixed caution threshold of `0.5 ppm`
+  until a dedicated swimmability-policy field is added
 - the first slice should treat these settings as swimmer-facing swimmability
   policy fields
 - preferred semantics should distinguish:
